@@ -1,0 +1,55 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Leonardo16.App"
+             RequestedThemeVariant="Light"  >
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <FluentTheme>
+        <FluentTheme.Palettes>
+           <!-- Specifica la variante (Light o Dark) per evitare l'obbligo della x:Key -->
+           <ColorPaletteResources x:Key="Light" RegionColor="White" Accent="LightBlue" />
+           <ColorPaletteResources x:Key="Dark" RegionColor="Black" Accent="Blue" />
+         </FluentTheme.Palettes>
+    </FluentTheme>
+
+        
+        <!-- Altri stili globali... -->
+    
+        <!-- Include il ResourceDictionary dei ColoredButton -->
+        <StyleInclude Source="avares://ControlStyles/Themes/MyStyles.axaml"/>
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+
+        <Style Selector="HeaderedContentControl /template/ ContentPresenter">
+                     <Setter Property="Background" Value="Transparent" />
+                 </Style>
+                 <!-- Alcuni temi usano un Border dedicato -->
+                 <Style Selector="HeaderedContentControl /template/ Border">
+                     <Setter Property="Background" Value="Transparent" />
+                 </Style>
+                <Style Selector="HeaderedContentControl">
+                    <Setter Property="Template">
+                        <ControlTemplate>
+                            <Grid RowDefinitions="Auto,*">
+                                <ContentPresenter Name="PART_HeaderPresenter"
+                                                  Content="{TemplateBinding Header}"
+                                                  ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                                  Background="Transparent"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left" />
+                                <ContentPresenter Name="PART_ContentPresenter"
+                                                  Grid.Row="1"
+                                                  Content="{TemplateBinding Content}"
+                                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                  Padding="{TemplateBinding Padding}"
+                                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter>
+        </Style>
+    
+</Application.Styles>
+</Application>

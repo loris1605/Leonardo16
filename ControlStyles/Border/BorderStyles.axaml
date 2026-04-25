@@ -1,0 +1,48 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ControlStyles">
+
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <local:PopupBorder Width="200" Height="200"/>
+    </Border>
+  </Design.PreviewWith>
+
+  <Style Selector="local|PopupBorder">
+         
+         <Setter Property="BorderBrush" Value="Blue"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="CornerRadius" Value="0,20,0,20"/>
+         <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#B0B3B7" Offset="0"/>
+                    <GradientStop Color="#A39B9E" Offset="0.55"/>
+                    <GradientStop Color="#8C7A7E" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+	  
+  </Style>
+
+  <Style Selector="local|UiInfoBorder">
+	  
+      <Setter Property="BoxShadow" Value="5 15 20 0 Black"/>
+      <Setter Property="BorderBrush" Value="Green"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="Margin" Value="10"/>
+      <Setter Property="Background" Value="LightGray">
+      <!--<Setter.Value>
+        <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+            <GradientStop Color="Red" Offset="0.0"/>
+            <GradientStop Color="#00E01313" Offset="1.0"/>
+        </LinearGradientBrush>
+      </Setter.Value>-->
+
+</Setter>
+
+  </Style>
+    
+
+</Styles>

@@ -1,0 +1,29 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid">
+    
+    <!-- 1. DEFINISCI LE PROPRIETÀ BASE -->
+    <Style Selector="DataGrid.Group">
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="CanUserSortColumns" Value="True"/>
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="GridLinesVisibility" Value="All"/>
+        <Setter Property="Margin" Value="20"/>
+    </Style>
+
+    <!-- 2. STILE HEADER COLONNE (Nota l'uso di :is(DataGrid)) -->
+    <Style Selector="DataGrid.GenericSheet DataGridColumnHeader">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+    
+    <!-- 3. STILE RIGHE DI GRUPPO (Tendine) -->
+    <Style Selector="DataGrid.GenericSheet DataGridRowGroupHeader">
+        <Setter Property="Background" Value="#F2F2F2" />
+        <Setter Property="Height" Value="30" />
+    </Style>
+
+</Styles>
+

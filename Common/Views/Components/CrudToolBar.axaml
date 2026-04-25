@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:ui="using:ControlStyles"
+             x:Class="Views.CrudToolBar"
+             x:Name="Root">
+
+    <UniformGrid Columns="5" Grid.ColumnSpan="2" x:Name="MainRoot">
+        
+            <ui:UiButton x:Name="AddButton"
+                         Margin="20,0"
+                         MinWidth="50"
+                         DockPanel.Dock="Top"
+                         Background="Transparent"
+                         HorizontalAlignment="Left"
+                         ToolTipText="{Binding #Root.GroupText, StringFormat='AGGIUNGI {0}'}"
+                         Command="{Binding #Root.AddCommand}">
+                
+                    <Image Source="avares://ControlStyles/Resources/AddSocioIcon.png" Width="30" Height="30" />
+                        
+		
+            </ui:UiButton>
+
+            <ui:UiButton x:Name="UpdButton"
+                         Margin="20,0"
+                         MinWidth="50"
+                         DockPanel.Dock="Top"
+                         HorizontalAlignment="Left"
+                         ToolTipText="{Binding #Root.GroupText, StringFormat='MODIFICA {0}'}"
+                         Command="{Binding #Root.UpdCommand}">
+				
+                <Image Source="avares://ControlStyles/Resources/ModificaIcon.png" Width="30" Height="30" />
+
+            </ui:UiButton>
+
+            <ui:UiButton x:Name="DelButton"
+                         MinWidth="50"
+                         Margin="20,0"
+                         DockPanel.Dock="Top"
+                         ToolTipText="{Binding #Root.GroupText, StringFormat='CANCELLA {0}'}"
+                         HorizontalAlignment="Left"
+                         Command="{Binding #Root.DelCommand}">
+                
+                <Image Source="avares://ControlStyles/Resources/CancellaIcon.png" Width="30" Height="30" />
+
+            </ui:UiButton>
+
+            <ui:UiButton x:Name="CancelFilterButton"
+                         MinWidth="50"
+                         Margin="20,0"
+                         DockPanel.Dock="Top"
+                         ToolTipText="{Binding #Root.GroupText, StringFormat='CANCELLA FILTRO {0}'}"
+                         HorizontalAlignment="Left"
+                         Command="{Binding #Root.CancelFilterCommand}">
+
+                <Image Source="avares://ControlStyles/Resources/AnnullaIcon.png" Width="30" Height="30" />
+
+            </ui:UiButton>
+
+            <ui:UiButton x:Name="FilterButton"
+                         MinWidth="50"
+                         Margin="20,0"
+                         DockPanel.Dock="Top"
+                         ToolTipText="{Binding #Root.GroupText, StringFormat='FILTRA {0}'}"
+                         HorizontalAlignment="Left"
+                         IsVisible="{Binding #Root.FilterCommandVisibile}"
+                         Command="{Binding #Root.FilterCommand}">
+
+                <Image Source="avares://ControlStyles/Resources/SearchIcon.png" Width="30" Height="30" />
+
+            </ui:UiButton>
+        
+        </UniformGrid>
+  
+</UserControl>

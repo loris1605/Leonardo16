@@ -1,0 +1,142 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:ViewModels"
+             xmlns:ui="using:ControlStyles"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="LightSteelBlue"
+             x:DataType="vm:LoginViewModel"
+             x:Class="Views.LoginView">
+
+    <Grid x:Name="RootGrid">
+		
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="3*"/>  <!--PopupBorder-->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ui:PopupBorder VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Grid.Row="1"
+                        Grid.Column="1">
+
+            <Grid x:Name="PopupGrid">
+            
+                <Grid.RowDefinitions>
+					<RowDefinition Height="50"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+					<ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <ui:UiTitolo x:Name="lblTitolo" 
+                             FontSize="22" 
+                             Text="Leonardo Net - LOGIN " 
+                             SubTitolo="True"
+                             Margin="30,0" 
+                             HorizontalAlignment="Center"/>
+
+                <Grid x:Name="InputGrid" 
+                      Grid.Row="1"
+                      Margin="10">
+                
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="5"/>
+						<RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="55"/>
+                        
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ui:UiLabelForGrid Text="OPERATORE : " 
+                                       Margin="10,10,0,10"
+                                       Grid.Row="1"/>
+
+                    <ui:UiComboBox x:Name="OperatoreCombo"
+                                   ItemsSource="{Binding DataSource}"
+                                   DisplayMemberBinding="{Binding NomeOperatore}"
+                                   Background="White"
+                                   Grid.Column="1"
+                                   Grid.Row="1"
+                                   Margin="25,10,25,10"
+                                   IsTabStop="False"
+                                   Foreground="Black"/>
+
+                    <ui:UiLabelForGrid Text="PASSWORD : "
+                                       Grid.Row="2"
+                                       Margin="10,10,0,10"/>
+
+                    <ui:UiTextBox Grid.Row="2" 
+                                  x:Name="PasswordBox"
+                                  MoveToNextOnEnter="False"
+                                  Grid.Column="1"
+                                  Margin="25,2,25,2"
+                                  VerticalAlignment="Center"/>
+                
+                </Grid>
+            
+                <Grid x:Name="ButtonGrid"
+                             Grid.Row="4"
+                             Grid.ColumnSpan="2"
+                             Margin="20">
+                
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>    
+                
+                        <ui:UiButton Grid.Column="1"
+                                     Command="{Binding SaveCommand}"
+                                     x:Name="EntraButton"
+                                     IsTabStop="False"
+                                     Height="50"
+                                     FontSize="14"
+                                     VerticalAlignment="Top"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalContentAlignment="Center"
+                                     ToolTipText="ACCEDI AL MENU PRINCIPALE">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Image Source="avares://ControlStyles/Resources/CredenzialiIcon.png" Width="34" Height="34" />
+                                <TextBlock Text=" Entra " 
+                                           VerticalAlignment="Center"
+                                           FontSize="16"/>
+                            </StackPanel>
+                        </ui:UiButton>
+
+                        
+                    </Grid>
+        
+                </Grid>
+            
+        
+        </ui:PopupBorder>
+
+
+
+
+    </Grid>
+
+    
+
+   
+  
+</UserControl>

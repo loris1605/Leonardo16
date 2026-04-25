@@ -1,0 +1,65 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ControlStyles">
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <local:UiComboBox/>
+    </Border>
+  </Design.PreviewWith>
+
+    
+  <Style Selector="local|UiComboBox">
+    <!-- Allineamento e font -->
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="FontFamily" Value="Verdana"/>
+    <Setter Property="FontSize" Value="18"/>
+    <Setter Property="Padding" Value="6,4"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    
+    <!-- Sfondo neutro chiaro -->
+    <Setter Property="Background" Value="#F2F2F2"/>
+    <Setter Property="BorderBrush" Value="#B0B0B0"/>
+    <Setter Property="BorderThickness" Value="1"/>
+
+    <Setter Property="Template">
+      <Setter.Value>
+	    	<ControlTemplate TargetType="ComboBox">
+                <Grid>
+				    <Border x:Name="PART_Border"
+                      Background="{TemplateBinding Background}"
+                      CornerRadius="6"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{TemplateBinding BorderThickness}"
+                      BoxShadow="0 4 12 0 rgba(255,255,255,0.9)">
+                        
+                        <ContentPresenter x:Name="PART_ContentPresenter"
+                                        Content="{TemplateBinding SelectionBoxItem}" 
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"/>
+                    </Border>
+
+                    <Popup x:Name="PART_Popup"
+						   Placement="Bottom"
+                           IsOpen="{TemplateBinding IsDropDownOpen}">
+                        <Border Background="#FFFFFF"
+                                BorderBrush="#B0B0B0"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="4">
+                            <ItemsPresenter/>
+                        </Border>
+                    </Popup>
+
+
+                </Grid>
+              
+
+          </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+
+  <!-- Add Styles Here -->
+</Styles>

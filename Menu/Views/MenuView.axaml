@@ -1,0 +1,223 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:ViewModels"
+             xmlns:dt="using:Menu.ViewModels.Map"
+             xmlns:ui="using:ControlStyles"
+             xmlns:lc="using:Leonardo"
+             xmlns:material="using:Material.Icons.Avalonia"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="#F3F3F3"
+             x:DataType="vm:MenuViewModel"
+             x:Class="Views.MenuView"
+             x:Name="Root"
+             UseLayoutRounding="True">
+
+   <Grid x:Name="RootGrid">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> 
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="130"/>
+            
+        </Grid.RowDefinitions>
+
+        <!--<Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions> -->  
+
+        <lc:TitleView x:Name="Title"
+                      TitoloPagina="MENU PRINCIPALE"
+                      ButtonText=" Logout "
+                      ToolTipText="CAMBIO OPERATORE"/>
+		    
+        <Border Grid.Row="1" Padding="30" VerticalAlignment="Top">
+        
+            <Viewbox >
+        
+            <ui:UiMenu Margin="5" Height="50"
+                       x:Name="MainMenu" 
+                       KeyboardNavigation.TabNavigation="Cycle"
+                       IsVisible="False">
+            
+                
+                <ui:UiMenuItem x:Name="AmministratoreItem"
+                               Header="  AMMINISTRATORE  " 
+                               VerticalAlignment="Center">
+
+                    <ui:UiMenuItem Header="  TABELLE  ">
+
+                        <ui:UiMenuItem x:Name="SociItem"
+                                       Header="  SOCI  "
+                                       Command="{Binding NavigateCommand}"
+                                       MaxHeight="50"/>
+
+                        <ui:UiMenuItem x:Name="ConfigurazioneItem"
+                                       Header="  CONFIGURAZIONE  " 
+                                       Command="{Binding NavigateCommand}"
+                                       MaxHeight="50"
+                                       CommandParameter="Configurazione"/>
+
+                        <ui:UiMenuItem Name="ServiziItem"
+                                       Header="  SERVIZI  " 
+                                       MaxHeight="50"
+                                       Command="{Binding NavigateCommand}"
+                                       CommandParameter="Servizi"/>
+                    
+                    
+                    </ui:UiMenuItem>
+
+                    <ui:UiMenuItem x:Name="GestoreItem"
+                                   Header="  GESTORE  " 
+                                   MaxHeight="50"
+                                   Command="{Binding NavigateCommand}"
+                                   CommandParameter="Gestore"/>
+              
+                
+                </ui:UiMenuItem>
+
+                <ui:UiMenuItem x:Name="CassaItem"
+                               Header="  CASSA  " 
+                               MaxHeight="50">
+
+                    <MenuItem x:Name="CassaPostazioneItem"
+                             Header="Seleziona Postazione"
+                             ItemsSource="{Binding CassaPostazioniDataSource}">
+                       
+                       <MenuItem.Styles>
+                           <!-- Questo stile si applica a ogni MenuItem generato dentro l'ItemsSource -->
+                           <Style Selector="MenuItem > MenuItem" x:DataType="dt:MenuPostazioneMap">
+                               <Setter Property="Header" Value="{Binding NomePostazione}" />
+                               <Setter Property="Command" Value="{Binding $parent[MenuItem].DataContext.SelezionaPostazioneCommand}" />
+                               <Setter Property="CommandParameter" Value="{Binding}" />
+                           </Style>
+                       </MenuItem.Styles>
+                       
+                    </MenuItem>
+
+
+
+                        <!--<MenuItem.ItemTemplate>
+                            <DataTemplate>
+                                <MenuItem Header="{Binding NomePostazione}"
+                                          Command="{Binding #Root.((vm:MenuViewModel)DataContext).CassaCommand}"
+                                          CommandParameter="{Binding NomePostazione}" />
+
+                            </DataTemplate>
+                        </MenuItem.ItemTemplate>-->
+
+                
+                
+                </ui:UiMenuItem>
+
+                <ui:UiMenuItem x:Name="BarItem"
+                               Header="  BAR  "
+                               MaxHeight="50">
+
+                    <ui:UiMenuItem x:Name="BarPostazioneItem"
+                                   Header="  APRI POSTAZIONE  "
+                                   Command="{Binding NavigateCommand}"
+                                   CommandParameter="OpenPostazioneCassa"/>
+                    
+                </ui:UiMenuItem>
+
+                <ui:UiMenuItem x:Name="PulizieItem"
+                               Header="  PULIZIE  "
+                               MaxHeight="50"/>
+
+                <ui:UiMenuItem x:Name="GuardarobaItem"
+                               Header="  GUARDAROBA  "
+                               MaxHeight="50"/>
+
+                <ui:UiMenuItem x:Name="ReportItem"
+                               Header="  SERVIZI  "
+                               VerticalAlignment="Center">
+                
+                    <MenuItem Header="  GIORNATA  " >
+                        
+                        <ui:UiMenuItem Header="  APERTURA GIORNATA  " 
+                                       x:Name="ApriGiornataItem"
+                                       MaxHeight="50"
+                                       Command="{Binding ApriGiornataCommand}"/>
+
+                        <ui:UiMenuItem Header="  CHIUSURA GIORNATA  " 
+                                       x:Name="ChiudiGiornataItem"
+                                       MaxHeight="50"
+                                       Command="{Binding NavigateCommand}"
+                                       CommandParameter="CloseGiornata"/>
+
+                        <ui:UiMenuItem Header="  APERTURA TURNO  " 
+                                       x:Name="ApriTurnoItem"
+                                       MaxHeight="50"
+                                       Command="{Binding NavigateCommand}"
+                                       CommandParameter="OpenTurno"/>
+
+                        <ui:UiMenuItem Header="  CHIUSURA TURNO  " 
+                                       x:Name="ChiudiTurnoItem"
+                                       MaxHeight="50"
+                                       Command="{Binding NavigateCommand}"
+                                       CommandParameter="CloseTurno"/>
+
+                    </MenuItem>
+                
+                </ui:UiMenuItem>
+
+                <ui:UiMenuItem x:Name="ServerItem"
+                               Header="  SERVER  "
+                               VerticalAlignment="Center">
+
+                    <ui:UiMenuItem Header="  CONNESSIONE  " 
+                                   x:Name="ConnessioneItem"
+                                   Command="{Binding NavigateCommand}"
+                                   CommandParameter="Connection"
+                                   MaxHeight="50"/>
+
+                
+                </ui:UiMenuItem>
+ 
+            
+            </ui:UiMenu>
+        
+        </Viewbox>
+        
+        </Border>
+       
+       <Grid Grid.Row="3" 
+             ColumnDefinitions="*,*,Auto"
+             Margin="80,20">
+		   
+           <ui:UiInfoBorder Grid.Column="2">
+		   
+           
+           
+            <StackPanel Orientation="Vertical" 
+                            Margin="20">
+                    
+                    <TextBlock Text="{Binding OperatoreName}" 
+                               HorizontalAlignment="Left"
+                               Foreground="Black" 
+                               FontSize="16"/>
+
+                    <TextBlock Text="{Binding SessioneContabile}" 
+                               HorizontalAlignment="Left"
+                               Foreground="Black" 
+                               FontSize="16"/>
+
+                </StackPanel>
+           
+           </ui:UiInfoBorder>
+       </Grid>
+       
+
+       
+
+
+    </Grid>
+</UserControl>

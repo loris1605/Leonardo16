@@ -1,0 +1,22 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ControlStyles">
+
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <!-- Add Controls for Previewer Here -->
+    </Border>
+  </Design.PreviewWith>
+
+    <!--<StyleInclude Source="avares://ControlStyles/ButtonStyles.axaml"/>-->
+    <StyleInclude Source="avares://ControlStyles/Border/BorderStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/Button/ButtonStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/TextBlock/TextBlockStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/ComboBox/ComboBoxStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/TextBox/TextBoxStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/Menu/MenuStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/GroupBox/GroupBoxStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/DatePicker/DatePickerStyles.axaml"/>
+    <StyleInclude Source="avares://ControlStyles/DataGrid/DataGridStyles.axaml"/>
+    
+</Styles>

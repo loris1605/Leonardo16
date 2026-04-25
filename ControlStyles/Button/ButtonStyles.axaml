@@ -1,0 +1,136 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ic="clr-namespace:FluentIcons.Avalonia;assembly=FluentIcons.Avalonia"
+        xmlns:icc="using:FluentIcons.Common"
+        xmlns:local="clr-namespace:ControlStyles">
+
+    <Styles.Resources>
+		
+        <Color x:Key="BaseColor1">Black</Color> <!-- semi-trasparente -->
+        <Color x:Key="GlassFX">#80FFFFFF</Color>   <!-- overlay glass -->
+        <Color x:Key="GlowFX">#66FF5252</Color>   <!-- glow rosso -->
+        <Color x:Key="GlowFXPressed">#CCFF1744</Color>
+        <Color x:Key="GlassFXDisabled">#33FFFFFF</Color>
+
+        <SolidColorBrush x:Key="BaseColor" Color="{DynamicResource BaseColor1}"/>
+
+    </Styles.Resources>
+
+  <Design.PreviewWith>
+    <Border Padding="20">
+      <!--<local:ColoredButton/>-->
+      <local:UiButton/>
+    </Border>
+  </Design.PreviewWith>
+
+  <!--<Style Selector=":is(Button)">
+	  <Setter Property="Foreground" Value="White" />
+      
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="White"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Background" Value="{DynamicResource BaseColor}"/>
+
+  </Style>-->
+
+<Style Selector="local|UiButton.UiButtonStyle">
+    
+	<Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    <Setter Property="VerticalContentAlignment" Value="Center"/>
+    <Setter Property="ToolTip.Tip" Value="{Binding ToolTipText, RelativeSource={RelativeSource Self}}"/>
+    <Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="Transitions">
+        <Transitions>
+            <!-- Effetto fluido al passaggio del mouse -->
+            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
+            <BrushTransition Property="Background" Duration="0:0:0.2"/>
+        </Transitions>
+    </Setter>
+
+    <!-- DEFINIZIONE DEL TEMPLATE (Sostituisce quello che faceva StyleKeyOverride) -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter x:Name="PART_ContentPresenter"
+                                  Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  Content="{TemplateBinding Content}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  Padding="{TemplateBinding Padding}"
+                                  CornerRadius="{TemplateBinding CornerRadius}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </ControlTemplate>
+        </Setter>
+        
+</Style>
+
+<Style Selector="local|UiButton.UiButtonStyle:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.80)"/>
+</Style>
+
+<Style Selector="local|UiButton.UiButtonStyle:pointerover">
+    <Setter Property="Foreground" Value="Black" />
+    
+</Style>
+
+    <Style Selector="local|UiButton.UiButtonStyle:disabled">
+    <Setter Property="Foreground" Value="Gray" />
+    
+</Style>
+
+<Style Selector="local|UiButton.UiButtonStyle /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource BaseColor}"/>
+    
+</Style>
+
+<Style Selector="local|UiButton.UiButtonStyle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="LightGray"/>
+</Style>
+
+    <Style Selector="local|UiButton.UiButtonStyle:pointerover /template/ Border#PART_Border">
+    <Setter Property="CornerRadius" Value="25"/>
+</Style>
+
+<Style Selector="local|UiButton.UiButtonStyle:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="LightGray"/>
+</Style>
+
+   
+
+<Style Selector="local|UiIconButton">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Button Background="{TemplateBinding Background}"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Padding="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <!-- Icona che si lega alla proprietà Symbol del tuo C# -->
+            <ic:SymbolIcon Symbol="{TemplateBinding IconSymbol}" 
+                            FontSize="20"
+                            IconVariant="Regular"
+                            VerticalAlignment="Center"/>
+            
+            <!-- Etichetta di testo (XLabel) -->
+            <TextBlock Text="{TemplateBinding XLabel}"
+                       VerticalAlignment="Center"
+                       IsVisible="{TemplateBinding XLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+          </StackPanel>
+        </Button>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+
+    
+
+    
+ 
+
+</Styles>

@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:ui="using:ControlStyles"
+             xmlns:material="using:Material.Icons.Avalonia"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="#F3F3F3"
+             x:CompileBindings="False"
+             x:Class="Leonardo.TitleView"
+             x:Name="Root">
+
+    <Border Background="#2C3E50" Height="80" Padding="20,0">
+       
+           <Grid ColumnDefinitions="*, Auto">
+           
+                <ui:UiTitolo x:Name="lblTitolo"
+                             Text="{Binding #Root.TitoloPagina}" 
+                             Foreground="White"
+                             VerticalAlignment="Center"
+                             FontSize="24"/> 
+
+                <ui:UiButton x:Name="BackButton"
+                             Margin="20,15"
+                             Grid.Column="1"
+                             ToolTipText="{Binding #Root.ToolTipText}"
+                             Command="{Binding #Root.ExitCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Image Source="avares://ControlStyles/Resources/ExitIcon.png" 
+                               Width="44" Height="44" />
+                        <TextBlock Text="{Binding #Root.ButtonText}"
+                                   Margin="5"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </ui:UiButton>  
+           
+           </Grid>   
+       
+       </Border>
+  
+</UserControl>
