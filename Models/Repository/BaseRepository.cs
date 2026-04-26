@@ -70,7 +70,7 @@ namespace Models.Repository
         public async Task<bool> Del(IMap map, CancellationToken ctk = default)
         {
             using TContext _ctx = new();
-            var row = await _ctx.Set<Ttable>().FindAsync(map.Id, ctk);
+            var row = await _ctx.Set<Ttable>().FindAsync(new object?[] { map.Id, ctk }, cancellationToken: ctk);
 
             if (row == null) return false;
 
@@ -115,7 +115,7 @@ namespace Models.Repository
                             where DbTable : class, new()
         {
             using TContext _ctx = new();
-            DbTable? entity = await _ctx.Set<DbTable>().FindAsync(dto.Id, ctk);
+            DbTable? entity = await _ctx.Set<DbTable>().FindAsync(new object?[] { dto.Id, ctk }, cancellationToken: ctk);
 
             if (entity is null)
             {
