@@ -1,5 +1,5 @@
 ﻿using Common.InterViewModels;
-using Common.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Splat;
 using System.Reactive.Linq;
@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 namespace ViewModels
 {
     
-    public interface IGroupScreen : IScreen
+    public interface IConfigurazioneScreen : IScreen
     {
         RoutingState GroupRouter { get; }
         RoutingState InputRouter { get; }
@@ -16,22 +16,25 @@ namespace ViewModels
         void AggiornaGridByInt(int id);
     }
 
-
-    public partial class ConfigurazioneViewModel : BaseViewModel, IGroupScreen, IConfigurazioneViewModel
+    public partial class ConfigurazioneViewModel : BaseViewModel, IConfigurazioneScreen, IConfigurazioneViewModel
     {
         public RoutingState GroupRouter { get; } = new RoutingState();
         public RoutingState InputRouter { get; } = new RoutingState();
         public RoutingState Router => GroupRouter;
 
-        public ConfigurazioneViewModel(IScreen host) : base(host)
+        private readonly IServiceProvider _sp;
+
+        public ConfigurazioneViewModel(IScreen host, IServiceProvider sp) : base(host)
         {
-            
+            _sp = sp;
+
+            //_operatoreGroupViewModel = operatoreGroupViewModel;
 
             //this.WhenActivated(d =>
             //{
-                
+
             //});
-            
+
         }
 
         protected override void OnFinalDestruction()
@@ -42,12 +45,16 @@ namespace ViewModels
 
         protected override async Task OnLoading()
         {
-            //await GroupRouter.NavigateAndReset.Execute(new OperatoreGroupViewModel(this, 
-            //                                           Locator.Current.GetService<IOperatoreRepository>()));
-            await Task.CompletedTask;
-            
+            // Creiamo l'istanza della prima pagina (OperatoreGroupViewModel)
+            // Passando "this" come host, così il GroupViewModel saprà dove navigare
+            var firstPage = ActivatorUtilities.CreateInstance<OperatoreGroupViewModel>(_sp, this);
+
+            if (firstPage != null)
+            {
+                await GroupRouter.NavigateAndReset.Execute(firstPage);
+            }
         }
-         
+
         public void AggiornaGridByInt(int id)
         {
             if (GroupRouter.GetCurrentViewModel() is IGroupViewModelBase groupVm)
@@ -65,17 +72,17 @@ namespace ViewModels
         protected async override Task OnEsc()
         {
             _isClosing = true;
-            var vm = Locator.Current.GetService<IMenuViewModel>();
-
-            if (vm != null)
+            try
             {
-                await HostScreen.Router.NavigateAndReset.Execute(vm);
+                await HostScreen.Router.NavigateBack.Execute();
+                _isClosing = false;
             }
-            else
+            catch (Exception)
             {
                 _isClosing = false; // Riapri le interazioni se il cambio pagina fallisce
                 System.Diagnostics.Debug.WriteLine("ERRORE: IMenuViewModel non è stato risolto dalla DI.");
             }
+            
         }
 
     }

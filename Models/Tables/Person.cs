@@ -12,7 +12,7 @@ namespace Models.Tables
         public string UniqueParam {  get; set; } = string.Empty;
 
         public List<Socio> Soci { get; set; } = [];
-        public Operatore? Operatore { get; set; }
+        
         public List<Scheda> Schede { get; set; } = [];
 
         [NotMapped]

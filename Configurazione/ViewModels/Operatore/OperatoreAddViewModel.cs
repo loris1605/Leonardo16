@@ -1,0 +1,71 @@
+﻿using Common.InterViewModels;
+using DTO.Repository;
+using System.Diagnostics;
+
+namespace ViewModels
+{
+    public class OperatoreAddViewModel : OperatoreInputBase
+    {
+        private IOperatoreRepository Q;
+        
+        public OperatoreAddViewModel(IConfigurazioneScreen host, 
+                                     IOperatoreRepository Repository) : base(host)
+        {
+            
+            Titolo = "Aggiungi Nuovo Operatore";
+            FieldsVisibile = true;
+            FieldsEnabled = true;
+            Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
+            BindingT = new();
+        }
+
+        protected override void OnFinalDestruction() => Q = null;
+
+        protected override async Task OnLoading() => await SetFocus(NomeFocus);
+
+
+        protected async override Task OnSaving()
+        {
+            // 1. Validazione Dati (ora è un Task, serve await)
+            if (!await ValidaDati()) return;
+
+            // 2. Controllo duplicati con CancellationToken (ereditato dalla base)
+            try
+            {
+                if (await Q.EsisteNome(BindingT.ToDto(), token))
+                {
+                    InfoLabel = "Operatore già registrato";
+                    await SetFocus(NomeFocus);
+                    return;
+                }
+
+                InfoLabel = "Salvataggio in corso...";
+
+                // 3. Impostazioni pre-salvataggio
+                BindingT.CodicePerson = -2; // Logica specifica per l'anagrafica operatore
+
+                // 4. Inserimento a Database
+                int newOperatoreId = await Q.Add(BindingT.ToDto(), token);
+
+                if (newOperatoreId == -1)
+                {
+                    InfoLabel = "Errore Db inserimento Operatore";
+                    await SetFocus(NomeFocus);
+                    return;
+                }
+
+                // 5. Ritorno alla grid (ora è un Task asincrono e protetto)
+                await OnBack(newOperatoreId);
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("Salvataggio annullato.");
+            }
+            catch (Exception ex)
+            {
+                InfoLabel = $"Errore: {ex.Message}";
+                await SetFocus(NomeFocus);
+            }
+        }
+    }
+}

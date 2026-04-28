@@ -14,19 +14,19 @@ namespace ViewModels
 
     public partial class MenuViewModel : BaseViewModel, IMenuViewModel
     {
-        private IMenuRepository Q { get; set; }
-
+        private IMenuRepository Q;
+        
         public ReactiveCommand<string, Unit> NavigateCommand { get; }
         public ReactiveCommand<MenuPostazioneMap, Unit> SelezionaPostazioneCommand { get; }
         public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
         public ReactiveCommand<Unit, Unit> ApriGiornataCommand { get; }
 
 
-        public MenuViewModel(IScreen host, IMenuRepository Repository) : base(host)
+        public MenuViewModel(IScreen host, 
+                             IMenuRepository Repository) : base(host)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-
-
+            
             _chiudiGiornataEnabled = this.WhenAnyValue(x => x.ApriGiornataEnabled)
                 .Select(x => !x)
                 .ToProperty(this, x => x.ChiudiGiornataEnabled);
@@ -65,6 +65,8 @@ namespace ViewModels
 
             ApriGiornataCommand = ReactiveCommand.CreateFromTask(ExecuteOpenGiornata, canApriFinal);
 
+            InitializeLoadingHelper();
+
             this.WhenActivated(d =>
             {
 
@@ -75,6 +77,19 @@ namespace ViewModels
             });
 
         }
+
+        protected override IObservable<bool> IsAnythingExecuting =>
+            new[]
+            {
+                base.IsAnythingExecuting,
+                NavigateCommand?.IsExecuting ?? Observable.Return(false),
+                SelezionaPostazioneCommand?.IsExecuting ?? Observable.Return(false),
+                LogoutCommand?.IsExecuting ?? Observable.Return(false),
+                ApriGiornataCommand?.IsExecuting ?? Observable.Return(false)
+            }.CombineLatest(values => values.Any(x => x));
+
+
+
 
         protected override void OnFinalDestruction()
         {
@@ -163,7 +178,7 @@ namespace ViewModels
             };
 
             if (page != null)
-                await HostScreen.Router.NavigateAndReset.Execute(page);
+                await HostScreen.Router.Navigate.Execute(page);
             else
                 _isClosing = false; // Ripristino se la destinazione è nulla
         }

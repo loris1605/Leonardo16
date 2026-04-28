@@ -1,4 +1,5 @@
 ﻿using Common.InterViewModels;
+using Leonardo16;
 using Leonardo16.Core.Repository;
 using Microsoft.EntityFrameworkCore;
 using Models.Context;
@@ -21,23 +22,20 @@ namespace ViewModels
                                                IActivatableViewModel
                                                 
     {
-        readonly int currentVersion = 1; // Versione attuale del database, da aggiornare quando si modificano le entità
+        readonly int _currentVersion = 1; // Versione attuale del database, da aggiornare quando si modificano le entità
+
+        // Iniettiamo le interfacce dei ViewModel per la navigazione
         
         public RoutingState Router { get; } = new RoutingState();
         public string UrlPathSegment => "main";
         public IScreen HostScreen => this;
-
         public ViewModelActivator Activator { get; } = new();
 
         public MainWindowViewModel()
         {
+                  
             // Spostiamo la logica di navigazione all'attivazione
-            this.WhenActivated(d =>
-            {
-                Observable.StartAsync(async () => await InitializeNavigation())
-                .Subscribe()
-                .DisposeWith(d);
-            });
+            Observable.StartAsync(InitializeNavigation, RxSchedulers.MainThreadScheduler);
         }
 
         private async Task InitializeNavigation()
@@ -46,53 +44,37 @@ namespace ViewModels
 
             if (Flags.ServerAttivo)
             {
-                var r = Locator.Current.GetService<ISettingRepository>() 
-                    ?? throw new InvalidOperationException("ISettingRepository non è registrato.");
-
-                if (!await r.CheckAppVersion(currentVersion))
+                var r = Locator.Current.GetService<ISettingRepository>();
+                // 2. Controllo versione tramite il repository iniettato
+                if (!await r.CheckAppVersion(_currentVersion))
+                {
                     await VerificaNecessitaAggiornamento();
-                RxSchedulers.MainThreadScheduler.Schedule(() => GoToLogin());
+                }
+                // 3. Navigazione al VM iniettato
+                await Router.NavigateAndReset.Execute(Locator.Current.GetService<ILoginViewModel>());
             }
             else
-                RxSchedulers.MainThreadScheduler.Schedule(() => GoToConnection());
+            {
+                await Router.NavigateAndReset.Execute(Locator.Current.GetService<IConnectionViewModel>());
+            }
         }
 
         // Modificato in statico o assicurati che l'istanza di AppDbContext sia configurata correttamente
         private async Task VerificaNecessitaAggiornamento()
         {
-            using var _ctx = new AppDbContext();
-
-            if (await _ctx.Database.CanConnectAsync())
+            // Nota: AppDbContext andrebbe idealmente iniettato tramite una Factory (IDbContextFactory)
+            // per evitare problemi di scope, specialmente in app desktop.
+            using var ctx = new AppDbContext();
+            if (await ctx.Database.CanConnectAsync())
             {
-                var pendingMigrations = await _ctx.Database.GetPendingMigrationsAsync();
-                if (pendingMigrations.Any())
+                var pending = await ctx.Database.GetPendingMigrationsAsync();
+                if (pending.Any())
                 {
-                    // Applica le migrazioni se necessario
-                    await _ctx.Database.MigrateAsync();
-                    Debug.WriteLine("✅ Database aggiornato con successo.");
+                    await ctx.Database.MigrateAsync();
                 }
             }
         }
-
-        private void GoToLogin()
-        {
-            var vm = Locator.Current.GetService<ILoginViewModel>();
-            if (vm != null)
-            {
-                HostScreen.Router.NavigateAndReset.Execute(vm);
-            }
-        }
-
-        private void GoToConnection()
-        {
-            var vm = Locator.Current.GetService<IConnectionViewModel>();
-            if (vm != null)
-            {
-                HostScreen.Router.NavigateAndReset.Execute(vm);
-            }
-        }
-
-        
+     
 
     }
 }

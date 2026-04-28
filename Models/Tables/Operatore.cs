@@ -9,7 +9,7 @@
         public int Pass {  get; set; }
 
         public int PersonId { get; set; }
-        public Person? Person { get; set; }
+        
 
         public List<Permesso> Permessi { get; set; } = [];
 

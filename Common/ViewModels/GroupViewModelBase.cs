@@ -72,11 +72,13 @@ namespace ViewModels
         }
 
         protected override IObservable<bool> IsAnythingExecuting =>
-            base.IsAnythingExecuting.CombineLatest(
-                AddCommand.IsExecuting,
-                UpdCommand.IsExecuting,
-                DelCommand.IsExecuting,
-                (baseExec, add, upd, del) => baseExec || add || upd || del);
+            new[]
+            {
+                base.IsAnythingExecuting,
+                AddCommand?.IsExecuting ?? Observable.Return(false),
+                UpdCommand?.IsExecuting ?? Observable.Return(false),
+                DelCommand?.IsExecuting ?? Observable.Return(false)
+            }.CombineLatest(values => values.Any(x => x));
 
         private void HandleCommandsDisposal(CompositeDisposable d)
         {

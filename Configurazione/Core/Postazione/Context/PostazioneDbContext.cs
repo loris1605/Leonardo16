@@ -3,7 +3,18 @@ using Models.Tables;
 
 namespace Models.Context
 {
-    public class PostazioneDbContext : BaseContext
+    public interface IPostazioneDbContext
+    {
+        DbSet<Permesso> Permessi { get; set; }
+        DbSet<Postazione> Postazioni { get; set; }
+        DbSet<Reparto> Reparti { get; set; }
+        DbSet<Settore> Settori { get; set; }
+        DbSet<TipoPostazione> TipiPostazione { get; set; }
+        DbSet<TipoRientro> TipiRientro { get; set; }
+        DbSet<TipoSettore> TipiSettore { get; set; }
+    }
+
+    public class PostazioneDbContext : BaseContext, IPostazioneDbContext
     {
         //public DbSet<Operatore> Operatori { get; set; } = null!;
         public DbSet<Permesso> Permessi { get; set; } = null!;

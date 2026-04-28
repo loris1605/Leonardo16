@@ -1,103 +1,87 @@
 ﻿using Avalonia.Collections;
-using Common.InterViewModels;
 using DTO.Entity;
 using DTO.Repository;
-using Microsoft.Extensions.DependencyInjection;
-using Models.Repository;
 using ReactiveUI;
-using Splat;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
-    public class OperatoreGroupViewModel : GroupViewModelBase<OperatoreMap>, IGroupViewModelBase, IOperatoreGroupViewModel
+    public class PostazioneGroupViewModel : GroupViewModelBase<PostazioneMap>, IGroupViewModelBase
     {
-        public ReactiveCommand<Unit, Unit> PostazioniCommand { get; protected set; }
+        public ReactiveCommand<Unit, Unit> OperatoriCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> SettoriCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> TariffeCommand { get; protected set; }
-        public ReactiveCommand<Unit, Unit> PermessiCommand { get; protected set; }
+        public ReactiveCommand<Unit, Unit> RepartiCommand { get; protected set; }
 
-        private IOperatoreRepository Q;
+        private IPostazioneRepository Q;
         private readonly IServiceProvider _sp;
 
         protected IConfigurazioneScreen _host;
 
+        //fa il merge con la IObservable base
         protected override IObservable<bool> canDel => this.WhenAnyValue(
             x => x.GroupBindingT,
-            (item) => item != null && item.CodicePermesso == 0);
+            x => x.GroupBindingT.CodiceReparto,
+            x => x.GroupBindingT.HasPermesso,
+            (item, codiceSocio, hasP) => item != null && codiceSocio == 0 && !hasP
+        );
 
-        public OperatoreGroupViewModel(IConfigurazioneScreen host,
-                                       IOperatoreRepository Repository,
-                                       IServiceProvider sp) : base(host)
+        public PostazioneGroupViewModel(IConfigurazioneScreen host,
+                                        IPostazioneRepository Repository,
+                                        IServiceProvider sp) : base(host)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-            _sp = sp;
+            _sp = sp ?? throw new ArgumentNullException(nameof(sp));
             _host = host;
 
             var canHasSelection = this.WhenAnyValue(x => x.GroupBindingT).Select(item => item != null);
 
-            //var canAction = this.WhenAnyValue(x => x.GroupBindingT, x => x.IsLoading,
-            //(item, loading) => item != null && !loading);
 
-            //var canDelete = this.WhenAnyValue(x => x.GroupBindingT, x => x.IsLoading,
-            //    (item, loading) => item != null &&
-            //                        item.CodicePermesso == 0 &&
-            //                        item.Id != -1 &&
-            //                        !loading);
-
-
-            // Navigazioni Semplici (NavigateAndReset)
-            //PostazioniCommand = ReactiveCommand.CreateFromObservable(
-            //() => NavigateToReset(new PostazioneGroupViewModel(ConfigHost, Locator.Current.GetService<IPostazioneRepository>())));
+            //OperatoriCommand = ReactiveCommand.CreateFromObservable(
+            //() => NavigateToReset(new OperatoreGroupViewModel(ConfigHost, Locator.Current.GetService<IOperatoreRepository>())));
 
             //SettoriCommand = ReactiveCommand.CreateFromObservable(
-            //() => NavigateToReset(new SettoreGroupViewModel(ConfigHost, Locator.Current.GetService<ISettoreRepository>())));
+            //    () => NavigateToReset(new SettoreGroupViewModel(ConfigHost, Locator.Current.GetService<ISettoreRepository>())));
 
             //TariffeCommand = ReactiveCommand.CreateFromObservable(
             //    () => NavigateToReset(new TariffaGroupViewModel(ConfigHost, Locator.Current.GetService<ITariffaRepository>())));
 
-            //PermessiCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new PermessiViewModel(ConfigHost, GroupBindingT!.Id, 
-            //    Locator.Current.GetService<IOperatoreRepository>())), canHasSelection);
+            //RepartiCommand = ReactiveCommand.CreateFromObservable(
+            //    () => NavigateToInput(new RepartiViewModel(ConfigHost, GroupBindingT!.Id, Q)),
+            //    canHasSelection);
 
             InitializeLoadingHelper();
 
             this.WhenActivated(d =>
             {
-               
-                PostazioniCommand?.DisposeWith(d);
-                SettoriCommand?.DisposeWith(d);
-                TariffeCommand?.DisposeWith(d);
-                PermessiCommand?.DisposeWith(d);
+
+                OperatoriCommand.DisposeWith(d);
+                SettoriCommand.DisposeWith(d);
+                TariffeCommand.DisposeWith(d);
+                RepartiCommand.DisposeWith(d);
 
             });
-          
-
+                  
         }
 
         protected override IObservable<bool> IsAnythingExecuting =>
             new[]
             {
                 base.IsAnythingExecuting,
-                PostazioniCommand?.IsExecuting ?? Observable.Return(false),
+                OperatoriCommand?.IsExecuting ?? Observable.Return(false),
                 SettoriCommand?.IsExecuting ?? Observable.Return(false),
-                PermessiCommand?.IsExecuting ?? Observable.Return(false),
+                RepartiCommand?.IsExecuting ?? Observable.Return(false),
                 TariffeCommand?.IsExecuting ?? Observable.Return(false)
             }.CombineLatest(values => values.Any(x => x));
 
+        
         protected override void OnFinalDestruction()
         {
-            // Assicuriamoci che la collezione sia nulla per il GC
+            OperatoriCommand = SettoriCommand = TariffeCommand = RepartiCommand = null;
             Q = null;
-            PostazioniCommand = null;
-            SettoriCommand = null;
-            PermessiCommand = null;
-            TariffeCommand = null;
             base.OnFinalDestruction();
         }
 
@@ -111,23 +95,21 @@ namespace ViewModels
             }
             else
             {
-                DataSource = new List<OperatoreMap>();
+                DataSource = new List<PostazioneMap>();
                 GroupedDataSource = null;
             }
         }
 
-        private async Task UpdateCollection(List<OperatoreDTO> data, int id)
+        private async Task UpdateCollection(List<PostazioneDTO> data, int id)
         {
-            var mapped = await Task.Run(() => data.Select(dto => new OperatoreMap(dto)).ToList(), token);
+            var mapped = await Task.Run(() => data.Select(dto => new PostazioneMap(dto)).ToList(), token);
             var view = new DataGridCollectionView(mapped);
             view.GroupDescriptions.Add(new DataGridPathGroupDescription("Titolo"));
 
-            // Sparisce IsLoading = true manuale
             var backup = GroupBindingT;
             GroupBindingT = null;
             GroupedDataSource = view;
             GroupBindingT = backup;
-
             IdIndex = id;
             GroupFocus = true;
         }
@@ -160,23 +142,28 @@ namespace ViewModels
 
         protected async override Task OnAdding()
         {
-            var addVm = ActivatorUtilities.CreateInstance<OperatoreAddViewModel>(_sp, _host);
-            await NavigateToInput(addVm);
+            await Task.CompletedTask;
+            //await NavigateToInput(new PostazioneAddViewModel(ConfigHost,
+            //                          Locator.Current.GetService<IPostazioneRepository>())).ToTask();
         }
 
         protected async override Task OnDeleting()
         {
-            var delVm = ActivatorUtilities.CreateInstance<OperatoreDelViewModel>(_sp, _host, GroupBindingT.Id);
-            await NavigateToInput(delVm);
+            await Task.CompletedTask;
+            //await NavigateToInput(new PostazioneDelViewModel(ConfigHost, GroupBindingT.Id,
+            //                          Locator.Current.GetService<IPostazioneRepository>())).ToTask();
         }
 
         protected async override Task OnUpdating()
         {
-            var updVm = ActivatorUtilities.CreateInstance<OperatoreUpdViewModel>(_sp, _host, GroupBindingT.Id);
-            await NavigateToInput(updVm);
+            await Task.CompletedTask;
+            //await NavigateToInput(new PostazioneUpdViewModel(ConfigHost, GroupBindingT.Id,
+            //                          Locator.Current.GetService<IPostazioneRepository>())).ToTask();
         }
 
-        protected override Task OnEsc() => Task.FromResult(Unit.Default);
-        
+        protected override Task OnEsc()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

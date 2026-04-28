@@ -21,6 +21,13 @@ namespace DTO.Repository
 
     public class OperatoreRepository : BaseRepository<OperatoreDbContext, Operatore>, IOperatoreRepository
     {
+        private readonly IOperatoreDbContext _ctx;
+
+        public OperatoreRepository(IOperatoreDbContext ctx)
+        {
+            _ctx = ctx;
+        }
+
         public async Task<List<OperatoreDTO>> Load(int id, CancellationToken ctk = default)
         {
             if (id > 0)
@@ -32,8 +39,7 @@ namespace DTO.Repository
         public async Task<List<OperatoreDTO>> LoadOperatori(Expression<Func<Operatore, bool>> predicate
                                                             , CancellationToken ctk = default)
         {
-            using OperatoreDbContext _ctx = new();
-
+            
             // Carichiamo prima gli operatori con i loro dati (Eager Loading)
             var data = await _ctx.Operatori
                 .AsNoTracking()
