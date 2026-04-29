@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
+using Splat;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -50,7 +51,7 @@ namespace ViewModels
         .DistinctUntilChanged();
 
 
-        public BaseViewModel(IScreen hostScreen, string urlPathSegment = default)
+        public BaseViewModel(IScreen hostScreen = null, string urlPathSegment = default)
         {
             Debug.WriteLine($"***** [VM] {this.GetType().Name} {this.GetHashCode()} caricato *****");
 

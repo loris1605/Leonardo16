@@ -107,7 +107,7 @@ public partial class MenuView : BaseUserControl<MenuViewModel>
             #endregion
 
             // 4. BINDING COMANDI (Se non fatti in XAML)
-            this.Bind(ViewModel, vm => vm.LogoutCommand, v => v.Title.ExitCommand).DisposeWith(d);
+            //this.Bind(ViewModel, vm => vm.LogoutCommand, v => v.Title.ExitCommand).DisposeWith(d);
 
             this.BindCommand(ViewModel,
                 vm => vm.NavigateCommand,

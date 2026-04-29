@@ -1,5 +1,5 @@
-﻿using ReactiveUI;
-using SysNet;
+﻿using Common.InterViewModels;
+using ReactiveUI;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -26,7 +26,11 @@ namespace ViewModels
         public Interaction<Unit, Unit> NomeFocus { get; } = new();
         public Interaction<Unit, Unit> PasswordFocus { get; } = new();
 
-        public OperatoreInputBase(IConfigurazioneScreen host) : base(host)
+        protected IConfigurazioneScreen _host;
+
+        protected int _idDaModificare;
+
+        public OperatoreInputBase() : base()
         {
 
             this.WhenActivated(d =>
@@ -37,6 +41,16 @@ namespace ViewModels
                     .Subscribe(text => AbilitatoText = text) // Assegna il risultato
                     .DisposeWith(d);
             });
+        }
+
+        public void SetHost(IConfigurazioneScreen host)
+        {
+            _host = host;
+        }
+
+        public void SetIdDaModificare(int id)
+        {
+            _idDaModificare = id;
         }
 
 
@@ -77,32 +91,35 @@ namespace ViewModels
 
         protected async override Task OnEsc()
         {
-            if (HostScreen is IConfigurazioneScreen Host)
-            {
-                await SetFocus(EscFocus, 0);
+            if (_isClosing) return; // Protezione contro il multi-ESC
 
-                RxSchedulers.MainThreadScheduler.Schedule(() => {
-                    Host.InputRouter.NavigationStack.Clear();
-                    Host.GroupEnabled = true;
+            if (_host is IConfigurazioneScreen host)
+            {
+                // Focus sul tasto Esci prima di chiudere
+                await SetFocus(EscFocus, 0);
+                _isClosing = true; // "Congeliamo" prima di uscire
+
+                RxSchedulers.MainThreadScheduler.Schedule(() =>
+                {
+                    host.InputRouter.NavigationStack.Clear();
+                    host.GroupEnabled = true;
                 });
             }
-
-            await Task.CompletedTask;
         }
 
         protected async Task OnBack(int value = 0)
         {
-            if (HostScreen is IConfigurazioneScreen host)
+            if (_host is not null)
             {
-                if (host.InputRouter.NavigationStack.Count == 0) return;
+                if (_host.InputRouter.NavigationStack.Count == 0) return;
 
                 _isClosing = true;
                 try
                 {
-                    await host.InputRouter.NavigateBack.Execute();
-                    host.InputRouter.NavigationStack.Clear();
-                    host.AggiornaGridByInt(value);
-                    host.GroupEnabled = true;
+                    await _host.InputRouter.NavigateBack.Execute();
+                    _host.InputRouter.NavigationStack.Clear();
+                    _host.AggiornaGridByInt(value);
+                    _host.GroupEnabled = true;
                 }
                 catch (Exception ex)
                 {

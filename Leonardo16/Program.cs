@@ -65,6 +65,8 @@ namespace Leonardo16
             services.AddTransient<IMenuDbContext, MenuDbContext>();
             services.AddTransient<IOperatoreDbContext, OperatoreDbContext>();
             services.AddTransient<IPostazioneDbContext, PostazioneDbContext>();
+            services.AddTransient<ISettoreDbContext, SettoreDbContext>();
+            services.AddTransient<ITariffaDbContext, TariffaDbContext>();
 
         }
 
@@ -76,28 +78,39 @@ namespace Leonardo16
             services.AddTransient<IMenuRepository, MenuRepository>();
             services.AddTransient<IOperatoreRepository, OperatoreRepository>();
             services.AddTransient<IPostazioneRepository, PostazioneRepository>();
-
+            services.AddTransient<ISettoreRepository, SettoreRepository >();
+            services.AddTransient<ITariffaRepository, TariffaRepository>();
         }
 
         private static void RegisterViewModels(IServiceCollection services)
         {
+            
             // ViewModels
-            services.AddSingleton<MainWindowViewModel>();
+            services.AddTransient<IMainWindowViewModel, MainWindowViewModel>();
+
             services.AddTransient<IConnectionViewModel, ConnectionViewModel>();
             services.AddTransient<ILoginViewModel, LoginViewModel>();
             services.AddTransient<IMenuViewModel, MenuViewModel>();
 
             services.AddTransient<ConfigurazioneViewModel>();
 
-            services.AddTransient<OperatoreGroupViewModel>();
-            services.AddTransient<OperatoreAddViewModel>();
-            services.AddTransient<OperatoreDelViewModel>();
-            services.AddTransient<OperatoreUpdViewModel>();
+            services.AddTransient<IOperatoreGroupViewModel, OperatoreGroupViewModel>();
+            services.AddTransient<IOperatoreAddViewModel, OperatoreAddViewModel>();
+            services.AddTransient<IOperatoreDelViewModel, OperatoreDelViewModel>();
+            services.AddTransient<IOperatoreUpdViewModel, OperatoreUpdViewModel>();
 
-            services.AddTransient<PostazioneGroupViewModel>();
+            services.AddTransient<IPostazioneGroupViewModel, PostazioneGroupViewModel>();
+            services.AddTransient<IPostazioneAddViewModel, PostazioneAddViewModel>();
+            services.AddTransient<IPostazioneDelViewModel, PostazioneDelViewModel>();
+            services.AddTransient<IPostazioneUpdViewModel, PostazioneUpdViewModel>();
+
+            services.AddTransient<ISettoreGroupViewModel, SettoreGroupViewModel>();
+            services.AddTransient<ISettoreAddViewModel, SettoreAddViewModel>();
+            services.AddTransient<ISettoreDelViewModel, SettoreDelViewModel>();
+            services.AddTransient<ISettoreUpdViewModel, SettoreUpdViewModel>();
 
             services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
-
+            
         }
 
         private static void RegisterIViewFor(IServiceCollection services)
@@ -117,14 +130,21 @@ namespace Leonardo16
             services.AddTransient<IViewFor<OperatoreAddViewModel>, OperatoreInputView>();
             services.AddTransient<IViewFor<OperatoreDelViewModel>, OperatoreInputView>();
             services.AddTransient<IViewFor<OperatoreUpdViewModel>, OperatoreInputView>();
-
+            services.AddTransient<IViewFor<PostazioneGroupViewModel>, PostazioneGroupView>();
+            services.AddTransient<IViewFor<PostazioneAddViewModel>, PostazioneInputView>();
+            services.AddTransient<IViewFor<PostazioneDelViewModel>, PostazioneInputView>();
+            services.AddTransient<IViewFor<PostazioneUpdViewModel>, PostazioneInputView>();
+            services.AddTransient<IViewFor<SettoreGroupViewModel>, SettoreGroupView>();
+            services.AddTransient<IViewFor<SettoreAddViewModel>, SettoreInputView>();
+            services.AddTransient<IViewFor<SettoreDelViewModel>, SettoreInputView>();
+            services.AddTransient<IViewFor<SettoreUpdViewModel>, SettoreInputView>();
         }
 
         private static void RegisterViews(IServiceCollection services)
         {
             services.AddTransient<MainWindow>();
             services.AddSingleton<IScreen>(sp => sp.GetRequiredService<MainWindowViewModel>());
-            services.AddTransient<IConfigurazioneScreen>(sp => sp.GetRequiredService<ConfigurazioneViewModel>());
+            
         }
 
         

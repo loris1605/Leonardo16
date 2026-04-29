@@ -4,12 +4,11 @@ using System.Diagnostics;
 
 namespace ViewModels
 {
-    public class OperatoreAddViewModel : OperatoreInputBase
+    public class OperatoreAddViewModel : OperatoreInputBase, IOperatoreAddViewModel
     {
         private IOperatoreRepository Q;
         
-        public OperatoreAddViewModel(IConfigurazioneScreen host, 
-                                     IOperatoreRepository Repository) : base(host)
+        public OperatoreAddViewModel(IOperatoreRepository Repository) : base()
         {
             
             Titolo = "Aggiungi Nuovo Operatore";

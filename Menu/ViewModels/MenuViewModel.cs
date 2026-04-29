@@ -4,29 +4,43 @@ using Menu.ViewModels.Map;
 using Models.Entity.Global;
 using ReactiveUI;
 using Splat;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 
 namespace ViewModels
 {
-    
-
+   
     public partial class MenuViewModel : BaseViewModel, IMenuViewModel
     {
         private IMenuRepository Q;
-        
+        private IScreen _host;
+
         public ReactiveCommand<string, Unit> NavigateCommand { get; }
         public ReactiveCommand<MenuPostazioneMap, Unit> SelezionaPostazioneCommand { get; }
         public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
+        public ReactiveCommand<Unit, Unit> ConnectionCommand { get; }
+        public ReactiveCommand<Unit,Unit> ConfigurazioneCommand { get; }
         public ReactiveCommand<Unit, Unit> ApriGiornataCommand { get; }
 
+        protected override IObservable<bool> IsAnythingExecuting =>
+            new[]
+            {
+                base.IsAnythingExecuting,
+                NavigateCommand?.IsExecuting ?? Observable.Return(false),
+                SelezionaPostazioneCommand?.IsExecuting ?? Observable.Return(false),
+                LogoutCommand?.IsExecuting ?? Observable.Return(false),
+                ConnectionCommand?.IsExecuting ?? Observable.Return(false),
+                ConfigurazioneCommand?.IsExecuting ?? Observable.Return(false),
+                ApriGiornataCommand?.IsExecuting ?? Observable.Return(false)
+            }.CombineLatest(values => values.Any(x => x));
 
-        public MenuViewModel(IScreen host, 
-                             IMenuRepository Repository) : base(host)
+
+        public MenuViewModel(IMenuRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-            
+
             _chiudiGiornataEnabled = this.WhenAnyValue(x => x.ApriGiornataEnabled)
                 .Select(x => !x)
                 .ToProperty(this, x => x.ChiudiGiornataEnabled);
@@ -40,23 +54,13 @@ namespace ViewModels
 
             NavigateCommand = ReactiveCommand.CreateFromTask<string>(ExecuteNavigation, canNavigate);
 
-            //NavigateCommand = ReactiveCommand.CreateFromTask<string>(async (dest) =>
-            //{
-            //    IRoutableViewModel page = dest switch
-            //    {
-            //        "Connection" => new ConnectionViewModel(HostScreen),
-            //        "Soci" => new SociViewModel(HostScreen),
-            //        "Configurazione" => new ConfigurazioneViewModel(HostScreen), // Corretto l'errore precedente
-            //        _ => null
-            //    };
-
-            //    if (page != null)
-            //        await HostScreen.Router.NavigateAndReset.Execute(page);
-            //}, canExecute);
-
             SelezionaPostazioneCommand = ReactiveCommand.CreateFromTask<MenuPostazioneMap>(GoToCassa, canNavigate);
 
             LogoutCommand = ReactiveCommand.CreateFromTask(GoToLogin, canNavigate);
+
+            ConnectionCommand = ReactiveCommand.CreateFromTask(GoToConnection, canNavigate);
+
+            ConfigurazioneCommand = ReactiveCommand.CreateFromTask(GoToConfigurazione, canNavigate);
 
             var canApriFinal = this.WhenAnyValue(x => x.ApriGiornataEnabled, x => x.IsLoading,
                     (enabled, loading) => enabled && !loading);
@@ -73,22 +77,17 @@ namespace ViewModels
                 LogoutCommand?.DisposeWith(d);
                 SelezionaPostazioneCommand?.DisposeWith(d);
                 NavigateCommand?.DisposeWith(d);
+                ConfigurazioneCommand?.DisposeWith(d);
                 ApriGiornataCommand?.DisposeWith(d);
+                ConnectionCommand?.DisposeWith(d);
             });
 
         }
 
-        protected override IObservable<bool> IsAnythingExecuting =>
-            new[]
-            {
-                base.IsAnythingExecuting,
-                NavigateCommand?.IsExecuting ?? Observable.Return(false),
-                SelezionaPostazioneCommand?.IsExecuting ?? Observable.Return(false),
-                LogoutCommand?.IsExecuting ?? Observable.Return(false),
-                ApriGiornataCommand?.IsExecuting ?? Observable.Return(false)
-            }.CombineLatest(values => values.Any(x => x));
-
-
+        public void SetHost(IScreen host)
+        {
+            _host = host;
+        }
 
 
         protected override void OnFinalDestruction()
@@ -178,6 +177,7 @@ namespace ViewModels
             };
 
             if (page != null)
+                
                 await HostScreen.Router.Navigate.Execute(page);
             else
                 _isClosing = false; // Ripristino se la destinazione è nulla
@@ -193,8 +193,88 @@ namespace ViewModels
         private async Task GoToLogin()
         {
             _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
-            var vm = Locator.Current.GetService<ILoginViewModel>();
-            await HostScreen.Router.NavigateAndReset.Execute(vm);
+            var loginVm = Locator.Current.GetService<ILoginViewModel>();
+            if (loginVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                loginVm.SetHost(_host);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(loginVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione al Login: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: ILoginViewModel non è stato risolto dal Locator.");
+            }
+        }
+
+        private async Task GoToConnection()
+        {
+            _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
+            var connectionVm = Locator.Current.GetService<IConnectionViewModel>();
+            if (connectionVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                connectionVm.SetHost(_host);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(connectionVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione al Connection: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IConnectionViewModel non è stato risolto dal Locator.");
+            }
+        }
+
+        private async Task GoToConfigurazione()
+        {
+            _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
+            var configurazioneVm = Locator.Current.GetService<IConfigurazioneViewModel>();
+            if (configurazioneVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                configurazioneVm.SetHost(_host);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(configurazioneVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Configurazione: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IConfigurazioneViewModel non è stato risolto dal Locator.");
+            }
         }
 
         //protected override async Task OnSaving() => await Task.CompletedTask;

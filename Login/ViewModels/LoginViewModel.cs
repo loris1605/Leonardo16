@@ -12,9 +12,12 @@ using ViewModels.BindableObjects;
 namespace ViewModels
 {
     
+
     public partial class LoginViewModel : BaseViewModel, ILoginViewModel
     {
         private ILoginRepository Q;
+        private IScreen _host;
+
 
         protected override IObservable<bool> canSave => this.WhenAnyValue(
             x => x.PasswordText,
@@ -25,10 +28,15 @@ namespace ViewModels
                 pass == operatore.Password);
 
 
-        public LoginViewModel(IScreen host, ILoginRepository Repository) : base(host)
+        public LoginViewModel(ILoginRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
+            
+        } 
 
+        public void SetHost(IScreen host)
+        {
+            _host = host;
         }
 
         protected override void OnFinalDestruction()
@@ -84,16 +92,30 @@ namespace ViewModels
         private async Task GoToMenu()
         {
             _isClosing = true;
-            var vm = Locator.Current.GetService<IMenuViewModel>();
-
-            if (vm != null)
+            var menuVm = Locator.Current.GetService<IMenuViewModel>();
+            if (menuVm != null)
             {
-                await HostScreen.Router.NavigateAndReset.Execute(vm);
+                // 2. Impostiamo l'host (lo screen principale)
+                menuVm.SetHost(_host);
+
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(menuVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
+                }
             }
             else
             {
-                _isClosing = false; // Riapri le interazioni se il cambio pagina fallisce
-                System.Diagnostics.Debug.WriteLine("ERRORE: IMenuViewModel non è stato risolto dalla DI.");
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
             }
         }
 

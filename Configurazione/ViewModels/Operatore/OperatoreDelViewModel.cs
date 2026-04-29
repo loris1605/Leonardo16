@@ -3,17 +3,14 @@ using DTO.Repository;
 
 namespace ViewModels
 {
-    public class OperatoreDelViewModel : OperatoreInputBase
+    public class OperatoreDelViewModel : OperatoreInputBase, IOperatoreDelViewModel
     {
         private IOperatoreRepository Q;
-        private readonly int _idDaModificare;
+        
 
-        public OperatoreDelViewModel(IConfigurazioneScreen host, 
-                                     int idoperatore, 
-                                     IOperatoreRepository Repository) : base(host)
+        public OperatoreDelViewModel(IOperatoreRepository Repository) : base()
         {
-            _idDaModificare = idoperatore;
-
+            
             Titolo = "Cancella Operatore";
             FieldsEnabled = false;
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));

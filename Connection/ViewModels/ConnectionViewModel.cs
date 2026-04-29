@@ -12,9 +12,11 @@ using System.Reactive.Linq;
 
 namespace ViewModels
 {
+    
+
     public partial class ConnectionViewModel : BaseViewModel, IConnectionViewModel
     {
-
+        protected IScreen _host;
         public Interaction<Unit, Unit> UserIdFocus { get; } = new();
 
         #region Commands
@@ -33,7 +35,7 @@ namespace ViewModels
             !string.IsNullOrWhiteSpace(db) && !string.IsNullOrWhiteSpace(pass) &&
             !string.IsNullOrWhiteSpace(user) && !string.IsNullOrWhiteSpace(server));
 
-        public ConnectionViewModel(IScreen host) : base(host)
+        public ConnectionViewModel() : base(null)
         {
             InitializeLoadingHelper();
 
@@ -65,6 +67,11 @@ namespace ViewModels
                 // Se hai altre sottoscrizioni WhenAnyValue specifiche, vanno qui
             });
 
+        }
+
+        public void SetHost(IScreen host)
+        {
+            _host = host;
         }
 
         // Estendiamo IsAnythingExecuting per includere CheckCommand
@@ -119,28 +126,34 @@ namespace ViewModels
             }
         }
 
-        private async Task OnUserIdFocus()
-        {
-            // Fondamentale: aspetta un attimo che la View sia "viva" e l'handler registrato
-            await Task.Delay(200);
-
-            try
-            {
-                await UserIdFocus.Handle(Unit.Default);
-            }
-            catch (Exception ex)
-            {
-                // Evita crash se l'handler non è ancora pronto o la vista è già chiusa
-                System.Diagnostics.Debug.WriteLine("Interaction Focus fallita: " + ex.Message);
-            }
-        }
-
-
+        
         private async Task GoToLogin()
         {
             _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
-            var vm = Locator.Current.GetService<ILoginViewModel>();
-            await HostScreen.Router.NavigateAndReset.Execute(vm);
+            var loginVm = Locator.Current.GetService<ILoginViewModel>();
+            if (loginVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                loginVm.SetHost(_host);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(loginVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione al Login: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: ILoginViewModel non è stato risolto dal Locator.");
+            }
         }
 
         //Carica la ComboBox con le IstanzeSql

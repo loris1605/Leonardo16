@@ -1,8 +1,5 @@
 ﻿using ReactiveUI;
-using SysNet;
-using System.Diagnostics;
 using System.Reactive;
-using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using ViewModels.BindableObjects;
 
@@ -14,7 +11,7 @@ namespace ViewModels
     {
         public Interaction<Unit, Unit> EscFocus { get; } = new();
 
-        public InputViewModel(IScreen host) : base(host)
+        public InputViewModel() : base(null)
         {
             this.WhenAnyValue(x => x.IsLoading, x => x._isClosing)
                 .Select(states => !states.Item1 && !states.Item2)

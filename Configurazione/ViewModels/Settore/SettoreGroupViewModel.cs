@@ -12,37 +12,41 @@ using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
-        
-
-    public class OperatoreGroupViewModel : GroupViewModelBase<OperatoreMap>, IGroupViewModelBase, IOperatoreGroupViewModel
+    public class SettoreGroupViewModel : GroupViewModelBase<SettoreMap>, IGroupViewModelBase, ISettoreGroupViewModel
     {
+        public ReactiveCommand<Unit, Unit> OperatoriCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> PostazioniCommand { get; protected set; }
-        public ReactiveCommand<Unit, Unit> SettoriCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> TariffeCommand { get; protected set; }
-        public ReactiveCommand<Unit, Unit> PermessiCommand { get; protected set; }
+        public ReactiveCommand<Unit, Unit> ListiniCommand { get; protected set; }
+        public ReactiveCommand<Unit, Unit> RepartiCommand { get; protected set; }
 
-        private IOperatoreRepository Q;
+        private ISettoreRepository Q;
         
         protected IConfigurazioneScreen _host;
 
+        //fa il merge con la IObservable base
         protected override IObservable<bool> canDel => this.WhenAnyValue(
             x => x.GroupBindingT,
-            (item) => item != null && item.CodicePermesso == 0);
+            x => x.GroupBindingT.CodiceListino, // Osserva esplicitamente la proprietà interna
+            x => x.GroupBindingT.HasReparto,
+            (item, codiceSocio, hasReparto) => item != null && codiceSocio == 0 && !hasReparto
+        );
 
+        // Registriamo i nuovi comandi nell'IsLoading globale per automatizzare l'icona di attesa
         protected override IObservable<bool> IsAnythingExecuting =>
             new[]
             {
                 base.IsAnythingExecuting,
+                OperatoriCommand?.IsExecuting ?? Observable.Return(false),
                 PostazioniCommand?.IsExecuting ?? Observable.Return(false),
-                SettoriCommand?.IsExecuting ?? Observable.Return(false),
-                PermessiCommand?.IsExecuting ?? Observable.Return(false),
+                RepartiCommand?.IsExecuting ?? Observable.Return(false),
                 TariffeCommand?.IsExecuting ?? Observable.Return(false)
             }.CombineLatest(values => values.Any(x => x));
 
-        public OperatoreGroupViewModel(IOperatoreRepository Repository) : base(null)
+        public SettoreGroupViewModel(ISettoreRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-
+            
             var canHasSelection = this.WhenAnyValue(x => x.GroupBindingT).Select(item => item != null);
 
 
@@ -63,42 +67,43 @@ namespace ViewModels
                 }
             });
 
-            SettoriCommand = ReactiveCommand.CreateFromObservable(
+            //TariffeCommand = ReactiveCommand.CreateFromObservable(
+            //    () => NavigateToReset(new TariffaGroupViewModel(ConfigHost, Locator.Current.GetService<ITariffaRepository>())));
+
+            OperatoriCommand = ReactiveCommand.CreateFromObservable(
             () =>
             {
-                var setVm = Locator.Current.GetService<ISettoreGroupViewModel>();
-                if (setVm != null)
+                var opeVm = Locator.Current.GetService<IOperatoreGroupViewModel>();
+                if (opeVm != null)
                 {
-                    setVm.SetHost(_host);
-                    return NavigateToReset(setVm);
+                    opeVm.SetHost(_host);
+                    return NavigateToReset(opeVm);
                 }
                 else
                 {
-                    Debug.WriteLine("ERRORE CRITICO: ISettoreGroupViewModel non è stato risolto dal Locator.");
+                    Debug.WriteLine("ERRORE CRITICO: IOperatoreGroupViewModel non è stato risolto dal Locator.");
                     return Observable.Return(Unit.Default);
                 }
             });
 
-            //TariffeCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToReset(new TariffaGroupViewModel(ConfigHost, Locator.Current.GetService<ITariffaRepository>())));
+            //ListiniCommand = ReactiveCommand.CreateFromObservable(
+            //    () => NavigateToInput(new ListiniViewModel(ConfigHost, GroupBindingT!.Id,
+            //    Locator.Current.GetService<ISettoreRepository>())), canHasSelection);
 
-            //PermessiCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new PermessiViewModel(ConfigHost, GroupBindingT!.Id, 
-            //    Locator.Current.GetService<IOperatoreRepository>())), canHasSelection);
+            //RepartiCommand = ReactiveCommand.CreateFromObservable(
+            //    () => NavigateToReset(new OperatoreAddViewModel(ConfigHost)), isNotLoading);
 
             InitializeLoadingHelper();
 
             this.WhenActivated(d =>
             {
-               
-                PostazioniCommand?.DisposeWith(d);
-                SettoriCommand?.DisposeWith(d);
+
+                OperatoriCommand?.DisposeWith(d);
                 TariffeCommand?.DisposeWith(d);
-                PermessiCommand?.DisposeWith(d);
+                PostazioniCommand?.DisposeWith(d);
+                RepartiCommand?.DisposeWith(d);
 
             });
-          
-
         }
 
         public void SetHost(IConfigurazioneScreen host) => _host = host;
@@ -107,10 +112,7 @@ namespace ViewModels
         {
             // Assicuriamoci che la collezione sia nulla per il GC
             Q = null;
-            PostazioniCommand = null;
-            SettoriCommand = null;
-            PermessiCommand = null;
-            TariffeCommand = null;
+            OperatoriCommand = PostazioniCommand = TariffeCommand = ListiniCommand = RepartiCommand = null;
             base.OnFinalDestruction();
         }
 
@@ -124,18 +126,17 @@ namespace ViewModels
             }
             else
             {
-                DataSource = new List<OperatoreMap>();
+                DataSource = new List<SettoreMap>();
                 GroupedDataSource = null;
             }
         }
 
-        private async Task UpdateCollection(List<OperatoreDTO> data, int id)
+        private async Task UpdateCollection(List<SettoreDTO> data, int id)
         {
-            var mapped = await Task.Run(() => data.Select(dto => new OperatoreMap(dto)).ToList(), token);
+            var mapped = await Task.Run(() => data.Select(dto => new SettoreMap(dto)).ToList(), token);
             var view = new DataGridCollectionView(mapped);
             view.GroupDescriptions.Add(new DataGridPathGroupDescription("Titolo"));
 
-            // Sparisce IsLoading = true manuale
             var backup = GroupBindingT;
             GroupBindingT = null;
             GroupedDataSource = view;
@@ -173,7 +174,7 @@ namespace ViewModels
 
         protected async override Task OnAdding()
         {
-            var addVm = Locator.Current.GetService<IOperatoreAddViewModel>();
+            var addVm = Locator.Current.GetService<ISettoreAddViewModel>();
             if (addVm != null)
             {
                 // 2. Impostiamo l'host (lo screen principale)
@@ -189,20 +190,19 @@ namespace ViewModels
                 catch (Exception ex)
                 {
                     _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla Add Operatore: {ex.Message}");
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Add Settore: {ex.Message}");
                 }
             }
             else
             {
                 _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IOperatoreAddViewModel non è stato risolto dal Locator.");
+                Debug.WriteLine("ERRORE CRITICO: ISettoreAddViewModel non è stato risolto dal Locator.");
             }
-            
         }
 
         protected async override Task OnDeleting()
         {
-            var delVm = Locator.Current.GetService<IOperatoreDelViewModel>();
+            var delVm = Locator.Current.GetService<ISettoreDelViewModel>();
             if (delVm != null)
             {
                 // 2. Impostiamo l'host (lo screen principale)
@@ -219,19 +219,19 @@ namespace ViewModels
                 catch (Exception ex)
                 {
                     _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla Delete Operatore: {ex.Message}");
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Delete Settore: {ex.Message}");
                 }
             }
             else
             {
                 _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IOperatoreDelViewModel non è stato risolto dal Locator.");
+                Debug.WriteLine("ERRORE CRITICO: ISettoreDelViewModel non è stato risolto dal Locator.");
             }
         }
 
         protected async override Task OnUpdating()
         {
-            var updVm = Locator.Current.GetService<IOperatoreUpdViewModel>();
+            var updVm = Locator.Current.GetService<ISettoreUpdViewModel>();
             if (updVm != null)
             {
                 // 2. Impostiamo l'host (lo screen principale)
@@ -248,17 +248,18 @@ namespace ViewModels
                 catch (Exception ex)
                 {
                     _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla Update Operatore: {ex.Message}");
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Update Settore: {ex.Message}");
                 }
             }
             else
             {
                 _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IOperatoreUpdViewModel non è stato risolto dal Locator.");
+                Debug.WriteLine("ERRORE CRITICO: ISettoreUpdViewModel non è stato risolto dal Locator.");
             }
         }
 
-        protected override Task OnEsc() => Task.FromResult(Unit.Default);
+        protected override async Task OnEsc() => await Task.CompletedTask;
         
+
     }
 }

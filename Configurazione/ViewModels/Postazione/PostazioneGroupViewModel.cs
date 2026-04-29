@@ -1,7 +1,10 @@
 ﻿using Avalonia.Collections;
+using Common.InterViewModels;
 using DTO.Entity;
 using DTO.Repository;
 using ReactiveUI;
+using Splat;
+using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -9,7 +12,8 @@ using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
-    public class PostazioneGroupViewModel : GroupViewModelBase<PostazioneMap>, IGroupViewModelBase
+    
+    public class PostazioneGroupViewModel : GroupViewModelBase<PostazioneMap>, IGroupViewModelBase, IPostazioneGroupViewModel
     {
         public ReactiveCommand<Unit, Unit> OperatoriCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> SettoriCommand { get; protected set; }
@@ -17,8 +21,7 @@ namespace ViewModels
         public ReactiveCommand<Unit, Unit> RepartiCommand { get; protected set; }
 
         private IPostazioneRepository Q;
-        private readonly IServiceProvider _sp;
-
+        
         protected IConfigurazioneScreen _host;
 
         //fa il merge con la IObservable base
@@ -29,22 +32,54 @@ namespace ViewModels
             (item, codiceSocio, hasP) => item != null && codiceSocio == 0 && !hasP
         );
 
-        public PostazioneGroupViewModel(IConfigurazioneScreen host,
-                                        IPostazioneRepository Repository,
-                                        IServiceProvider sp) : base(host)
+        protected override IObservable<bool> IsAnythingExecuting =>
+            new[]
+            {
+                base.IsAnythingExecuting,
+                OperatoriCommand?.IsExecuting ?? Observable.Return(false),
+                SettoriCommand?.IsExecuting ?? Observable.Return(false),
+                RepartiCommand?.IsExecuting ?? Observable.Return(false),
+                TariffeCommand?.IsExecuting ?? Observable.Return(false)
+            }.CombineLatest(values => values.Any(x => x));
+
+        public PostazioneGroupViewModel(IPostazioneRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-            _sp = sp ?? throw new ArgumentNullException(nameof(sp));
-            _host = host;
-
+            
             var canHasSelection = this.WhenAnyValue(x => x.GroupBindingT).Select(item => item != null);
 
 
-            //OperatoriCommand = ReactiveCommand.CreateFromObservable(
-            //() => NavigateToReset(new OperatoreGroupViewModel(ConfigHost, Locator.Current.GetService<IOperatoreRepository>())));
+            OperatoriCommand = ReactiveCommand.CreateFromObservable(
+            () =>
+            {
+                var opeVm = Locator.Current.GetService<IOperatoreGroupViewModel>();
+                if (opeVm != null)
+                {
+                    opeVm.SetHost(_host);
+                    return NavigateToReset(opeVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: IOperatoreGroupViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            });
 
-            //SettoriCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToReset(new SettoreGroupViewModel(ConfigHost, Locator.Current.GetService<ISettoreRepository>())));
+            SettoriCommand = ReactiveCommand.CreateFromObservable(
+            () =>
+            {
+                var setVm = Locator.Current.GetService<ISettoreGroupViewModel>();
+                if (setVm != null)
+                {
+                    setVm.SetHost(_host);
+                    return NavigateToReset(setVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: ISettoreGroupViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            });
 
             //TariffeCommand = ReactiveCommand.CreateFromObservable(
             //    () => NavigateToReset(new TariffaGroupViewModel(ConfigHost, Locator.Current.GetService<ITariffaRepository>())));
@@ -58,26 +93,17 @@ namespace ViewModels
             this.WhenActivated(d =>
             {
 
-                OperatoriCommand.DisposeWith(d);
-                SettoriCommand.DisposeWith(d);
-                TariffeCommand.DisposeWith(d);
-                RepartiCommand.DisposeWith(d);
+                OperatoriCommand?.DisposeWith(d);
+                SettoriCommand?.DisposeWith(d);
+                TariffeCommand?.DisposeWith(d);
+                RepartiCommand?.DisposeWith(d);
 
             });
                   
         }
 
-        protected override IObservable<bool> IsAnythingExecuting =>
-            new[]
-            {
-                base.IsAnythingExecuting,
-                OperatoriCommand?.IsExecuting ?? Observable.Return(false),
-                SettoriCommand?.IsExecuting ?? Observable.Return(false),
-                RepartiCommand?.IsExecuting ?? Observable.Return(false),
-                TariffeCommand?.IsExecuting ?? Observable.Return(false)
-            }.CombineLatest(values => values.Any(x => x));
-
-        
+        public void SetHost(IConfigurazioneScreen host) => _host = host;
+      
         protected override void OnFinalDestruction()
         {
             OperatoriCommand = SettoriCommand = TariffeCommand = RepartiCommand = null;
@@ -126,7 +152,7 @@ namespace ViewModels
 
         protected IObservable<Unit> NavigateToReset(IRoutableViewModel vm)
         {
-            if (HostScreen == null) return Observable.Return(Unit.Default);
+            if (_host == null) return Observable.Return(Unit.Default);
 
             _isClosing = true; // Impedisce la navigazione multipla
 
@@ -142,23 +168,88 @@ namespace ViewModels
 
         protected async override Task OnAdding()
         {
-            await Task.CompletedTask;
-            //await NavigateToInput(new PostazioneAddViewModel(ConfigHost,
-            //                          Locator.Current.GetService<IPostazioneRepository>())).ToTask();
+            var addVm = Locator.Current.GetService<IPostazioneAddViewModel>();
+            if (addVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                addVm.SetHost(_host);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await NavigateToInput(addVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Add Postazione: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IPostazioneAddViewModel non è stato risolto dal Locator.");
+            }
         }
 
         protected async override Task OnDeleting()
         {
-            await Task.CompletedTask;
-            //await NavigateToInput(new PostazioneDelViewModel(ConfigHost, GroupBindingT.Id,
-            //                          Locator.Current.GetService<IPostazioneRepository>())).ToTask();
+            var delVm = Locator.Current.GetService<IPostazioneDelViewModel>();
+            if (delVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                delVm.SetHost(_host);
+                delVm.SetIdDaModificare(GroupBindingT.Id);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await NavigateToInput(delVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Delete Postazione: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IPostazioneDelViewModel non è stato risolto dal Locator.");
+            }
         }
 
         protected async override Task OnUpdating()
         {
-            await Task.CompletedTask;
-            //await NavigateToInput(new PostazioneUpdViewModel(ConfigHost, GroupBindingT.Id,
-            //                          Locator.Current.GetService<IPostazioneRepository>())).ToTask();
+            var updVm = Locator.Current.GetService<IPostazioneUpdViewModel>();
+            if (updVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                updVm.SetHost(_host);
+                updVm.SetIdDaModificare(GroupBindingT.Id);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await NavigateToInput(updVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Update Postazione: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IPostazioneUpdViewModel non è stato risolto dal Locator.");
+            }
         }
 
         protected override Task OnEsc()

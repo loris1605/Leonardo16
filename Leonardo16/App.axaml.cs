@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Common.InterViewModels;
 using Splat;
 using System;
 using ViewModels;
@@ -18,12 +19,24 @@ namespace Leonardo16
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var vm = Locator.Current.GetService<MainWindowViewModel>() 
-                                ?? throw new InvalidOperationException("Impossibile risolvere MainWindowViewModel dal container.");
-                desktop.MainWindow = new MainWindow
+                // 1. Risolvi la MainWindow dal container (che a sua volta risolverà le sue dipendenze)
+                var mainWindow = Locator.Current.GetService<MainWindow>()
+                                ?? throw new InvalidOperationException("Impossibile risolvere MainWindow.");
+
+                var vm = Locator.Current.GetService<IMainWindowViewModel>() 
+                                        ?? throw new InvalidOperationException("Non risolta classe MainViewmodel");
+
+                if (vm is MainWindowViewModel concreteVm)
                 {
-                    ViewModel = vm // ReactiveUI usa ViewModel, Avalonia usa DataContext (ViewModel setta entrambi)
-                };
+                    mainWindow.ViewModel = concreteVm;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Il ViewModel risolto non è di tipo MainWindowViewModel.");
+                }
+
+                desktop.MainWindow = mainWindow;
+                
             }
 
             base.OnFrameworkInitializationCompleted();

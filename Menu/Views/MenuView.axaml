@@ -36,7 +36,8 @@
         <lc:TitleView x:Name="Title"
                       TitoloPagina="MENU PRINCIPALE"
                       ButtonText=" Logout "
-                      ToolTipText="CAMBIO OPERATORE"/>
+                      ToolTipText="CAMBIO OPERATORE"
+                      ExitCommand="{Binding LogoutCommand}"/>
 		    
         <Border Grid.Row="1" Padding="30" VerticalAlignment="Top">
         
@@ -61,9 +62,8 @@
 
                         <ui:UiMenuItem x:Name="ConfigurazioneItem"
                                        Header="  CONFIGURAZIONE  " 
-                                       Command="{Binding NavigateCommand}"
-                                       MaxHeight="50"
-                                       CommandParameter="Configurazione"/>
+                                       Command="{Binding ConfigurazioneCommand}"
+                                       MaxHeight="50"/>
 
                         <ui:UiMenuItem Name="ServiziItem"
                                        Header="  SERVIZI  " 
@@ -175,8 +175,7 @@
 
                     <ui:UiMenuItem Header="  CONNESSIONE  " 
                                    x:Name="ConnessioneItem"
-                                   Command="{Binding NavigateCommand}"
-                                   CommandParameter="Connection"
+                                   Command="{Binding ConnectionCommand}"
                                    MaxHeight="50"/>
 
                 

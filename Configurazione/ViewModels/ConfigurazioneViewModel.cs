@@ -1,40 +1,28 @@
 ﻿using Common.InterViewModels;
-using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Splat;
+using System.Diagnostics;
 using System.Reactive.Linq;
 
 namespace ViewModels
 {
     
-    public interface IConfigurazioneScreen : IScreen
-    {
-        RoutingState GroupRouter { get; }
-        RoutingState InputRouter { get; }
-        bool GroupEnabled { get; set; }
-
-        void AggiornaGridByInt(int id);
-    }
-
-    public partial class ConfigurazioneViewModel : BaseViewModel, IConfigurazioneScreen, IConfigurazioneViewModel
+    public partial class ConfigurazioneViewModel : BaseViewModel, IConfigurazioneViewModel, IConfigurazioneScreen
     {
         public RoutingState GroupRouter { get; } = new RoutingState();
         public RoutingState InputRouter { get; } = new RoutingState();
         public RoutingState Router => GroupRouter;
 
-        private readonly IServiceProvider _sp;
+        private IScreen _host;
 
-        public ConfigurazioneViewModel(IScreen host, IServiceProvider sp) : base(host)
+        public ConfigurazioneViewModel() : base(null)
         {
-            _sp = sp;
+            
+        }
 
-            //_operatoreGroupViewModel = operatoreGroupViewModel;
-
-            //this.WhenActivated(d =>
-            //{
-
-            //});
-
+        public void SetHost(IScreen host)
+        {
+            _host = host;
         }
 
         protected override void OnFinalDestruction()
@@ -47,12 +35,25 @@ namespace ViewModels
         {
             // Creiamo l'istanza della prima pagina (OperatoreGroupViewModel)
             // Passando "this" come host, così il GroupViewModel saprà dove navigare
-            var firstPage = ActivatorUtilities.CreateInstance<OperatoreGroupViewModel>(_sp, this);
-
+            var firstPage = Locator.Current.GetService<IOperatoreGroupViewModel>();
             if (firstPage != null)
             {
-                await GroupRouter.NavigateAndReset.Execute(firstPage);
+                firstPage?.SetHost(this);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await GroupRouter.NavigateAndReset.Execute(firstPage);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
+                }
             }
+            
         }
 
         public void AggiornaGridByInt(int id)
@@ -72,17 +73,31 @@ namespace ViewModels
         protected async override Task OnEsc()
         {
             _isClosing = true;
-            try
+            var menuVm = Locator.Current.GetService<IMenuViewModel>();
+            if (menuVm != null)
             {
-                await HostScreen.Router.NavigateBack.Execute();
-                _isClosing = false;
+                // 2. Impostiamo l'host (lo screen principale)
+                menuVm.SetHost(_host);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(menuVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
+                }
             }
-            catch (Exception)
+            else
             {
-                _isClosing = false; // Riapri le interazioni se il cambio pagina fallisce
-                System.Diagnostics.Debug.WriteLine("ERRORE: IMenuViewModel non è stato risolto dalla DI.");
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
             }
-            
+
         }
 
     }
