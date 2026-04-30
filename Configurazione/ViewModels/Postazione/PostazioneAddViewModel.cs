@@ -45,13 +45,22 @@ namespace ViewModels
 
         protected async override Task OnSaving()
         {
-            if (!await ValidaDati()) return;
+            _isClosing = true;
+            // 1. Validazione Dati (ora è un Task, serve await)
+            if (!await ValidaDati())
+            {
 
+                _isClosing = false; // Permette di riprovare dopo la validazione fallita
+                return;
+            }
+
+            
             try
             {
                 // 2. Controllo Duplicati
                 if (await Q.EsisteNome(BindingT.ToDto(), token))
                 {
+                    _isClosing = false;
                     InfoLabel = "Postazione già registrata";
                     await SetFocus(NomeFocus);
                     return;
@@ -64,6 +73,7 @@ namespace ViewModels
 
                 if (newPostazioneId == -1)
                 {
+                    _isClosing = false;
                     InfoLabel = "Errore Db inserimento Postazione";
                     await SetFocus(NomeFocus);
                     return;
@@ -72,9 +82,10 @@ namespace ViewModels
                 // 4. Successo: Ritorno protetto
                 await OnBack(newPostazioneId);
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException) { _isClosing = false; }
             catch (Exception ex)
             {
+                _isClosing = false; 
                 InfoLabel = $"Errore: {ex.Message}";
                 await SetFocus(NomeFocus);
             }

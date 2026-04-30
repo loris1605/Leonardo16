@@ -43,12 +43,12 @@ namespace ViewModels
 
         // Observable centralizzato per lo stato dei comandi
         protected virtual IObservable<bool> IsAnythingExecuting =>
-        Observable.CombineLatest(
-            this.WhenAnyObservable(x => x.LoadCommand.IsExecuting),
-            this.WhenAnyObservable(x => x.SaveCommand.IsExecuting),
-            this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting),
-            (l, s, e) => l || s || e)
-        .DistinctUntilChanged();
+            Observable.CombineLatest(
+                this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
+                (l, s, e) => l || s || e)
+            .DistinctUntilChanged();
 
 
         public BaseViewModel(IScreen hostScreen = null, string urlPathSegment = default)

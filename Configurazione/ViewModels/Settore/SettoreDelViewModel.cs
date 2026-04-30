@@ -11,7 +11,7 @@ namespace ViewModels
         public SettoreDelViewModel(ISettoreRepository Repository) : base()
         {
             Titolo = "Cancella Settore";
-            Q = Repository;
+            Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
             // Disabilitiamo l'input ma teniamo visibili i campi
             FieldsEnabled = false;
             FieldsVisibile = true;
@@ -48,13 +48,24 @@ namespace ViewModels
 
         protected async override Task OnSaving()
         {
-            if (BindingT == null || BindingT.Id == 0) return;
+            _isClosing = true;
+
+            if (BindingT == null || BindingT.Id == 0)
+            {
+                _isClosing = false;
+                InfoLabel = "Errore: Settore non valido.";
+                await SetFocus(EscFocus);
+                return;
+            }
+
+            InfoLabel = "Cancellazione in corso...";
 
             try
             {
                 // Esecuzione eliminazione
                 if (!await Q.Del(BindingT.ToDto(), token))
                 {
+                    _isClosing = false;
                     InfoLabel = "Errore Database: impossibile eliminare il settore";
                     await SetFocus(EscFocus);
                     return;
@@ -65,6 +76,7 @@ namespace ViewModels
             }
             catch (Exception ex)
             {
+                _isClosing = false;
                 InfoLabel = $"Errore critico: {ex.Message}";
                 await SetFocus(EscFocus);
             }

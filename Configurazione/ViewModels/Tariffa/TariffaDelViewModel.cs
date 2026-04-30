@@ -1,8 +1,5 @@
 ﻿using Common.InterViewModels;
 using DTO.Repository;
-using Models.Repository;
-using ReactiveUI;
-using SysNet;
 
 namespace ViewModels
 {
@@ -10,11 +7,8 @@ namespace ViewModels
     {
         private ITariffaRepository Q;
 
-        private readonly int _idDaModificare;
-
-        public TariffaDelViewModel(IScreen host, int idtariffa, ITariffaRepository Repository) : base(host)
+        public TariffaDelViewModel(ITariffaRepository Repository) : base()
         {
-            _idDaModificare = idtariffa;
             Titolo = "Cancella Settore";
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
             FieldsEnabled = false;
@@ -33,18 +27,43 @@ namespace ViewModels
                 InfoLabel = "Errore: Tariffa non trovata nel database.";
                 FieldsEnabled = false;
             }
-            SetFocus(EscFocus);
+            await SetFocus(EscFocus);
         }
 
         protected async override Task OnSaving()
         {
-            if (!await Q.Del(BindingT.ToDTO()))
+            _isClosing = true;
+
+            if (BindingT == null || BindingT.Id == 0)
             {
-                InfoLabel = "Errore Db eliminazione Tariffa";
-                SetFocus(EscFocus);
+                _isClosing = false;
+                InfoLabel = "Errore: Tariffa non valida.";
+                await SetFocus(EscFocus);
                 return;
             }
-            OnBack(-100);
+
+            InfoLabel = "Cancellazione in corso...";
+
+            try
+            {
+                // Esecuzione eliminazione
+                if (!await Q.Del(BindingT.ToDto(), token))
+                {
+                    _isClosing = false;
+                    InfoLabel = "Errore Database: impossibile eliminare la tariffa";
+                    await SetFocus(EscFocus);
+                    return;
+                }
+
+                // Successo: ritorno alla grid con flag di refresh totale
+                await OnBack(-100);
+            }
+            catch (Exception ex)
+            {
+                _isClosing = false;
+                InfoLabel = $"Errore critico: {ex.Message}";
+                await SetFocus(EscFocus);
+            }
         }
     }
 }

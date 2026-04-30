@@ -67,6 +67,7 @@ namespace Leonardo16
             services.AddTransient<IPostazioneDbContext, PostazioneDbContext>();
             services.AddTransient<ISettoreDbContext, SettoreDbContext>();
             services.AddTransient<ITariffaDbContext, TariffaDbContext>();
+            services.AddTransient<IPermessoDbContext, PermessoDbContext>();
 
         }
 
@@ -80,6 +81,7 @@ namespace Leonardo16
             services.AddTransient<IPostazioneRepository, PostazioneRepository>();
             services.AddTransient<ISettoreRepository, SettoreRepository >();
             services.AddTransient<ITariffaRepository, TariffaRepository>();
+            services.AddTransient<IPermessoRepository, PermessoRepository>();
         }
 
         private static void RegisterViewModels(IServiceCollection services)
@@ -111,6 +113,8 @@ namespace Leonardo16
 
             services.AddTransient<ITariffaGroupViewModel, TariffaGroupViewModel>();
             services.AddTransient<ITariffaAddViewModel, TariffaAddViewModel>();
+            services.AddTransient<ITariffaDelViewModel, TariffaDelViewModel>();
+            services.AddTransient<ITariffaUpdViewModel, TariffaUpdViewModel>();
 
             services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
             
@@ -142,6 +146,9 @@ namespace Leonardo16
             services.AddTransient<IViewFor<SettoreDelViewModel>, SettoreInputView>();
             services.AddTransient<IViewFor<SettoreUpdViewModel>, SettoreInputView>();
             services.AddTransient<IViewFor<TariffaGroupViewModel>, TariffaGroupView>();
+            services.AddTransient<IViewFor<TariffaAddViewModel>, TariffaInputView>();
+            services.AddTransient<IViewFor<TariffaDelViewModel>, TariffaInputView>();
+            services.AddTransient<IViewFor<TariffaUpdViewModel>, TariffaInputView>();
         }
 
         private static void RegisterViews(IServiceCollection services)

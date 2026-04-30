@@ -98,6 +98,7 @@ namespace ViewModels
 
         public virtual Task CaricaByModel(object model) { return Task.CompletedTask; }
 
+
         public async Task ExecuteAdding()
         {
             if (_isClosing) return;

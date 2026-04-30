@@ -35,11 +35,19 @@ namespace ViewModels
             !string.IsNullOrWhiteSpace(db) && !string.IsNullOrWhiteSpace(pass) &&
             !string.IsNullOrWhiteSpace(user) && !string.IsNullOrWhiteSpace(server));
 
+        // Estendiamo IsAnythingExecuting per includere CheckCommand
+        protected override IObservable<bool> IsAnythingExecuting =>
+            base.IsAnythingExecuting.CombineLatest(
+                // Usiamo StartWith(false) per gestire il momento in cui il comando è null
+                this.WhenAnyValue(x => x.CheckCommand)
+                    .SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.AvviaCommand)
+                    .SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                (baseExec, check, avvia) => baseExec || check || avvia);
+
         public ConnectionViewModel() : base(null)
         {
-            InitializeLoadingHelper();
-
-            _isUiReady = this.WhenAnyValue(
+           _isUiReady = this.WhenAnyValue(
                                 x => x.IsLoading,
                                 x => x.IsDataLoaded,
                                 (loading, loaded) => !loading && loaded)
@@ -61,8 +69,8 @@ namespace ViewModels
     }               ).DisposeWith(d); // 'd' dal WhenActivated
 
                 // Pulizia delle sottoscrizioni dei comandi quando la View viene deattivata
-                CheckCommand.DisposeWith(d);
-                AvviaCommand.DisposeWith(d);
+                CheckCommand?.DisposeWith(d);
+                AvviaCommand?.DisposeWith(d);
 
                 // Se hai altre sottoscrizioni WhenAnyValue specifiche, vanno qui
             });
@@ -74,17 +82,7 @@ namespace ViewModels
             _host = host;
         }
 
-        // Estendiamo IsAnythingExecuting per includere CheckCommand
-        protected override IObservable<bool> IsAnythingExecuting =>
-            base.IsAnythingExecuting.CombineLatest(
-                // Usiamo StartWith(false) per gestire il momento in cui il comando è null
-                this.WhenAnyValue(x => x.CheckCommand)
-                    .SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                this.WhenAnyValue(x => x.AvviaCommand)
-                    .SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                (baseExec, check, avvia) => baseExec || check || avvia);
-
-
+    
         protected override void OnFinalDestruction()
         {
             SqlInstances?.Clear();

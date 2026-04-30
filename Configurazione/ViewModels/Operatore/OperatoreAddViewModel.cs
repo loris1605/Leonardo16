@@ -25,14 +25,21 @@ namespace ViewModels
 
         protected async override Task OnSaving()
         {
+            _isClosing = true;
             // 1. Validazione Dati (ora è un Task, serve await)
-            if (!await ValidaDati()) return;
+            if (!await ValidaDati())
+            { 
+          
+                _isClosing = false; // Permette di riprovare dopo la validazione fallita
+                return;
+            }
 
             // 2. Controllo duplicati con CancellationToken (ereditato dalla base)
             try
             {
                 if (await Q.EsisteNome(BindingT.ToDto(), token))
                 {
+                    _isClosing = false;
                     InfoLabel = "Operatore già registrato";
                     await SetFocus(NomeFocus);
                     return;
@@ -48,6 +55,7 @@ namespace ViewModels
 
                 if (newOperatoreId == -1)
                 {
+                    _isClosing = false;
                     InfoLabel = "Errore Db inserimento Operatore";
                     await SetFocus(NomeFocus);
                     return;
@@ -59,9 +67,11 @@ namespace ViewModels
             catch (OperationCanceledException)
             {
                 Debug.WriteLine("Salvataggio annullato.");
+                _isClosing = false;
             }
             catch (Exception ex)
             {
+                _isClosing = false;
                 InfoLabel = $"Errore: {ex.Message}";
                 await SetFocus(NomeFocus);
             }

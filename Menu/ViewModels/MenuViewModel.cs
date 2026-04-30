@@ -67,13 +67,8 @@ namespace ViewModels
 
             ApriGiornataCommand = ReactiveCommand.CreateFromTask(ExecuteOpenGiornata, canApriFinal);
 
-            ApriGiornataCommand = ReactiveCommand.CreateFromTask(ExecuteOpenGiornata, canApriFinal);
-
-            InitializeLoadingHelper();
-
             this.WhenActivated(d =>
             {
-
                 LogoutCommand?.DisposeWith(d);
                 SelezionaPostazioneCommand?.DisposeWith(d);
                 NavigateCommand?.DisposeWith(d);

@@ -170,26 +170,47 @@ namespace ViewModels
                 .Select(_ => Unit.Default);
         }
 
-        protected async override Task OnAdding()
+        protected async Task NavigateTo<T>(Action<T> configure = null) where T : class // Assumi che abbiano un'interfaccia base per SetHost
         {
-            await Task.CompletedTask; // Per mantenere la firma async, anche se non serve qui
-            //await NavigateToInput(new TariffaAddViewModel(ConfigHost,
-            //                          Locator.Current.GetService<ITariffaRepository>())).ToTask();
+            // 1. Blocchiamo la UI
+            _isClosing = true;
+
+            var viewModel = Locator.Current.GetService<T>();
+            if (viewModel != null)
+            {
+                try
+                {
+                    // 2. Configurazione (SetHost e altro)
+                    // Assicurati che le tue interfacce derivino da una base o usa dynamic
+                    (viewModel as dynamic).SetHost(_host);
+                    configure?.Invoke(viewModel);
+
+                    // 3. Navigazione sul Main Thread
+                    await Observable.Start(async () =>
+                    {
+                        await NavigateToInput(viewModel as IRoutableViewModel);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione a {typeof(T).Name}: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false;
+                Debug.WriteLine($"ERRORE CRITICO: {typeof(T).Name} non risolto.");
+            }
         }
 
-        protected async override Task OnDeleting()
-        {
-            await Task.CompletedTask;
-            //await NavigateToInput(new TariffaDelViewModel(ConfigHost, GroupBindingT.Id,
-            //                          Locator.Current.GetService<ITariffaRepository>())).ToTask();
-        }
+        protected async override Task OnAdding() => await NavigateTo<ITariffaAddViewModel>();
 
-        protected async override Task OnUpdating()
-        {
-            await Task.CompletedTask;
-            //await NavigateToInput(new TariffaUpdViewModel(ConfigHost, GroupBindingT.Id,
-            //                          Locator.Current.GetService<ITariffaRepository>())).ToTask();
-        }
+        protected async override Task OnDeleting() =>
+                                    await NavigateTo<ITariffaDelViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
+
+        protected async override Task OnUpdating() =>
+                                    await NavigateTo<ITariffaUpdViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
 
         protected override async Task OnEsc() => await Task.CompletedTask;
 

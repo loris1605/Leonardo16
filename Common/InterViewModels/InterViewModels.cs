@@ -33,6 +33,8 @@ namespace Common.InterViewModels
 
         void AggiornaGridByInt(int id);
     }
+
+
     public interface iConfigurazioneCrudViewModel : IRoutableViewModel
     {
         void SetHost(IConfigurazioneScreen host);
@@ -70,6 +72,7 @@ namespace Common.InterViewModels
     }
     public interface ITariffaAddViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface ITariffaDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
+    public interface ITariffaUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
 }
 
 

@@ -179,91 +179,47 @@ namespace ViewModels
                 .Select(_ => Unit.Default);
         }
 
-        protected async override Task OnAdding()
+        protected async Task NavigateTo<T>(Action<T> configure = null) where T : class // Assumi che abbiano un'interfaccia base per SetHost
         {
-            var addVm = Locator.Current.GetService<IPostazioneAddViewModel>();
-            if (addVm != null)
+            // 1. Blocchiamo la UI
+            _isClosing = true;
+
+            var viewModel = Locator.Current.GetService<T>();
+            if (viewModel != null)
             {
-                // 2. Impostiamo l'host (lo screen principale)
-                addVm.SetHost(_host);
                 try
                 {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    // 2. Configurazione (SetHost e altro)
+                    // Assicurati che le tue interfacce derivino da una base o usa dynamic
+                    (viewModel as dynamic).SetHost(_host);
+                    configure?.Invoke(viewModel);
+
+                    // 3. Navigazione sul Main Thread
                     await Observable.Start(async () =>
                     {
-                        await NavigateToInput(addVm);
+                        await NavigateToInput(viewModel as IRoutableViewModel);
                     }, RxSchedulers.MainThreadScheduler);
                 }
                 catch (Exception ex)
                 {
                     _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla Add Postazione: {ex.Message}");
+                    Debug.WriteLine($"ERRORE durante la navigazione a {typeof(T).Name}: {ex.Message}");
                 }
             }
             else
             {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IPostazioneAddViewModel non è stato risolto dal Locator.");
+                _isClosing = false;
+                Debug.WriteLine($"ERRORE CRITICO: {typeof(T).Name} non risolto.");
             }
         }
 
-        protected async override Task OnDeleting()
-        {
-            var delVm = Locator.Current.GetService<IPostazioneDelViewModel>();
-            if (delVm != null)
-            {
-                // 2. Impostiamo l'host (lo screen principale)
-                delVm.SetHost(_host);
-                delVm.SetIdDaModificare(GroupBindingT.Id);
-                try
-                {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await NavigateToInput(delVm);
-                    }, RxSchedulers.MainThreadScheduler);
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla Delete Postazione: {ex.Message}");
-                }
-            }
-            else
-            {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IPostazioneDelViewModel non è stato risolto dal Locator.");
-            }
-        }
+        protected async override Task OnAdding() => await NavigateTo<IPostazioneAddViewModel>();
 
-        protected async override Task OnUpdating()
-        {
-            var updVm = Locator.Current.GetService<IPostazioneUpdViewModel>();
-            if (updVm != null)
-            {
-                // 2. Impostiamo l'host (lo screen principale)
-                updVm.SetHost(_host);
-                updVm.SetIdDaModificare(GroupBindingT.Id);
-                try
-                {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await NavigateToInput(updVm);
-                    }, RxSchedulers.MainThreadScheduler);
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla Update Postazione: {ex.Message}");
-                }
-            }
-            else
-            {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IPostazioneUpdViewModel non è stato risolto dal Locator.");
-            }
-        }
+        protected async override Task OnDeleting() =>
+                                    await NavigateTo<IPostazioneDelViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
+
+        protected async override Task OnUpdating() =>
+                                    await NavigateTo<IPostazioneUpdViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
 
         protected override Task OnEsc()
         {

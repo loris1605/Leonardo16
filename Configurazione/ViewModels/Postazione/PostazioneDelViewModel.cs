@@ -47,13 +47,22 @@ namespace ViewModels
 
         protected async override Task OnSaving()
         {
-            if (BindingT == null || BindingT.Id == 0) return;
+            _isClosing = true;
+
+            if (BindingT == null || BindingT.Id == 0)
+            {
+                _isClosing = false;
+                InfoLabel = "Errore: Postazione non valida.";
+                await SetFocus(EscFocus);
+                return;
+            }
 
             try
             {
                 // Esecuzione eliminazione
                 if (!await Q.Del(BindingT.ToDto(), token))
                 {
+                    _isClosing = false;
                     InfoLabel = "Errore Database: impossibile eliminare la postazione";
                     await SetFocus(EscFocus);
                     return;
@@ -66,6 +75,7 @@ namespace ViewModels
             }
             catch (Exception ex)
             {
+                _isClosing = false;
                 InfoLabel = $"Errore critico: {ex.Message}";
                 await SetFocus(EscFocus);
             }

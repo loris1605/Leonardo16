@@ -4,7 +4,6 @@ using Models.Context;
 using Models.Repository;
 using Models.Tables;
 using System.Linq.Expressions;
-using static Models.Entity.Global.Enums;
 
 namespace DTO.Repository
 {

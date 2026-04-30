@@ -39,12 +39,23 @@ namespace ViewModels
 
         protected async override Task OnSaving()
         {
-            if (BindingT == null || BindingT.Id == 0) return;
+            _isClosing = true;
+
+            if (BindingT == null || BindingT.Id == 0)
+            {
+                _isClosing = false;
+                InfoLabel = "Errore: Operatore non valido.";
+                await SetFocus(EscFocus);
+                return;
+            }
+
+            InfoLabel = "Cancellazione in corso...";
 
             try
             {
                 if (!await Q.Del(BindingT.ToDto()))
                 {
+                    _isClosing = false;
                     InfoLabel = "Errore Db eliminazione operatore";
                     await SetFocus(EscFocus);
                     return;
@@ -53,11 +64,11 @@ namespace ViewModels
             }
             catch (Exception ex)
             {
+                _isClosing = false;
                 InfoLabel = $"Errore: {ex.Message}";
                 await SetFocus(EscFocus);
             }
-
-            
+           
             
         }
     }
