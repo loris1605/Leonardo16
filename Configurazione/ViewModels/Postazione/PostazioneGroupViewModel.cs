@@ -81,8 +81,21 @@ namespace ViewModels
                 }
             });
 
-            //TariffeCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToReset(new TariffaGroupViewModel(ConfigHost, Locator.Current.GetService<ITariffaRepository>())));
+            TariffeCommand = ReactiveCommand.CreateFromObservable(
+            () =>
+            {
+                var setVm = Locator.Current.GetService<ITariffaGroupViewModel>();
+                if (setVm != null)
+                {
+                    setVm.SetHost(_host);
+                    return NavigateToReset(setVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: ITariffaGroupViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            });
 
             //RepartiCommand = ReactiveCommand.CreateFromObservable(
             //    () => NavigateToInput(new RepartiViewModel(ConfigHost, GroupBindingT!.Id, Q)),

@@ -109,6 +109,9 @@ namespace Leonardo16
             services.AddTransient<ISettoreDelViewModel, SettoreDelViewModel>();
             services.AddTransient<ISettoreUpdViewModel, SettoreUpdViewModel>();
 
+            services.AddTransient<ITariffaGroupViewModel, TariffaGroupViewModel>();
+            services.AddTransient<ITariffaAddViewModel, TariffaAddViewModel>();
+
             services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
             
         }
@@ -138,6 +141,7 @@ namespace Leonardo16
             services.AddTransient<IViewFor<SettoreAddViewModel>, SettoreInputView>();
             services.AddTransient<IViewFor<SettoreDelViewModel>, SettoreInputView>();
             services.AddTransient<IViewFor<SettoreUpdViewModel>, SettoreInputView>();
+            services.AddTransient<IViewFor<TariffaGroupViewModel>, TariffaGroupView>();
         }
 
         private static void RegisterViews(IServiceCollection services)

@@ -68,6 +68,8 @@ namespace Common.InterViewModels
     {
         void SetHost(IConfigurazioneScreen host);
     }
+    public interface ITariffaAddViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
+    public interface ITariffaDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
 }
 
 

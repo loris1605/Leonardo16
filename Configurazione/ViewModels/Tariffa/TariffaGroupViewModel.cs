@@ -63,10 +63,36 @@ namespace ViewModels
             });
 
             SettoriCommand = ReactiveCommand.CreateFromObservable(
-                () => NavigateToReset(new SettoreGroupViewModel(ConfigHost, Locator.Current.GetService<ISettoreRepository>())));
+            () =>
+            {
+                var setVm = Locator.Current.GetService<ISettoreGroupViewModel>();
+                if (setVm != null)
+                {
+                    setVm.SetHost(_host);
+                    return NavigateToReset(setVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: ISettoreGroupViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            });
 
             OperatoriCommand = ReactiveCommand.CreateFromObservable(
-                () => NavigateToReset(new OperatoreGroupViewModel(ConfigHost, Locator.Current.GetService<IOperatoreRepository>())));
+            () =>
+            {
+                var opeVm = Locator.Current.GetService<IOperatoreGroupViewModel>();
+                if (opeVm != null)
+                {
+                    opeVm.SetHost(_host);
+                    return NavigateToReset(opeVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: IOperatoreGroupViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            });
 
             InitializeLoadingHelper();
 
@@ -79,13 +105,14 @@ namespace ViewModels
             });
         }
 
-        // Registriamo i nuovi comandi nell'IsLoading globale
-        
+        public void SetHost(IConfigurazioneScreen host) => _host = host;
+
 
         protected override void OnFinalDestruction()
         {
             // Assicuriamoci che la collezione sia nulla per il GC
             Q = null;
+            OperatoriCommand = PostazioniCommand = ListiniCommand = SettoriCommand = null;
             base.OnFinalDestruction();
         }
 
@@ -129,34 +156,39 @@ namespace ViewModels
 
         protected IObservable<Unit> NavigateToReset(IRoutableViewModel vm)
         {
-            if (ConfigHost == null) return Observable.Return(Unit.Default);
-            // IsLoading manuale rimosso, ci pensa il comando grazie a IsAnythingExecuting
-            return ConfigHost.GroupRouter.NavigateAndReset.Execute(vm).Select(_ => Unit.Default);
+            if (_host == null) return Observable.Return(Unit.Default);
+
+            _isClosing = true; // Impedisce la navigazione multipla
+
+            return _host.GroupRouter.NavigateAndReset.Execute(vm).Select(_ => Unit.Default);
         }
 
         protected IObservable<Unit> NavigateToInput(IRoutableViewModel vm)
         {
-            return Observable.Start(() => ConfigHost.GroupEnabled = false, RxApp.MainThreadScheduler)
-                .SelectMany(_ => ConfigHost.InputRouter.Navigate.Execute(vm))
+            return Observable.Start(() => _host.GroupEnabled = false, RxSchedulers.MainThreadScheduler)
+                .SelectMany(_ => _host.InputRouter.Navigate.Execute(vm))
                 .Select(_ => Unit.Default);
         }
 
         protected async override Task OnAdding()
         {
-            await NavigateToInput(new TariffaAddViewModel(ConfigHost,
-                                      Locator.Current.GetService<ITariffaRepository>())).ToTask();
+            await Task.CompletedTask; // Per mantenere la firma async, anche se non serve qui
+            //await NavigateToInput(new TariffaAddViewModel(ConfigHost,
+            //                          Locator.Current.GetService<ITariffaRepository>())).ToTask();
         }
 
         protected async override Task OnDeleting()
         {
-            await NavigateToInput(new TariffaDelViewModel(ConfigHost, GroupBindingT.Id,
-                                      Locator.Current.GetService<ITariffaRepository>())).ToTask();
+            await Task.CompletedTask;
+            //await NavigateToInput(new TariffaDelViewModel(ConfigHost, GroupBindingT.Id,
+            //                          Locator.Current.GetService<ITariffaRepository>())).ToTask();
         }
 
         protected async override Task OnUpdating()
         {
-            await NavigateToInput(new TariffaUpdViewModel(ConfigHost, GroupBindingT.Id,
-                                      Locator.Current.GetService<ITariffaRepository>())).ToTask();
+            await Task.CompletedTask;
+            //await NavigateToInput(new TariffaUpdViewModel(ConfigHost, GroupBindingT.Id,
+            //                          Locator.Current.GetService<ITariffaRepository>())).ToTask();
         }
 
         protected override async Task OnEsc() => await Task.CompletedTask;
