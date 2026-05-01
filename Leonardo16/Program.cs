@@ -68,6 +68,7 @@ namespace Leonardo16
             services.AddTransient<ISettoreDbContext, SettoreDbContext>();
             services.AddTransient<ITariffaDbContext, TariffaDbContext>();
             services.AddTransient<IPermessoDbContext, PermessoDbContext>();
+            services.AddTransient<IRepartoDbContext, RepartoDbContext>();
 
         }
 
@@ -82,6 +83,7 @@ namespace Leonardo16
             services.AddTransient<ISettoreRepository, SettoreRepository >();
             services.AddTransient<ITariffaRepository, TariffaRepository>();
             services.AddTransient<IPermessoRepository, PermessoRepository>();
+            services.AddTransient<IRepartoRepository, RepartoRepository>();
         }
 
         private static void RegisterViewModels(IServiceCollection services)
@@ -100,11 +102,13 @@ namespace Leonardo16
             services.AddTransient<IOperatoreAddViewModel, OperatoreAddViewModel>();
             services.AddTransient<IOperatoreDelViewModel, OperatoreDelViewModel>();
             services.AddTransient<IOperatoreUpdViewModel, OperatoreUpdViewModel>();
+            services.AddTransient<IPermessoViewModel, PermessiViewModel>();
 
             services.AddTransient<IPostazioneGroupViewModel, PostazioneGroupViewModel>();
             services.AddTransient<IPostazioneAddViewModel, PostazioneAddViewModel>();
             services.AddTransient<IPostazioneDelViewModel, PostazioneDelViewModel>();
             services.AddTransient<IPostazioneUpdViewModel, PostazioneUpdViewModel>();
+            services.AddTransient<IRepartoViewModel, RepartiViewModel>();
 
             services.AddTransient<ISettoreGroupViewModel, SettoreGroupViewModel>();
             services.AddTransient<ISettoreAddViewModel, SettoreAddViewModel>();
@@ -137,10 +141,12 @@ namespace Leonardo16
             services.AddTransient<IViewFor<OperatoreAddViewModel>, OperatoreInputView>();
             services.AddTransient<IViewFor<OperatoreDelViewModel>, OperatoreInputView>();
             services.AddTransient<IViewFor<OperatoreUpdViewModel>, OperatoreInputView>();
+            services.AddTransient<IViewFor<PermessiViewModel>, PermessiView>();
             services.AddTransient<IViewFor<PostazioneGroupViewModel>, PostazioneGroupView>();
             services.AddTransient<IViewFor<PostazioneAddViewModel>, PostazioneInputView>();
             services.AddTransient<IViewFor<PostazioneDelViewModel>, PostazioneInputView>();
             services.AddTransient<IViewFor<PostazioneUpdViewModel>, PostazioneInputView>();
+            services.AddTransient<IViewFor<RepartiViewModel>, RepartiView>();
             services.AddTransient<IViewFor<SettoreGroupViewModel>, SettoreGroupView>();
             services.AddTransient<IViewFor<SettoreAddViewModel>, SettoreInputView>();
             services.AddTransient<IViewFor<SettoreDelViewModel>, SettoreInputView>();

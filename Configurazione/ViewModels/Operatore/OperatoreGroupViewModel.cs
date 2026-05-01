@@ -25,10 +25,13 @@ namespace ViewModels
         
         protected IConfigurazioneScreen _host;
 
+        public IObservable<bool> CanAction { get; }
+
         protected override IObservable<bool> canDel => this.WhenAnyValue(
             x => x.GroupBindingT,
             (item) => item != null && item.CodicePermesso == 0);
 
+        
         protected override IObservable<bool> IsAnythingExecuting =>
             new[]
             {
@@ -95,9 +98,22 @@ namespace ViewModels
                 }
             });
 
-            //PermessiCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new PermessiViewModel(ConfigHost, GroupBindingT!.Id, 
-            //    Locator.Current.GetService<IOperatoreRepository>())), canHasSelection);
+            PermessiCommand = ReactiveCommand.CreateFromObservable(
+            () =>
+            {
+                var setVm = Locator.Current.GetService<IPermessoViewModel>();
+                if (setVm != null)
+                {
+                    setVm.SetHost(_host);
+                    setVm.SetIdDaModificare(GroupBindingT.Id);
+                    return NavigateToInput(setVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: IPermessoViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            }, canHasSelection);
 
             InitializeLoadingHelper();
 

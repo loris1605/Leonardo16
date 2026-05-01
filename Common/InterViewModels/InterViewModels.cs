@@ -48,6 +48,8 @@ namespace Common.InterViewModels
     public interface IOperatoreAddViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IOperatoreDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IOperatoreUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
+    public interface IPermessoViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
+    
 
 
     public interface IPostazioneGroupViewModel : IRoutableViewModel
@@ -57,6 +59,7 @@ namespace Common.InterViewModels
     public interface IPostazioneAddViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IPostazioneDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IPostazioneUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
+    public interface IRepartoViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
 
     public interface ISettoreGroupViewModel : IRoutableViewModel
     {

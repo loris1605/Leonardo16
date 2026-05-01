@@ -5,56 +5,47 @@ using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
-    public partial class PermessiViewModel : OperatoreInputBase, IPermessoViewModel
+    public partial class RepartiViewModel : PostazioneInputBase, IRepartoViewModel
     {
-        private IPermessoRepository Q;
-        private IOperatoreRepository oQ;
-
-        public PermessiViewModel(IPermessoRepository Repository, IOperatoreRepository oRepository) : base()
+        private IRepartoRepository Q;
+        private IPostazioneRepository pQ;
+        public RepartiViewModel(IPostazioneRepository pRepository, IRepartoRepository Repository) : base()
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-            oQ = oRepository ?? throw new ArgumentNullException(nameof(oRepository));
+            pQ = pRepository ?? throw new ArgumentNullException(nameof(pRepository));
         }
 
         protected override void OnFinalDestruction()
         {
             Q = null;
-            oQ = null;
+            pQ = null;
             base.OnFinalDestruction();
         }
 
         protected override async Task OnLoading()
         {
-            // 1. Recupero dati operatore per il titolo
-            var operatore = await oQ.FirstOperatore(_idDaModificare, token);
-            Titolo = $"Permessi per l'operatore: {operatore?.NomeOperatore ?? "Sconosciuto"}";
-
-            // 2. Caricamento della lista dei permessi
-            var data = await Q.GetPermessi(_idDaModificare, token);
-
-            // Trasformiamo i DTO in Map per il binding con le CheckBox nella Grid
-            DataSource = data.Select(dto => new PostazioneElencoMap(dto)).ToList();
-
-            // 3. Focus asincrono
+            var postazione = await pQ.FirstPostazione(_idDaModificare, token);
+            Titolo = $"Reparti per la postazione: {postazione?.NomePostazione ?? "Sconosciuto"}";
+            var data = await Q.GetReparti(_idDaModificare, token);
+            
+            DataSource = data.Select(dto => new SettoreElencoMap(dto)).ToList();
             await SetFocus(EscFocus);
         }
 
         protected async override Task OnSaving()
         {
             if (DataSource == null) return;
-
             _isClosing = true;
 
-            // Trasformiamo tutta la lista modificata di nuovo in DTO
             var dtoSource = DataSource.Select(p => p.ToDto()).ToList();
 
             try
             {
-                InfoLabel = "Salvataggio permessi...";
+                InfoLabel = "Salvataggio reparti...";
 
-                if (!await Q.SavePermessi(_idDaModificare, dtoSource, token))
+                if (!await Q.SaveReparti(_idDaModificare, dtoSource, token))
                 {
-                    InfoLabel = "Errore Database: modifica permessi fallita";
+                    InfoLabel = "Errore Database: modifica reparti fallita";
                     await SetFocus(EscFocus);
                     return;
                 }
@@ -71,15 +62,14 @@ namespace ViewModels
             }
         }
 
-
     }
 
-    public partial class PermessiViewModel
+    public partial class RepartiViewModel
     {
         #region DataSource
 
-        private IList<PostazioneElencoMap> _datasource = [];
-        public IList<PostazioneElencoMap> DataSource
+        private IList<SettoreElencoMap> _datasource = [];
+        public IList<SettoreElencoMap> DataSource
         {
             get => _datasource;
             set => this.RaiseAndSetIfChanged(ref _datasource, value);
@@ -89,8 +79,8 @@ namespace ViewModels
 
         #region BindingT
 
-        private PostazioneElencoMap _bindingT;
-        public new PostazioneElencoMap BindingT
+        private SettoreElencoMap _bindingT;
+        public new SettoreElencoMap BindingT
         {
             get => _bindingT;
             set => this.RaiseAndSetIfChanged(ref _bindingT, value);

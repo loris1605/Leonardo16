@@ -48,14 +48,6 @@ namespace DTO.Repository
             return true;
         }
 
-        public async Task<OperatoreDTO> FirstOperatore(int id, CancellationToken ctk = default)
-        {
-
-            var result = await GetById(id,
-                selector: OperatoreDTO.ToOperatoreDto, ctk);
-
-
-            return result ?? new OperatoreDTO();
-        }
+        
     }
 }

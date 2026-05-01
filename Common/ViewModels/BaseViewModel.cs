@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
-using Splat;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;

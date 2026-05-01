@@ -97,9 +97,22 @@ namespace ViewModels
                 }
             });
 
-            //RepartiCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new RepartiViewModel(ConfigHost, GroupBindingT!.Id, Q)),
-            //    canHasSelection);
+            RepartiCommand = ReactiveCommand.CreateFromObservable(
+            () =>
+            {
+                var setVm = Locator.Current.GetService<IRepartoViewModel>();
+                if (setVm != null)
+                {
+                    setVm.SetHost(_host);
+                    setVm.SetIdDaModificare(GroupBindingT.Id);
+                    return NavigateToInput(setVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: IRepartoViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            }, canHasSelection);
 
             InitializeLoadingHelper();
 
