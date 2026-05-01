@@ -68,6 +68,7 @@ namespace Common.InterViewModels
     public interface ISettoreAddViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface ISettoreDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface ISettoreUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
+    public interface IListinoViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
 
     public interface ITariffaGroupViewModel : IRoutableViewModel
     {

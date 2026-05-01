@@ -69,6 +69,7 @@ namespace Leonardo16
             services.AddTransient<ITariffaDbContext, TariffaDbContext>();
             services.AddTransient<IPermessoDbContext, PermessoDbContext>();
             services.AddTransient<IRepartoDbContext, RepartoDbContext>();
+            services.AddTransient<IListinoDbContext, ListinoDbContext>();
 
         }
 
@@ -84,6 +85,7 @@ namespace Leonardo16
             services.AddTransient<ITariffaRepository, TariffaRepository>();
             services.AddTransient<IPermessoRepository, PermessoRepository>();
             services.AddTransient<IRepartoRepository, RepartoRepository>();
+            services.AddTransient<IListinoRepository, ListinoRepository>();
         }
 
         private static void RegisterViewModels(IServiceCollection services)
@@ -114,6 +116,7 @@ namespace Leonardo16
             services.AddTransient<ISettoreAddViewModel, SettoreAddViewModel>();
             services.AddTransient<ISettoreDelViewModel, SettoreDelViewModel>();
             services.AddTransient<ISettoreUpdViewModel, SettoreUpdViewModel>();
+            services.AddTransient<IListinoViewModel, ListinoViewModel>();   
 
             services.AddTransient<ITariffaGroupViewModel, TariffaGroupViewModel>();
             services.AddTransient<ITariffaAddViewModel, TariffaAddViewModel>();

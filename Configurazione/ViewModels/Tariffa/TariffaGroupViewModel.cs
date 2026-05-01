@@ -188,6 +188,7 @@ namespace ViewModels
                     // 3. Navigazione sul Main Thread
                     await Observable.Start(async () =>
                     {
+                        _isClosing = false;
                         await NavigateToInput(viewModel as IRoutableViewModel);
                     }, RxSchedulers.MainThreadScheduler);
                 }
