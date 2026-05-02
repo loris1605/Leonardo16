@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Cassa\Cassa.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Configurazione\Configurazione.csproj" />
     <ProjectReference Include="..\Connection\Connection.csproj" />

@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:ViewModels"
+             xmlns:ui="using:ControlStyles"
+             xmlns:r="using:ReactiveUI.Avalonia"
+             xmlns:lc="using:Leonardo"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="LightSteelBlue"
+             x:DataType="vm:CassaViewModel"
+             x:Class="Views.CassaView">
+
+    <Grid x:Name="MainGrid">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <r:RoutedViewHost x:Name="RouterHost" 
+                      Router="{Binding CassaRouter}" 
+                      Grid.ColumnSpan="3"
+                      Grid.RowSpan="3">
+    
+            <r:RoutedViewHost.PageTransition>
+                <!-- Durata di 0.5 secondi -->
+                <CrossFade Duration="0:0:0.5" />
+            </r:RoutedViewHost.PageTransition>
+
+            <r:RoutedViewHost.DefaultContent>
+                <Border/>
+            </r:RoutedViewHost.DefaultContent>
+    
+         </r:RoutedViewHost>    
+
+         <r:RoutedViewHost x:Name="SettingsHost" 
+                      Router="{Binding SettingsRouter}" 
+                      Grid.Column="1"
+                      Grid.Row="1">
+    
+            <r:RoutedViewHost.PageTransition>
+                <!-- Durata di 0.5 secondi -->
+                <CrossFade Duration="0:0:0.5" />
+            </r:RoutedViewHost.PageTransition>
+
+            <r:RoutedViewHost.DefaultContent>
+                <Border/>
+            </r:RoutedViewHost.DefaultContent>
+    
+         </r:RoutedViewHost>  
+    
+    </Grid>
+  
+</UserControl>

@@ -40,7 +40,8 @@ namespace ViewModels
                 OperatoriCommand?.IsExecuting ?? Observable.Return(false),
                 PostazioniCommand?.IsExecuting ?? Observable.Return(false),
                 RepartiCommand?.IsExecuting ?? Observable.Return(false),
-                TariffeCommand?.IsExecuting ?? Observable.Return(false)
+                TariffeCommand?.IsExecuting ?? Observable.Return(false),
+                ListiniCommand?.IsExecuting ?? Observable.Return(false)
             }.CombineLatest(values => values.Any(x => x));
 
         public SettoreGroupViewModel(ISettoreRepository Repository) : base(null)
@@ -99,12 +100,22 @@ namespace ViewModels
                 }
             });
 
-            //ListiniCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new ListiniViewModel(ConfigHost, GroupBindingT!.Id,
-            //    Locator.Current.GetService<ISettoreRepository>())), canHasSelection);
-
-            //RepartiCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToReset(new OperatoreAddViewModel(ConfigHost)), isNotLoading);
+            ListiniCommand = ReactiveCommand.CreateFromObservable(
+            () =>
+            {
+                var setVm = Locator.Current.GetService<IListinoViewModel>();
+                if (setVm != null)
+                {
+                    setVm.SetHost(_host);
+                    setVm.SetIdDaModificare(GroupBindingT.Id);
+                    return NavigateToInput(setVm);
+                }
+                else
+                {
+                    Debug.WriteLine("ERRORE CRITICO: IListinoViewModel non è stato risolto dal Locator.");
+                    return Observable.Return(Unit.Default);
+                }
+            }, canHasSelection);
 
             InitializeLoadingHelper();
 

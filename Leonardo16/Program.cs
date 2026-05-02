@@ -154,6 +154,7 @@ namespace Leonardo16
             services.AddTransient<IViewFor<SettoreAddViewModel>, SettoreInputView>();
             services.AddTransient<IViewFor<SettoreDelViewModel>, SettoreInputView>();
             services.AddTransient<IViewFor<SettoreUpdViewModel>, SettoreInputView>();
+            services.AddTransient<IViewFor<ListinoViewModel>, ListinoView>();
             services.AddTransient<IViewFor<TariffaGroupViewModel>, TariffaGroupView>();
             services.AddTransient<IViewFor<TariffaAddViewModel>, TariffaInputView>();
             services.AddTransient<IViewFor<TariffaDelViewModel>, TariffaInputView>();

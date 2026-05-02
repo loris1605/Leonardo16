@@ -34,7 +34,6 @@ namespace Common.InterViewModels
         void AggiornaGridByInt(int id);
     }
 
-
     public interface iConfigurazioneCrudViewModel : IRoutableViewModel
     {
         void SetHost(IConfigurazioneScreen host);
@@ -50,7 +49,6 @@ namespace Common.InterViewModels
     public interface IOperatoreUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IPermessoViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     
-
 
     public interface IPostazioneGroupViewModel : IRoutableViewModel
     {
@@ -77,6 +75,25 @@ namespace Common.InterViewModels
     public interface ITariffaAddViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface ITariffaDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface ITariffaUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
+
+    public interface ICassaScreen : IScreen
+    {
+        RoutingState CassaRouter { get; }
+        RoutingState SettingsRouter { get; }
+
+    }
+    public interface ICassaViewModel : IRoutableViewModel
+    {
+        void SetHost(IScreen host);
+        void SetPostazioneId(int id);   
+    }
+
+    public interface ICassaPostazioneViewModel : IRoutableViewModel
+    {
+        void SetHost(ICassaScreen host);
+        void SetPostazioneId(int id);
+    }
+
 }
 
 
