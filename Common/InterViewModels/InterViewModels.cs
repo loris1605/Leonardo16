@@ -39,6 +39,7 @@ namespace Common.InterViewModels
     {
         void SetHost(ISociScreen host);
         void SetIdDaModificare(int id);
+        void SetIdRitorno(int id);
     }
 
     public interface IPersonGroupViewModel : IRoutableViewModel
@@ -49,6 +50,9 @@ namespace Common.InterViewModels
     public interface IPersonUpdViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface IPersonDelViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface IPersonSearchViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface ICodiceSocioAddViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface ICodiceSocioDelViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface ICodiceSocioUpdViewModel : IRoutableViewModel, iSociCrudViewModel { }
 
     public interface IConfigurazioneViewModel : IRoutableViewModel
     {

@@ -61,20 +61,21 @@ namespace ViewModels
             var canSocioDelete = this.WhenAnyValue(x => x.GroupBindingT)
                                      .Select(item => item != null && item.CodiceSocio != 0 && item.CodiceTessera == 0);
 
+            var canSocioUpdate = this.WhenAnyValue(x => x.GroupBindingT, x => x.IsLoading,
+                (item, loading) => item != null &&
+                                   item.CodiceSocio != 0 &&
+                                   !loading);
+
 
             var canTesseraExists = this.WhenAnyValue(x => x.GroupBindingT)
                                        .Select(item => item != null && item.CodiceSocio != 0 && item.CodiceTessera != 0);
 
 
-            //AddCodiceSocioCommand = ReactiveCommand.CreateFromObservable(
-            //() => NavigateToInput(new CodiceSocioAddViewModel(ConfigHost, GroupBindingT!.Id, Q)), canAction);
+            AddCodiceSocioCommand = ReactiveCommand.CreateFromTask(OnCodiceSocioAdding, canAction);
+            DelCodiceSocioCommand = ReactiveCommand.CreateFromTask(OnCodiceSocioDeleting, canSocioDelete);
+            UpdCodiceSocioCommand = ReactiveCommand.CreateFromTask(OnCodiceSocioUpdating, canSocioUpdate);
 
-            //DelCodiceSocioCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new CodiceSocioDelViewModel(ConfigHost, GroupBindingT.CodiceSocio, GroupBindingT.Id, Q)), canSocioDelete);
-
-            //UpdCodiceSocioCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new CodiceSocioUpdViewModel(ConfigHost, GroupBindingT.CodiceSocio, GroupBindingT.Id, Q)), canSocioExists);
-
+            
             //AddTesseraCommand = ReactiveCommand.CreateFromObservable(
             //    () => NavigateToInput(new TesseraAddViewModel(ConfigHost, GroupBindingT.Id, GroupBindingT.CodiceSocio, Q)), canSocioExists);
 
@@ -243,6 +244,23 @@ namespace ViewModels
 
         protected async override Task OnUpdating() => 
             await NavigateTo<IPersonUpdViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
+
+        protected async Task OnCodiceSocioAdding() => 
+            await NavigateTo<ICodiceSocioAddViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
+
+        protected async Task OnCodiceSocioDeleting() =>
+            await NavigateTo<ICodiceSocioDelViewModel>(vm =>
+            {
+                vm.SetIdDaModificare(GroupBindingT.CodiceSocio);
+                vm.SetIdRitorno(GroupBindingT.Id);
+            });
+
+        protected async Task OnCodiceSocioUpdating() =>
+            await NavigateTo<ICodiceSocioUpdViewModel>(vm =>
+            {
+                vm.SetIdDaModificare(GroupBindingT.CodiceSocio);
+                vm.SetIdRitorno(GroupBindingT.Id);
+            });
 
         protected override Task OnEsc() => Task.CompletedTask;
         

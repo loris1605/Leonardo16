@@ -36,6 +36,7 @@ namespace ViewModels
         protected ISociScreen _host;
 
         protected int _idDaModificare;
+        protected int _idRitorno;
 
         public PersonInputBase() : base()
         {
@@ -69,6 +70,11 @@ namespace ViewModels
         public void SetIdDaModificare(int id)
         {
             _idDaModificare = id;
+        }
+
+        public void SetIdRitorno(int id)
+        {
+            _idRitorno = id;
         }
 
         protected async override Task OnSaving() { await Task.CompletedTask; }

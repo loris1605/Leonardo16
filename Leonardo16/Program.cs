@@ -106,6 +106,9 @@ namespace Leonardo16
             services.AddTransient<IPersonDelViewModel, PersonDelViewModel>();
             services.AddTransient<IPersonUpdViewModel, PersonUpdViewModel>();
             services.AddTransient<IPersonSearchViewModel, PersonSearchViewModel>();
+            services.AddTransient<ICodiceSocioAddViewModel, CodiceSocioAddViewModel>();
+            services.AddTransient<ICodiceSocioDelViewModel, CodiceSocioDelViewModel>();
+            services.AddTransient<ICodiceSocioUpdViewModel, CodiceSocioUpdViewModel>();
 
             services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
 
@@ -155,6 +158,9 @@ namespace Leonardo16
             services.AddTransient<IViewFor<PersonDelViewModel>, PersonInputView>();
             services.AddTransient<IViewFor<PersonUpdViewModel>, PersonInputView>();
             services.AddTransient<IViewFor<PersonSearchViewModel>, PersonSearchView>();
+            services.AddTransient<IViewFor<CodiceSocioAddViewModel>, SocioInputView>();
+            services.AddTransient<IViewFor<CodiceSocioDelViewModel>, SocioInputView>();
+            services.AddTransient<IViewFor<CodiceSocioUpdViewModel>, SocioInputView>();
 
             services.AddTransient<IViewFor<ConfigurazioneViewModel>, ConfigurazioneView>();
             services.AddTransient<IViewFor<OperatoreGroupViewModel>, OperatoreGroupView>();
