@@ -1,0 +1,175 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:ViewModels"
+             xmlns:ui="using:ControlStyles"
+             xmlns:r="using:ReactiveUI.Avalonia"
+             xmlns:lc="using:Leonardo"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="Transparent"
+             x:Class="Views.PersonInputView"
+             x:DataType="vm:PersonInputBase">
+   
+		
+    <Grid x:Name="MainGrid" >
+
+        <Grid.Resources>
+            <!-- Azzera i vincoli di larghezza minimi del tema per il DatePicker -->
+            <x:Double x:Key="DatePickerThemeMinWidth">0</x:Double>
+            <x:Double x:Key="DatePickerThemeMaxWidth">1000</x:Double>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="3*"/> <!-- PopupBorder -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <ui:PopupBorder VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Grid.Row="1"
+                        Grid.Column="1">
+       
+
+            <Grid x:Name="PopupGrid">
+
+                <Grid.RowDefinitions>
+					<RowDefinition Height="50"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    
+                </Grid.RowDefinitions>
+                
+                <ui:UiTitolo x:Name="lblTitolo" 
+                         FontSize="22" 
+                         SubTitolo="True"
+                         Margin="30,0" 
+                         HorizontalAlignment="Center"/>
+
+                <Grid x:Name="InputGrid" 
+                      Grid.Row="1"
+                      Margin="10">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="5"/>
+						<RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+					
+                    <ui:UiLabelForGrid Text="COGNOME :" 
+                                       Margin="10,10,0,10"
+                                       Grid.Row="1"/>
+
+                    <ui:UiTextBox Grid.Row="1" 
+                                  x:Name="CognomeBox"
+                                  Grid.Column="1"
+                                  Margin="25,2,25,2"
+                                  VerticalAlignment="Center"/>
+
+                    <ui:UiLabelForGrid Text="NOME :" 
+                                       Margin="10,10,0,10"
+                                       Grid.Row="2"/>
+
+                    <ui:UiTextBox Grid.Row="2" 
+                                  x:Name="NomeBox"
+                                  Grid.Column="1"
+                                  Margin="25,2,25,2"
+                                  VerticalAlignment="Center"/>
+
+                    <ui:UiLabelForGrid Text="DATA NASCITA :" 
+                                       Margin="10,10,0,10"
+                                       Grid.Row="3"/>
+
+
+                    <ui:UiDatePicker x:Name="DataNascitaPicker"
+                                     FontWeight="SemiBold" 
+                                     VerticalAlignment="Center" 
+                                     HorizontalAlignment="Stretch"
+                                     Margin="25,2,25,2"
+                                     Grid.Row="3"
+                                     Grid.Column="1"/>
+
+                    <ui:UiLabelForGrid Text="CODICE SOCIO :" 
+                                       x:Name="CodiceSocioLabel"
+                                       Margin="10,10,0,10"
+                                       Grid.Row="4"/>
+
+                    <ui:UiIntegerTextBox Grid.Row="4" 
+                                         x:Name="CodiceSocioBox"
+                                         Grid.Column="1"
+                                         Margin="25,2,25,2"
+                                         VerticalAlignment="Center"/>
+
+                    <ui:UiLabelForGrid Text="NUMERO TESSERA :" 
+                                       x:Name="NumeroTesseraLabel"
+                                       Margin="10,10,0,10"
+                                       Grid.Row="5"/>
+
+                    <ui:UiIntegerTextBox Grid.Row="5" 
+                                         x:Name="NumeroTesseraBox"
+                                         Grid.Column="1"
+                                         Margin="25,2,25,2"
+                                         VerticalAlignment="Center"/>
+                      
+						
+
+                </Grid>
+
+                <TextBlock x:Name="InfoLabel"
+                           Grid.Row="2"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           Margin="20,10">
+
+                    <TextBlock.Styles>
+                        <Style Selector="TextBlock">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1" 
+                                           IterationCount="Infinite" 
+                                           PlaybackDirection="Alternate">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="Opacity" Value="1.0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1">
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </TextBlock.Styles>
+
+                </TextBlock>
+            
+                <lc:InputSaveBox x:Name="InputSaveBox"
+                                 Grid.Row="3"
+                                 Margin="20"
+                                 SaveCommand="{Binding SaveCommand}"
+                                 ExitCommand="{Binding EscPressedCommand}"/>
+                
+            
+            </Grid>
+
+        </ui:PopupBorder>
+              
+    </Grid>
+    
+  
+</UserControl>

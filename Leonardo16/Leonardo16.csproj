@@ -35,6 +35,7 @@
     <ProjectReference Include="..\Login\Login.csproj" />
     <ProjectReference Include="..\Menu\Menu.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />
+    <ProjectReference Include="..\Soci\Soci.csproj" />
     <ProjectReference Include="..\SysNet\SysNet.csproj" />
   </ItemGroup>
 </Project>

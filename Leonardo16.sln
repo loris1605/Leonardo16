@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configurazione", "Configura
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cassa", "Cassa\Cassa.csproj", "{CFE059CF-DF3E-484D-89E7-2F800B2673B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Soci", "Soci\Soci.csproj", "{21D91FCB-63E9-4F06-97D0-C812E4F1655F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,7 @@ Global
 		{0B6603F7-4EFE-40F5-AE14-0A43E31F39A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B6603F7-4EFE-40F5-AE14-0A43E31F39A7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D5B9C135-758D-0E44-D2AA-29F2DD11DC07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B9C135-758D-0E44-D2AA-29F2DD11DC07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5B9C135-758D-0E44-D2AA-29F2DD11DC07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5B9C135-758D-0E44-D2AA-29F2DD11DC07}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4507306B-739D-40F0-BAF7-222FC4F6030A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -73,6 +76,10 @@ Global
 		{CFE059CF-DF3E-484D-89E7-2F800B2673B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFE059CF-DF3E-484D-89E7-2F800B2673B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFE059CF-DF3E-484D-89E7-2F800B2673B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21D91FCB-63E9-4F06-97D0-C812E4F1655F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21D91FCB-63E9-4F06-97D0-C812E4F1655F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21D91FCB-63E9-4F06-97D0-C812E4F1655F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21D91FCB-63E9-4F06-97D0-C812E4F1655F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

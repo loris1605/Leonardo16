@@ -3,6 +3,7 @@ using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Subjects;
+using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
@@ -48,11 +49,8 @@ namespace ViewModels
 
         public void SetHost(ICassaScreen host) => _host = host;
 
-        //protected async override Task OnEsc() => await HostScreen
-        //                                                .Router
-        //                                                .NavigateAndReset
-        //                                                .Execute(new MenuViewModel(HostScreen,
-        //                                                    Locator.Current.GetService<IMenuRepository>()));
+        protected async override Task OnEsc() => await _host.OnClosing();
+                                                        
 
         protected override async Task OnLoading()
         {
@@ -94,13 +92,13 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _titolo, value);
         }
 
-        //private SchedaMap bindingt = Create<SchedaMap>.Instance();
-        //public SchedaMap BindingT
-        //{
-        //    get => bindingt;
-        //    set => this.RaiseAndSetIfChanged(ref bindingt, value);
+        private SchedaMap bindingt = new();
+        public SchedaMap BindingT
+        {
+            get => bindingt;
+            set => this.RaiseAndSetIfChanged(ref bindingt, value);
 
-        //}
+        }
 
         public Interaction<Unit, Unit> PosizioneFocus { get; } = new();
 

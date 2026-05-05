@@ -70,6 +70,7 @@ namespace Leonardo16
             services.AddTransient<IPermessoDbContext, PermessoDbContext>();
             services.AddTransient<IRepartoDbContext, RepartoDbContext>();
             services.AddTransient<IListinoDbContext, ListinoDbContext>();
+            services.AddTransient<IPeopleDbContext, PeopleDbContext>();
 
         }
 
@@ -86,6 +87,7 @@ namespace Leonardo16
             services.AddTransient<IPermessoRepository, PermessoRepository>();
             services.AddTransient<IRepartoRepository, RepartoRepository>();
             services.AddTransient<IListinoRepository, ListinoRepository>();
+            services.AddTransient<IPersonRepository, PersonRepository>();
         }
 
         private static void RegisterViewModels(IServiceCollection services)
@@ -98,7 +100,14 @@ namespace Leonardo16
             services.AddTransient<ILoginViewModel, LoginViewModel>();
             services.AddTransient<IMenuViewModel, MenuViewModel>();
 
-            services.AddTransient<ConfigurazioneViewModel>();
+            services.AddTransient<ISociViewModel, SociViewModel>();
+            services.AddTransient<IPersonGroupViewModel, PersonGroupViewModel>();
+            services.AddTransient<IPersonAddViewModel, PersonAddViewModel>();
+            services.AddTransient<IPersonDelViewModel, PersonDelViewModel>();
+            services.AddTransient<IPersonUpdViewModel, PersonUpdViewModel>();
+            services.AddTransient<IPersonSearchViewModel, PersonSearchViewModel>();
+
+            services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
 
             services.AddTransient<IOperatoreGroupViewModel, OperatoreGroupViewModel>();
             services.AddTransient<IOperatoreAddViewModel, OperatoreAddViewModel>();
@@ -123,8 +132,9 @@ namespace Leonardo16
             services.AddTransient<ITariffaDelViewModel, TariffaDelViewModel>();
             services.AddTransient<ITariffaUpdViewModel, TariffaUpdViewModel>();
 
-            services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
-            
+            services.AddTransient<ICassaViewModel, CassaViewModel>();
+            services.AddTransient<ICassaPostazioneViewModel, CassaPostazioneViewModel>();
+
         }
 
         private static void RegisterIViewFor(IServiceCollection services)
@@ -138,6 +148,13 @@ namespace Leonardo16
             services.AddTransient<IViewFor<ConnectionViewModel>, ConnectionView>();
 
             services.AddTransient<IViewFor<MenuViewModel>, MenuView>();
+
+            services.AddTransient<IViewFor<SociViewModel>, SociView>();
+            services.AddTransient<IViewFor<PersonGroupViewModel>, PersonGroupView>();
+            services.AddTransient<IViewFor<PersonAddViewModel>, PersonInputView>();
+            services.AddTransient<IViewFor<PersonDelViewModel>, PersonInputView>();
+            services.AddTransient<IViewFor<PersonUpdViewModel>, PersonInputView>();
+            services.AddTransient<IViewFor<PersonSearchViewModel>, PersonSearchView>();
 
             services.AddTransient<IViewFor<ConfigurazioneViewModel>, ConfigurazioneView>();
             services.AddTransient<IViewFor<OperatoreGroupViewModel>, OperatoreGroupView>();
@@ -159,6 +176,9 @@ namespace Leonardo16
             services.AddTransient<IViewFor<TariffaAddViewModel>, TariffaInputView>();
             services.AddTransient<IViewFor<TariffaDelViewModel>, TariffaInputView>();
             services.AddTransient<IViewFor<TariffaUpdViewModel>, TariffaInputView>();
+
+            services.AddTransient<IViewFor<CassaViewModel>, CassaView>();
+            services.AddTransient<IViewFor<CassaPostazioneViewModel>, CassaPostazioneView>();
         }
 
         private static void RegisterViews(IServiceCollection services)

@@ -57,7 +57,7 @@
 
                         <ui:UiMenuItem x:Name="SociItem"
                                        Header="  SOCI  "
-                                       Command="{Binding NavigateCommand}"
+                                       Command="{Binding SociCommand}"
                                        MaxHeight="50"/>
 
                         <ui:UiMenuItem x:Name="ConfigurazioneItem"
@@ -96,7 +96,7 @@
                            <Style Selector="MenuItem > MenuItem" x:DataType="dt:MenuPostazioneMap">
                                <Setter Property="Header" Value="{Binding NomePostazione}" />
                                <Setter Property="Command" Value="{Binding $parent[MenuItem].DataContext.SelezionaPostazioneCommand}" />
-                               <Setter Property="CommandParameter" Value="{Binding}" />
+                               <Setter Property="CommandParameter" Value="{Binding Id}" />
                            </Style>
                        </MenuItem.Styles>
                        

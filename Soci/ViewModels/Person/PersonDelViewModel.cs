@@ -4,38 +4,40 @@ using System.Diagnostics;
 
 namespace ViewModels
 {
-    public class OperatoreDelViewModel : OperatoreInputBase, IOperatoreDelViewModel
+    public class PersonDelViewModel : PersonInputBase, IPersonDelViewModel
     {
-        private IOperatoreRepository Q;
-        
-
-        public OperatoreDelViewModel(IOperatoreRepository Repository) : base()
+        private IPersonRepository Q;
+                
+        public PersonDelViewModel(IPersonRepository Repository) : base()
         {
-            
-            Titolo = "Cancella Operatore";
-            FieldsEnabled = false;
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
+            Titolo = "Elimina Socio";
+            FieldsEnabled = false;
+            FieldsVisibile = false; ;
+                       
         }
 
-        protected override void OnFinalDestruction() => Q = null;
+        protected override void OnFinalDestruction()
+        {
+            Q = null;
+            DataSource = null;
+        }
 
         protected override async Task OnLoading()
         {
-            var data = await Q.FirstOperatore(_idDaModificare);
+            var data = await Q.FirstPerson(_idDaModificare, token);
 
-            BindingT = new BindableObjects.OperatoreMap(data);
-
-            if (BindingT == null || BindingT.Id == 0)
+            if (data == null || data.Id == 0)
             {
-                InfoLabel = "Errore: Operatore non trovato nel database.";
-                
-                await SetFocus(EscFocus);
-                return;
+                InfoLabel = "Errore: Socio non trovato.";
+                return; // Esci subito
             }
 
-            Titolo = $"Cancella Operatore: {BindingT.NomeOperatore}";
-            
-            await SetFocus(EscFocus);
+            BindingT = new BindableObjects.PersonMap(data);
+
+            Titolo = $"Cancella Socio: {BindingT.Cognome}";
+
+            await SetFocus(EscFocus,0);
         }
 
         protected async override Task OnSaving()
@@ -45,7 +47,7 @@ namespace ViewModels
             if (BindingT == null || BindingT.Id == 0)
             {
                 _isClosing = false;
-                InfoLabel = "Errore: Operatore non valido.";
+                InfoLabel = "Errore: Socio non valido.";
                 await SetFocus(EscFocus);
                 return;
             }
@@ -56,9 +58,8 @@ namespace ViewModels
             {
                 if (!await Q.Del(BindingT.ToDto(), token))
                 {
-                    _isClosing = false;
-                    InfoLabel = "Errore Db eliminazione operatore";
-                    await SetFocus(EscFocus);
+                    InfoLabel = "Errore Db eliminazione person";
+                    await SetFocus(EscFocus, 0);
                     return;
                 }
                 await OnBack(-100);
@@ -74,8 +75,10 @@ namespace ViewModels
                 InfoLabel = $"Errore: {ex.Message}";
                 await SetFocus(EscFocus);
             }
-           
+          
             
         }
+
+        
     }
 }

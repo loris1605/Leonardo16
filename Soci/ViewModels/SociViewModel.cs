@@ -6,16 +6,16 @@ using System.Reactive.Linq;
 
 namespace ViewModels
 {
-    
-    public partial class ConfigurazioneViewModel : BaseViewModel, IConfigurazioneViewModel, IConfigurazioneScreen
+   
+    public partial class SociViewModel : BaseViewModel, ISociScreen, ISociViewModel
     {
         public RoutingState GroupRouter { get; } = new RoutingState();
         public RoutingState InputRouter { get; } = new RoutingState();
         public RoutingState Router => GroupRouter;
 
         private IScreen _host;
-
-        public ConfigurazioneViewModel() : base(null)
+    
+        public SociViewModel() : base(null)
         {
             
         }
@@ -35,7 +35,7 @@ namespace ViewModels
         {
             // Creiamo l'istanza della prima pagina (OperatoreGroupViewModel)
             // Passando "this" come host, così il GroupViewModel saprà dove navigare
-            var firstPage = Locator.Current.GetService<IOperatoreGroupViewModel>();
+            var firstPage = Locator.Current.GetService<IPersonGroupViewModel>();
             if (firstPage != null)
             {
                 firstPage?.SetHost(this);
@@ -50,11 +50,19 @@ namespace ViewModels
                 catch (Exception ex)
                 {
                     _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla OperatoreGroup: {ex.Message}");
+                    Debug.WriteLine($"ERRORE durante la navigazione al PersonGroup: {ex.Message}");
                 }
             }
-            
         }
+
+        public void AggiornaGridByObject(object model)
+        {
+            if (GroupRouter.GetCurrentViewModel() is IGroupViewModelBase groupVm)
+            {
+                groupVm.CaricaByModel(model);
+            }
+        }
+      
 
         public void AggiornaGridByInt(int id)
         {
@@ -68,7 +76,7 @@ namespace ViewModels
             }
         }
 
-        protected override Task OnSaving() => Task.CompletedTask;
+        protected override async Task OnSaving() => await Task.CompletedTask;
 
         protected async override Task OnEsc()
         {
@@ -102,7 +110,7 @@ namespace ViewModels
 
     }
 
-    public partial class ConfigurazioneViewModel
+    public partial class SociViewModel
     {
         #region GroupEnabled
 

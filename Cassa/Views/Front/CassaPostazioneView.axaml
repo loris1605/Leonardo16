@@ -1,0 +1,177 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:lc="using:Leonardo"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:r="using:ReactiveUI.Avalonia"
+             xmlns:vm="using:ViewModels"
+             xmlns:ui="using:ControlStyles"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="450"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="LightSteelBlue"
+             x:DataType="vm:CassaPostazioneViewModel"
+             x:Class="Views.CassaPostazioneView">
+
+
+    <Grid x:Name="MainGrid">
+    
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- TITOLO -->
+            <RowDefinition Height="Auto"/> <!-- PULSANTI -->
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="130"/>
+        </Grid.RowDefinitions>    
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <lc:TitleView TitoloPagina="POSTAZIONE CASSA"
+                      x:Name="Title"
+                      ButtonText="Esci"
+                      ToolTipText="TORNA A MENU PRINCIPALE"
+                      ExitCommand="{Binding EscPressedCommand}"/>
+
+        <Border Margin="30,10,30,10" 
+                Grid.Row="1"
+                BorderThickness="1" 
+                BorderBrush="White" 
+                Height="80" Padding="25,0" 
+                x:Name="Pulsanti">
+
+            <Grid x:Name="PulsantiPosizione">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/> <!-- Per i pulsanti -->
+                    <ColumnDefinition Width="*"/>    <!-- Spazio vuoto flessibile -->
+                    <ColumnDefinition Width="Auto"/> <!-- Per la TextBox -->
+                </Grid.ColumnDefinitions>
+
+                <UniformGrid Columns="7" 
+                             x:Name="PulsantiUniformGrid"
+                             VerticalAlignment="Center">
+        
+
+                    <ui:UiButton x:Name="EntraSocioButton"
+                                 MinWidth="50"
+                                 Margin="20,1"
+                                 Height="50"
+                                 VerticalAlignment="Center"
+                                 ToolTipText="CHECK IN NUOVO SOCIO"
+                                 Command="{Binding EntraSocioCommand}">
+
+                        <Image Source="avares://ControlStyles/Resources/AddSocioIcon.png" Width="34" Height="34" />
+                    
+                    </ui:UiButton>
+
+                    <ui:UiButton x:Name="EsciSocioButton"
+                                         MinWidth="50"
+                                         Margin="20,1"
+                                         Height="50"
+                                         ToolTipText="CHECK OUT SOCIO"
+                                         Command="{Binding EsceSocioCommand}">
+
+                        <Image Source="avares://ControlStyles/Resources/CheckOutIcon.png" Width="34" Height="34" />
+                    
+                    </ui:UiButton>
+
+                    <ui:UiButton x:Name="ListaSociButton"
+                                         MinWidth="50"
+                                         Margin="20,1"
+                                         Height="50"
+                                         ToolTipText="LISTA SOCI"
+                                         Command="{Binding ListaSociCommand}">
+
+                        <Image Source="avares://ControlStyles/Resources/ListIcon.png" Width="34" Height="34" />
+                    
+                    </ui:UiButton>
+
+                </UniformGrid>
+
+                <TextBlock Text="Nr. Posizione :" 
+                           VerticalAlignment="Center" 
+                           HorizontalAlignment="Right"
+                           FontSize="16"
+                           Margin="20,0"
+                           Grid.Column="1"/>
+
+                <ui:UiIntegerTextBox x:Name="PosizioneTextBox"
+                                     Grid.Column="2"
+                                     Margin="20,1"
+                                     Height="50"
+                                     Width="200"
+                                     MoveToNextOnEnter="False"
+                                     VerticalContentAlignment="Center"
+                                     HorizontalAlignment="Right"/>
+
+
+            </Grid>
+        
+        
+        </Border>
+
+        <Grid x:Name="CentralGrid" 
+              Grid.Row="2">
+        
+            <Grid.RowDefinitions>
+            
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
+            
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+            
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
+            
+            </Grid.ColumnDefinitions>
+        
+        
+        </Grid>
+       
+
+        <Grid Grid.Row="3" 
+             ColumnDefinitions="*,*,Auto"
+             Margin="80,0">
+		   
+           <ui:UiInfoBorder Grid.Column="2">
+           
+                <StackPanel Orientation="Vertical"
+                        x:Name="InfoStackPanel"
+                        Margin="20,2">
+                    
+                    <TextBlock Text="{Binding BindingT.Cognome}" 
+                           HorizontalAlignment="Left"
+                           Foreground="Black" 
+                           FontSize="12"/>
+            
+                    <TextBlock Text="{Binding BindingT.Nome}" 
+                           HorizontalAlignment="Left"
+                           Foreground="Black" 
+                           FontSize="12"/>
+            
+                </StackPanel>
+           
+           </ui:UiInfoBorder>
+       </Grid>
+
+
+    
+    </Grid>
+  
+</UserControl>

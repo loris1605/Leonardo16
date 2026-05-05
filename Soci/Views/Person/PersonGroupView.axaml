@@ -1,0 +1,242 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="using:ViewModels"
+             xmlns:dt="using:ViewModels.BindableObjects"
+             xmlns:ui="using:ControlStyles"
+             xmlns:lc="using:Views"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="Transparent"
+             x:CompileBindings="True"
+             x:DataType="vm:PersonGroupViewModel"
+             x:Class="Views.PersonGroupView">
+
+    <UserControl.Resources>
+        <ui:IntDateToStringDateConverter x:Key="stringConversion"/>
+
+        
+    </UserControl.Resources>
+
+    <Grid x:Name="MainGrid">
+		
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+
+        <lc:CrudToolBar x:Name="CrudBar"
+                        GroupText="SOCI"
+                        Grid.ColumnSpan="2"
+                        FilterCommandVisibile="True"
+                        AddCommand="{Binding AddCommand}"
+                        DelCommand="{Binding DelCommand}"
+                        UpdCommand="{Binding UpdCommand}"
+                        FilterCommand="{Binding PersonSearchCommand}"
+                        CancelFilterCommand="{Binding FilterCommand}"/>
+    
+
+        <HeaderedContentControl BorderBrush="Black" 
+                                Grid.Row="1" 
+                                HorizontalAlignment="Stretch" 
+                                VerticalAlignment="Stretch"
+                                Name="Group"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Margin="3"
+                                Background="Transparent">
+
+            
+            <HeaderedContentControl.Header>
+                <TextBlock Text=" Soci " 
+                           Foreground="Black" 
+                           Margin="3"
+                           HorizontalAlignment="Center"/>
+            </HeaderedContentControl.Header>
+
+            <DataGrid ItemsSource="{Binding GroupedDataSource}"
+                      x:CompileBindings="False"
+                      x:Name="SociDataGrid"
+                      SelectedItem="{Binding GroupBindingT}"
+                      SelectedIndex="{Binding IdIndex}"
+                      
+                      VerticalAlignment="Stretch"
+                      HorizontalAlignment="Stretch"
+                      CanUserSortColumns="True"
+                      IsReadOnly="True"
+                      GridLinesVisibility="All"
+                      Margin="20">
+
+                <DataGrid.Columns>
+					
+                    <DataGridTextColumn Header="Cod." 
+                                        x:DataType="dt:PersonMap"
+                                        Binding="{Binding CodiceSocio}" 
+                                        IsVisible="False" />
+
+                    <DataGridTextColumn Header="Num. Socio" 
+                                        x:DataType="dt:PersonMap"
+                                        Binding="{Binding NumeroSocio}" 
+                                        Width="Auto" />
+
+                    <DataGridTextColumn Header="Cod." 
+                                        x:DataType="dt:PersonMap"
+                                        Binding="{Binding CodiceTessera}" 
+                                        IsVisible="False" />
+
+                    <DataGridTextColumn Header="Num. Tessera" 
+                                        x:DataType="dt:PersonMap"
+                                        Binding="{Binding NumeroTessera}" 
+                                        Width="Auto" />
+
+                    <DataGridTextColumn Header="Scadenza" 
+                                        x:DataType="dt:PersonMap"
+                                        Binding="{Binding Scadenza}" 
+                                        Width="Auto" />
+
+                </DataGrid.Columns>
+               
+
+            </DataGrid>
+               
+        </HeaderedContentControl>
+
+        <StackPanel Grid.Column="1" Orientation="Vertical" Grid.Row="1">
+        
+            <HeaderedContentControl BorderBrush="Black" 
+                                    Grid.Row="1" Grid.Column="1"
+                                    HorizontalAlignment="Stretch" 
+                                    VerticalAlignment="Stretch"
+                                    BorderThickness="1"
+                                    CornerRadius="5"
+                                    Margin="3"
+                                    x:Name="CodiceSocio">
+
+                <HeaderedContentControl.Header>
+                     <TextBlock Text=" Codici Socio " 
+                                Foreground="Black"
+                                Background="Transparent"
+                                Margin="3"></TextBlock>
+                </HeaderedContentControl.Header>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto">
+
+                    <StackPanel>
+
+                        <ui:UiButton x:Name="AddSocioButton"
+                                     MinWidth="50"
+                                     MinHeight="50"
+                                     Margin="20,5"
+                                     ToolTipText="AGGIUNGI CODICE SOCIO"
+                                     HorizontalAlignment="Center"
+                                     Command="{Binding AddCodiceSocioCommand}">
+
+                            <Image Source="avares://ControlStyles/Resources/AddSocioIcon.png" Width="34" Height="34" />
+                        
+                        </ui:UiButton>
+
+                        <ui:UiButton x:Name="DelSocioButton"
+                                     MinWidth="50"
+                                     MinHeight="50"
+                                     Margin="20,5"
+                                     ToolTipText="CANCELLA CODICE SOCIO"
+                                     HorizontalAlignment="Center"
+                                     Command="{Binding DelCodiceSocioCommand}">
+
+                            <Image Source="avares://ControlStyles/Resources/CancellaIcon.png" Width="34" Height="34" />
+                        
+                        </ui:UiButton>
+
+                        <ui:UiButton x:Name="UpdSocioButton"
+                                     MinWidth="50"
+                                     MinHeight="50"
+                                     Margin="20,5"
+                                     ToolTipText="MODIFICA CODICE SOCIO"
+                                     HorizontalAlignment="Center"
+                                     Command="{Binding UpdCodiceSocioCommand}">
+
+                            <Image Source="avares://ControlStyles/Resources/ModificaIcon.png" Width="34" Height="34" />
+                        
+                        </ui:UiButton>
+
+                    </StackPanel>
+
+                </ScrollViewer>
+            
+            </HeaderedContentControl>
+
+            <HeaderedContentControl BorderBrush="Black" 
+                                    Grid.Row="1" Grid.Column="1"
+                                    HorizontalAlignment="Stretch" 
+                                    VerticalAlignment="Stretch"
+                                    BorderThickness="1"
+                                    CornerRadius="5"
+                                    Margin="3"
+                                    x:Name="NumeroTessera">
+
+                <HeaderedContentControl.Header>
+                     <TextBlock Text=" Numero Tessera " 
+                                Foreground="Black"
+                                Background="Transparent"
+                                Margin="3"></TextBlock>
+                </HeaderedContentControl.Header>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto">
+
+                    <StackPanel>
+
+                        <ui:UiButton x:Name="AddTesseraButton"
+                                     MinWidth="50"
+                                     MinHeight="50"
+                                     Margin="20,5"
+                                     ToolTipText="AGGIUNGI NUMERO TESSERA"
+                                     HorizontalAlignment="Center"
+                                     Command="{Binding Path=AddTesseraCommand}">
+
+                            <Image Source="avares://ControlStyles/Resources/AddSocioIcon.png" Width="34" Height="34" />
+                        
+                        </ui:UiButton>
+
+                        <ui:UiButton x:Name="DelTesseraButton"
+                                     MinWidth="50"
+                                     MinHeight="50"
+                                     Margin="20,5"
+                                     ToolTipText="CANCELLA NUMERO TESSERA"
+                                     HorizontalAlignment="Center"
+                                     Command="{Binding Path=DelTesseraCommand}">
+
+                            <Image Source="avares://ControlStyles/Resources/CancellaIcon.png" Width="34" Height="34" />
+                        
+                        </ui:UiButton>
+
+                        <ui:UiButton x:Name="UpdTesseraButton"
+                                     MinHeight="50"
+                                     Margin="20,5"
+                                     ToolTipText="MODIFICA NUMERO TESSERA"
+                                     HorizontalAlignment="Center"
+                                     Command="{Binding Path=UpdTesseraCommand}">
+
+                            <Image Source="avares://ControlStyles/Resources/ModificaIcon.png" Width="34" Height="34" />
+                        
+                        </ui:UiButton>
+
+                    </StackPanel>
+
+                </ScrollViewer>
+            
+            </HeaderedContentControl>
+        
+        </StackPanel>
+
+
+    </Grid>
+  
+</UserControl>

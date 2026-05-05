@@ -109,11 +109,7 @@ public partial class MenuView : BaseUserControl<MenuViewModel>
             // 4. BINDING COMANDI (Se non fatti in XAML)
             //this.Bind(ViewModel, vm => vm.LogoutCommand, v => v.Title.ExitCommand).DisposeWith(d);
 
-            this.BindCommand(ViewModel,
-                vm => vm.NavigateCommand,
-                v => v.SociItem,             // Il tuo UserControl/Button
-                Observable.Return("Soci")    // Il parametro fisso da inviare
-            ).DisposeWith(d);
+            
             
 
         });

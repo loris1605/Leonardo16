@@ -18,10 +18,11 @@ namespace ViewModels
         private IScreen _host;
 
         public ReactiveCommand<string, Unit> NavigateCommand { get; }
-        public ReactiveCommand<MenuPostazioneMap, Unit> SelezionaPostazioneCommand { get; }
+        public ReactiveCommand<int, Unit> SelezionaPostazioneCommand { get; }
         public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
         public ReactiveCommand<Unit, Unit> ConnectionCommand { get; }
         public ReactiveCommand<Unit,Unit> ConfigurazioneCommand { get; }
+        public ReactiveCommand<Unit,Unit> SociCommand { get; }
         public ReactiveCommand<Unit, Unit> ApriGiornataCommand { get; }
 
         protected override IObservable<bool> IsAnythingExecuting =>
@@ -33,6 +34,7 @@ namespace ViewModels
                 LogoutCommand?.IsExecuting ?? Observable.Return(false),
                 ConnectionCommand?.IsExecuting ?? Observable.Return(false),
                 ConfigurazioneCommand?.IsExecuting ?? Observable.Return(false),
+                SociCommand?.IsExecuting ?? Observable.Return(false),
                 ApriGiornataCommand?.IsExecuting ?? Observable.Return(false)
             }.CombineLatest(values => values.Any(x => x));
 
@@ -50,17 +52,23 @@ namespace ViewModels
                     .Select(v => $"Sessione Contabile {(v ? "Chiusa" : "Aperta")}")
                     .ToProperty(this, x => x.SessioneContabile);
 
-            var canNavigate = this.WhenAnyValue(x => x.IsLoading, x => !x);
+            var canNavigate = this.WhenAnyValue(x => x.IsLoading)
+                .Select(isLoading => !isLoading)
+                .Throttle(TimeSpan.FromMilliseconds(500)) // Ignora i clic per i primi 500ms
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .StartWith(false); // Parte disabilitato per sicurezza
 
-            NavigateCommand = ReactiveCommand.CreateFromTask<string>(ExecuteNavigation, canNavigate);
+            //NavigateCommand = ReactiveCommand.CreateFromTask<string>(ExecuteNavigation, canNavigate);
 
-            SelezionaPostazioneCommand = ReactiveCommand.CreateFromTask<MenuPostazioneMap>(GoToCassa, canNavigate);
+            SelezionaPostazioneCommand = ReactiveCommand.CreateFromTask<int>(GoToCassa, canNavigate);
 
             LogoutCommand = ReactiveCommand.CreateFromTask(GoToLogin, canNavigate);
 
             ConnectionCommand = ReactiveCommand.CreateFromTask(GoToConnection, canNavigate);
 
             ConfigurazioneCommand = ReactiveCommand.CreateFromTask(GoToConfigurazione, canNavigate);
+
+            SociCommand = ReactiveCommand.CreateFromTask(GoToSoci, canNavigate);
 
             var canApriFinal = this.WhenAnyValue(x => x.ApriGiornataEnabled, x => x.IsLoading,
                     (enabled, loading) => enabled && !loading);
@@ -74,6 +82,7 @@ namespace ViewModels
                 NavigateCommand?.DisposeWith(d);
                 ConfigurazioneCommand?.DisposeWith(d);
                 ApriGiornataCommand?.DisposeWith(d);
+                SociCommand?.DisposeWith(d);
                 ConnectionCommand?.DisposeWith(d);
             });
 
@@ -160,29 +169,35 @@ namespace ViewModels
 
         }
 
-        private async Task ExecuteNavigation(string dest)
+        
+        private async Task GoToCassa(int postazioneId)
         {
             _isClosing = true;
-            IRoutableViewModel page = dest switch
+            var cassaVm = Locator.Current.GetService<ICassaViewModel>();
+            if (cassaVm != null)
             {
-                //"Connection" => new ConnectionViewModel(HostScreen),
-                //"Soci" => new SociViewModel(HostScreen),
-                "Configurazione" => Locator.Current.GetService<IConfigurazioneViewModel>(),
-                _ => null
-            };
-
-            if (page != null)
-                
-                await HostScreen.Router.Navigate.Execute(page);
+                cassaVm.SetHost(_host);
+                cassaVm.SetPostazioneId(postazioneId);
+                try
+                {
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(cassaVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Cassa: {ex.Message}");
+                }
+            }
             else
-                _isClosing = false; // Ripristino se la destinazione è nulla
-        }
-
-        private async Task GoToCassa(MenuPostazioneMap map)
-        {
-            _isClosing = true;
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: ICassaViewModel non è stato risolto dal Locator.");
+            }
             await Task.CompletedTask;
-            //await HostScreen.Router.NavigateAndReset.Execute(new CassaViewModel(HostScreen, map));
+            //await HostScreen.Router.NavigateAndReset.Execute(new CassaViewModel(HostScreen, postazioneId));
         }
 
         private async Task GoToLogin()
@@ -269,6 +284,35 @@ namespace ViewModels
             {
                 _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
                 Debug.WriteLine("ERRORE CRITICO: IConfigurazioneViewModel non è stato risolto dal Locator.");
+            }
+        }
+
+        private async Task GoToSoci()
+        {
+            _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
+            var sociVm = Locator.Current.GetService<ISociViewModel>();
+            if (sociVm != null)
+            {
+                // 2. Impostiamo l'host (lo screen principale)
+                sociVm.SetHost(_host);
+                try
+                {
+                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+                    await Observable.Start(async () =>
+                    {
+                        await _host.Router.NavigateAndReset.Execute(sociVm);
+                    }, RxSchedulers.MainThreadScheduler);
+                }
+                catch (Exception ex)
+                {
+                    _isClosing = false;
+                    Debug.WriteLine($"ERRORE durante la navigazione alla Soci: {ex.Message}");
+                }
+            }
+            else
+            {
+                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: ISociViewModel non è stato risolto dal Locator.");
             }
         }
 

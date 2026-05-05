@@ -20,6 +20,36 @@ namespace Common.InterViewModels
         void SetHost(IScreen host);
     }
 
+    public interface ISociViewModel : IRoutableViewModel
+    {
+        void SetHost(IScreen host);
+    }
+
+    public interface ISociScreen : IScreen
+    {
+        RoutingState GroupRouter { get; }
+        RoutingState InputRouter { get; }
+        bool GroupEnabled { get; set; }
+
+        void AggiornaGridByInt(int id);
+        void AggiornaGridByObject(object model);
+    }
+
+    public interface iSociCrudViewModel : IRoutableViewModel
+    {
+        void SetHost(ISociScreen host);
+        void SetIdDaModificare(int id);
+    }
+
+    public interface IPersonGroupViewModel : IRoutableViewModel
+    {
+        void SetHost(ISociScreen host);
+    }
+    public interface IPersonAddViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface IPersonUpdViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface IPersonDelViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface IPersonSearchViewModel : IRoutableViewModel, iSociCrudViewModel { }
+
     public interface IConfigurazioneViewModel : IRoutableViewModel
     {
         void SetHost(IScreen host);
@@ -48,7 +78,6 @@ namespace Common.InterViewModels
     public interface IOperatoreDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IOperatoreUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IPermessoViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
-    
 
     public interface IPostazioneGroupViewModel : IRoutableViewModel
     {
@@ -80,6 +109,7 @@ namespace Common.InterViewModels
     {
         RoutingState CassaRouter { get; }
         RoutingState SettingsRouter { get; }
+        Task OnClosing();
 
     }
     public interface ICassaViewModel : IRoutableViewModel

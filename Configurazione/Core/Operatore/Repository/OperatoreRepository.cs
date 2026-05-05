@@ -62,8 +62,6 @@ namespace DTO.Repository
             return result ?? new OperatoreDTO();
         }
 
-        
-
 
         public async Task<List<OperatoreDTO>> LoadByModel(object model, CancellationToken ctk = default)
         {
