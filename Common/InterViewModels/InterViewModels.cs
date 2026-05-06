@@ -126,6 +126,14 @@ namespace Common.InterViewModels
     {
         void SetHost(ICassaScreen host);
         void SetPostazioneId(int id);
+        void SetPosizione(string numPosizione);
+    }
+
+    public interface IEntraSocioViewModel : IRoutableViewModel
+    {
+        void SetHost(ICassaScreen host);
+        void SetPostazioneId(int id);
+        void SetPosizione(string numPosizione);
     }
 
 }

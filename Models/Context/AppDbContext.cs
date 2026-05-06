@@ -48,14 +48,13 @@ namespace Models.Context
             ListinoConfig(modelBuilder);
             GiornataConfig(modelBuilder);
             SchedaConfig(modelBuilder);
+            SchedaContoConfig(modelBuilder);
             StrisciateConfig(modelBuilder);
         }
 
 
-        private static void SettingsConfig(ModelBuilder modelBuilder)
+        private void SettingsConfig(ModelBuilder modelBuilder)
         {
-            //Configurazione People
-
             modelBuilder.Entity<DbSettings>().HasData(
                         new DbSettings { Id = -1, Version = 1, UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0) });
 
@@ -413,6 +412,9 @@ namespace Models.Context
         private static void SchedaConfig(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Scheda>()
+                .Property(s => s.Posizione).HasMaxLength(30);
+
+            modelBuilder.Entity<Scheda>()
                 .Property(s => s.NumeroTessera).HasMaxLength(30);
 
             modelBuilder.Entity<Scheda>()
@@ -421,6 +423,13 @@ namespace Models.Context
             modelBuilder.Entity<Scheda>()
                 .Property(s => s.Nome).HasMaxLength(30);
 
+            modelBuilder.Entity<Scheda>()
+                .HasIndex(p => p.Posizione)
+                .IsUnique();
+
+            modelBuilder.Entity<Scheda>()
+                .HasIndex(p => p.PersonId)
+                .IsUnique();
 
 
             // EF Core capisce da solo la relazione, ma puoi essere esplicito:
@@ -429,6 +438,33 @@ namespace Models.Context
                         .WithMany(p => p.Schede)    // Una Person ha una Scheda
                         .HasForeignKey(s => s.PersonId) // La chiave è PersonId
                         .OnDelete(DeleteBehavior.NoAction);
+
+            
+
+        }
+
+        private static void SchedaContoConfig(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SchedaConto>()
+                        .HasOne(s => s.Scheda)          // Una SchedaConto ha una Scheda
+                        .WithMany(p => p.SchedeConto)    // Una Scheda ha molte SchedeConto
+                        .HasForeignKey(s => s.SchedaId) // La chiave è SchedaId
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SchedaConto>()
+                .Property(s => s.DescSettore).HasMaxLength(30);
+
+            modelBuilder.Entity<SchedaConto>()
+                .Property(s => s.DescPostazione).HasMaxLength(30);
+
+            modelBuilder.Entity<SchedaConto>()
+                .Property(s => s.VoiceDesc).HasMaxLength(30);
+
+            modelBuilder.Entity<SchedaConto>()
+                .Property(s => s.VoicePrice).HasPrecision(7, 2);
+
+            modelBuilder.Entity<SchedaConto>()
+                .Property(s => s.Note).HasMaxLength(50);
 
         }
 

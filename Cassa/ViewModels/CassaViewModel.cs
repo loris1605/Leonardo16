@@ -43,12 +43,12 @@ namespace ViewModels
 
         protected override async Task OnLoading()
         {
-            await Task.CompletedTask;
             var cassaPostazioneVm = Locator.Current.GetService<ICassaPostazioneViewModel>();
             if (cassaPostazioneVm is not null)
             {
                 cassaPostazioneVm.SetHost(this);
                 cassaPostazioneVm.SetPostazioneId(_cassaPostazioneId);
+
                 await CassaRouter.NavigateAndReset.Execute(cassaPostazioneVm);
             }
             //await CassaRouter.NavigateAndReset.Execute(new CassaPostazioneViewModel(HostScreen, 

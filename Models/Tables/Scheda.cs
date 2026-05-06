@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Models.Tables
+﻿namespace Models.Tables
 {
     public class Scheda : IStandardTable
     {
@@ -28,6 +21,8 @@ namespace Models.Tables
         public string Note { get; set; } = string.Empty;
 
         public Person? Person { get; set; }
+
+        public List<SchedaConto> SchedeConto { get; set; } = [];
 
 
     }

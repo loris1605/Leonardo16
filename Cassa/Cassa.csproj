@@ -16,8 +16,6 @@
   <ItemGroup>
     <Folder Include="Core\Context\" />
     <Folder Include="Core\Repository\" />
-    <Folder Include="ViewModels\Back\" />
-    <Folder Include="Views\Back\" />
   </ItemGroup>
 
 </Project>

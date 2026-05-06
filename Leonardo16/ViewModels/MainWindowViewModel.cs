@@ -60,6 +60,8 @@ namespace ViewModels
                 // 1. Test connessione in background
                 await Task.Run(() => SysNet.Connection.TestConnection());
 
+                //await VerificaNecessitaAggiornamento();
+
                 if (Flags.ServerAttivo)
                 {
                     // 2. Controllo versione ed eventuali migrazioni

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Models.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialInstall : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,6 +26,23 @@ namespace Models.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Giornate", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Operatori",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nome = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Abilitato = table.Column<bool>(type: "bit", nullable: false),
+                    Pass = table.Column<int>(type: "int", nullable: false),
+                    PersonId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Operatori", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -134,35 +151,12 @@ namespace Models.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Operatori",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nome = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Abilitato = table.Column<bool>(type: "bit", nullable: false),
-                    Pass = table.Column<int>(type: "int", nullable: false),
-                    PersonId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Operatori", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Operatori_People_PersonId",
-                        column: x => x.PersonId,
-                        principalTable: "People",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Schede",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Posizione = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Posizione = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     NumeroTessera = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     PersonId = table.Column<int>(type: "int", nullable: false),
                     Cognome = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
@@ -251,6 +245,32 @@ namespace Models.Migrations
                         column: x => x.TipoSettoreId,
                         principalTable: "TipiSettore",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SchedaConto",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SchedaId = table.Column<int>(type: "int", nullable: false),
+                    DescSettore = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    DescPostazione = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    VoiceDesc = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    VoicePrice = table.Column<decimal>(type: "decimal(7,2)", precision: 7, scale: 2, nullable: false),
+                    Pagato = table.Column<bool>(type: "bit", nullable: false),
+                    Note = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DataOra = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SchedaConto", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SchedaConto_Schede_SchedaId",
+                        column: x => x.SchedaId,
+                        principalTable: "Schede",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -347,6 +367,11 @@ namespace Models.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Operatori",
+                columns: new[] { "Id", "Abilitato", "Nome", "Pass", "Password", "PersonId" },
+                values: new object[] { -1, true, "ADMIN", 0, "ADMIN", -2 });
+
+            migrationBuilder.InsertData(
                 table: "People",
                 columns: new[] { "Id", "FirstName", "Natoil", "SurName", "UniqueParam" },
                 values: new object[,]
@@ -393,11 +418,6 @@ namespace Models.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Operatori",
-                columns: new[] { "Id", "Abilitato", "Nome", "Pass", "Password", "PersonId" },
-                values: new object[] { -1, true, "ADMIN", 0, "ADMIN", -2 });
-
-            migrationBuilder.InsertData(
                 table: "Postazioni",
                 columns: new[] { "Id", "Nome", "TipoPostazioneId", "TipoRientroId" },
                 values: new object[] { -1, "Amministratore base", 1, -1 });
@@ -416,12 +436,6 @@ namespace Models.Migrations
                 name: "IX_Listini_TariffaId",
                 table: "Listini",
                 column: "TariffaId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Operatori_PersonId",
-                table: "Operatori",
-                column: "PersonId",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_People_UniqueParam",
@@ -470,9 +484,21 @@ namespace Models.Migrations
                 column: "SettoreId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SchedaConto_SchedaId",
+                table: "SchedaConto",
+                column: "SchedaId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Schede_PersonId",
                 table: "Schede",
-                column: "PersonId");
+                column: "PersonId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schede_Posizione",
+                table: "Schede",
+                column: "Posizione",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Settori_TipoSettoreId",
@@ -518,7 +544,7 @@ namespace Models.Migrations
                 name: "Reparti");
 
             migrationBuilder.DropTable(
-                name: "Schede");
+                name: "SchedaConto");
 
             migrationBuilder.DropTable(
                 name: "Settings");
@@ -540,6 +566,9 @@ namespace Models.Migrations
 
             migrationBuilder.DropTable(
                 name: "Settori");
+
+            migrationBuilder.DropTable(
+                name: "Schede");
 
             migrationBuilder.DropTable(
                 name: "Soci");

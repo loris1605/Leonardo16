@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:lc="using:Leonardo"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:r="using:ReactiveUI.Avalonia"
+             xmlns:vm="using:ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="450"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="LightSteelBlue"
+             x:DataType="vm:EntraSocioViewModel"
+             x:Class="Views.EntraSocioView">
+
+    <Grid x:Name="MainGrid">
+    
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> 
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>      
+    
+        <lc:TitleView TitoloPagina="ACCESSO NUOVO SOCIO"
+                      x:Name="Title"
+                      ButtonText="Esci"
+                      ToolTipText="TORNA A MENU PRINCIPALE"
+                      ExitCommand="{Binding EscPressedCommand}"/>
+
+        <Grid x:Name="ControlsGrid" Grid.Row="1">
+			
+
+
+        </Grid>
+    
+    </Grid>
+  
+</UserControl>

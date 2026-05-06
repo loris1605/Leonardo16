@@ -123,9 +123,6 @@ namespace Models.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PersonId")
-                        .IsUnique();
-
                     b.ToTable("Operatori");
 
                     b.HasData(
@@ -364,13 +361,65 @@ namespace Models.Migrations
 
                     b.Property<string>("Posizione")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PersonId");
+                    b.HasIndex("PersonId")
+                        .IsUnique();
+
+                    b.HasIndex("Posizione")
+                        .IsUnique();
 
                     b.ToTable("Schede");
+                });
+
+            modelBuilder.Entity("Models.Tables.SchedaConto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataOra")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DescPostazione")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("DescSettore")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("Pagato")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SchedaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VoiceDesc")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<decimal>("VoicePrice")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchedaId");
+
+                    b.ToTable("SchedaConto");
                 });
 
             modelBuilder.Entity("Models.Tables.Settore", b =>
@@ -662,17 +711,6 @@ namespace Models.Migrations
                     b.Navigation("Tariffa");
                 });
 
-            modelBuilder.Entity("Models.Tables.Operatore", b =>
-                {
-                    b.HasOne("Models.Tables.Person", "Person")
-                        .WithOne("Operatore")
-                        .HasForeignKey("Models.Tables.Operatore", "PersonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Person");
-                });
-
             modelBuilder.Entity("Models.Tables.Permesso", b =>
                 {
                     b.HasOne("Models.Tables.Operatore", "Operatore")
@@ -741,6 +779,17 @@ namespace Models.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("Models.Tables.SchedaConto", b =>
+                {
+                    b.HasOne("Models.Tables.Scheda", "Scheda")
+                        .WithMany("SchedeConto")
+                        .HasForeignKey("SchedaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Scheda");
+                });
+
             modelBuilder.Entity("Models.Tables.Settore", b =>
                 {
                     b.HasOne("Models.Tables.TipoSettore", "TipoSettore")
@@ -781,8 +830,6 @@ namespace Models.Migrations
 
             modelBuilder.Entity("Models.Tables.Person", b =>
                 {
-                    b.Navigation("Operatore");
-
                     b.Navigation("Schede");
 
                     b.Navigation("Soci");
@@ -793,6 +840,11 @@ namespace Models.Migrations
                     b.Navigation("Permessi");
 
                     b.Navigation("Reparti");
+                });
+
+            modelBuilder.Entity("Models.Tables.Scheda", b =>
+                {
+                    b.Navigation("SchedeConto");
                 });
 
             modelBuilder.Entity("Models.Tables.Settore", b =>

@@ -137,6 +137,7 @@ namespace Leonardo16
 
             services.AddTransient<ICassaViewModel, CassaViewModel>();
             services.AddTransient<ICassaPostazioneViewModel, CassaPostazioneViewModel>();
+            services.AddTransient<IEntraSocioViewModel, EntraSocioViewModel>();
 
         }
 
@@ -185,6 +186,7 @@ namespace Leonardo16
 
             services.AddTransient<IViewFor<CassaViewModel>, CassaView>();
             services.AddTransient<IViewFor<CassaPostazioneViewModel>, CassaPostazioneView>();
+            services.AddTransient<IViewFor<EntraSocioViewModel>, EntraSocioView>();
         }
 
         private static void RegisterViews(IServiceCollection services)
