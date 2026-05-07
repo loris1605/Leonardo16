@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:lc="using:Leonardo"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:r="using:ReactiveUI.Avalonia"
              xmlns:vm="using:ViewModels"
              xmlns:ui="using:ControlStyles"
              mc:Ignorable="d"
@@ -19,16 +18,12 @@
     
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/> <!-- TITOLO -->
-            <RowDefinition Height="Auto"/> <!-- PULSANTI -->
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="130"/>
+            <RowDefinition Height="100"/>
         </Grid.RowDefinitions>    
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <lc:TitleView TitoloPagina="POSTAZIONE CASSA"
+        
+        <lc:TitleView Grid.Row="0"
+                      TitoloPagina="POSTAZIONE CASSA"
                       x:Name="Title"
                       ButtonText="Esci"
                       ToolTipText="TORNA A MENU PRINCIPALE"

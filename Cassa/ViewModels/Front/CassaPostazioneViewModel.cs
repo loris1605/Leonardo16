@@ -1,4 +1,5 @@
 ﻿using Common.InterViewModels;
+using DTO.Repository;
 using ReactiveUI;
 using Splat;
 using System.Reactive;
@@ -12,13 +13,13 @@ namespace ViewModels
     public partial class CassaPostazioneViewModel : BaseViewModel, ICassaPostazioneViewModel
     {
         private int _postazioneId;
-        
+        private readonly ICassaPostazioneRepository Q;
         private ICassaScreen _host;
 
         public ReactiveCommand<Unit, Unit> EntraSocioCommand { get; protected set; }
-        public ReactiveCommand<Unit, Unit> EsceSocioCommand { get; }
+        public ReactiveCommand<Unit, Unit> EsceSocioCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> ListaSociCommand { get; }
-        public ReactiveCommand<Unit, Unit> PosizioneEnterCommand { get; }
+        public ReactiveCommand<Unit, Unit> PosizioneEnterCommand { get; protected set; }
 
         protected override IObservable<bool> IsAnythingExecuting =>
             new[]
@@ -31,10 +32,11 @@ namespace ViewModels
             }.CombineLatest(values => values.Any(x => x));
 
 
-        public CassaPostazioneViewModel() : base()
+        public CassaPostazioneViewModel(ICassaPostazioneRepository Repository) : base()
         {
             //Titolo = $"Postazione {cassaPostazione.NomePostazione}";
 
+            Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
             _isOpen = _isOpenManualTrigger.ToProperty(this, x => x.IsOpen);
 
             PosizioneEnterCommand = ReactiveCommand.CreateFromTask(OnApriScheda);
@@ -60,6 +62,7 @@ namespace ViewModels
             // Assicuriamoci che la collezione sia nulla per il GC
             //Q = null;
             EntraSocioCommand = null;
+            PosizioneEnterCommand = null;
             //SettoriCommand = null;
             //PermessiCommand = null;
             //TariffeCommand = null;
@@ -84,6 +87,7 @@ namespace ViewModels
 
         protected override async Task OnLoading()
         {
+            Titolo = "POSTAZIONE CASSA " + await Q.GetPostazioneName(_postazioneId, token);
             await SetFocus(PosizioneFocus);
             await Task.CompletedTask;
         }

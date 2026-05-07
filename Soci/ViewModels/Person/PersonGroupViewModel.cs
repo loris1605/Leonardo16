@@ -74,16 +74,9 @@ namespace ViewModels
             AddCodiceSocioCommand = ReactiveCommand.CreateFromTask(OnCodiceSocioAdding, canAction);
             DelCodiceSocioCommand = ReactiveCommand.CreateFromTask(OnCodiceSocioDeleting, canSocioDelete);
             UpdCodiceSocioCommand = ReactiveCommand.CreateFromTask(OnCodiceSocioUpdating, canSocioUpdate);
-
-            
-            //AddTesseraCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new TesseraAddViewModel(ConfigHost, GroupBindingT.Id, GroupBindingT.CodiceSocio, Q)), canSocioExists);
-
-            //DelTesseraCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new TesseraDelViewModel(ConfigHost, GroupBindingT.CodiceTessera, GroupBindingT.Id, Q)), canTesseraExists);
-
-            //UpdTesseraCommand = ReactiveCommand.CreateFromObservable(
-            //    () => NavigateToInput(new TesseraUpdViewModel(ConfigHost, GroupBindingT.CodiceTessera, GroupBindingT.Id, Q)), canTesseraExists);
+            AddTesseraCommand = ReactiveCommand.CreateFromTask(OnTesseraAdding, canSocioExists);
+            DelTesseraCommand = ReactiveCommand.CreateFromTask(OnTesseraDeleting, canTesseraExists);
+            UpdTesseraCommand = ReactiveCommand.CreateFromTask(OnTesseraUpdating, canTesseraExists);
 
             PersonSearchCommand = ReactiveCommand.CreateFromTask(async () => await NavigateTo<IPersonSearchViewModel>());
 
@@ -259,6 +252,27 @@ namespace ViewModels
             await NavigateTo<ICodiceSocioUpdViewModel>(vm =>
             {
                 vm.SetIdDaModificare(GroupBindingT.CodiceSocio);
+                vm.SetIdRitorno(GroupBindingT.Id);
+            });
+
+        protected async Task OnTesseraAdding() =>
+            await NavigateTo<ITesseraAddViewModel>(vm =>
+            {
+                vm.SetIdDaModificare(GroupBindingT.CodiceSocio);
+                vm.SetIdRitorno(GroupBindingT.Id);
+            });
+
+        protected async Task OnTesseraDeleting() =>
+            await NavigateTo<ITesseraDelViewModel>(vm =>
+            {
+                vm.SetIdDaModificare(GroupBindingT.CodiceTessera);
+                vm.SetIdRitorno(GroupBindingT.Id);
+            });
+
+        protected async Task OnTesseraUpdating() =>
+            await NavigateTo<ITesseraUpdViewModel>(vm =>
+            {
+                vm.SetIdDaModificare(GroupBindingT.CodiceTessera);
                 vm.SetIdRitorno(GroupBindingT.Id);
             });
 

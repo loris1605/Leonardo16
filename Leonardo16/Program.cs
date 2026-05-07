@@ -71,6 +71,7 @@ namespace Leonardo16
             services.AddTransient<IRepartoDbContext, RepartoDbContext>();
             services.AddTransient<IListinoDbContext, ListinoDbContext>();
             services.AddTransient<IPeopleDbContext, PeopleDbContext>();
+            services.AddTransient<ICassaPostazioneDbContext, CassaPostazioneDbContext>();
 
         }
 
@@ -88,6 +89,7 @@ namespace Leonardo16
             services.AddTransient<IRepartoRepository, RepartoRepository>();
             services.AddTransient<IListinoRepository, ListinoRepository>();
             services.AddTransient<IPersonRepository, PersonRepository>();
+            services.AddTransient<ICassaPostazioneRepository, CassaPostazioneRepository>();
         }
 
         private static void RegisterViewModels(IServiceCollection services)
@@ -109,6 +111,9 @@ namespace Leonardo16
             services.AddTransient<ICodiceSocioAddViewModel, CodiceSocioAddViewModel>();
             services.AddTransient<ICodiceSocioDelViewModel, CodiceSocioDelViewModel>();
             services.AddTransient<ICodiceSocioUpdViewModel, CodiceSocioUpdViewModel>();
+            services.AddTransient<ITesseraAddViewModel, TesseraAddViewModel>();
+            services.AddTransient<ITesseraDelViewModel, TesseraDelViewModel>();
+            services.AddTransient<ITesseraUpdViewModel, TesseraUpdViewModel>();
 
             services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
 
@@ -162,6 +167,9 @@ namespace Leonardo16
             services.AddTransient<IViewFor<CodiceSocioAddViewModel>, SocioInputView>();
             services.AddTransient<IViewFor<CodiceSocioDelViewModel>, SocioInputView>();
             services.AddTransient<IViewFor<CodiceSocioUpdViewModel>, SocioInputView>();
+            services.AddTransient<IViewFor<TesseraAddViewModel>, TesseraInputView>();
+            services.AddTransient<IViewFor<TesseraDelViewModel>, TesseraInputView>();
+            services.AddTransient<IViewFor<TesseraUpdViewModel>, TesseraInputView>();
 
             services.AddTransient<IViewFor<ConfigurazioneViewModel>, ConfigurazioneView>();
             services.AddTransient<IViewFor<OperatoreGroupViewModel>, OperatoreGroupView>();

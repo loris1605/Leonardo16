@@ -5,30 +5,31 @@ using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
-    public class CodiceSocioAddViewModel : CodiceSocioInputBase, ICodiceSocioAddViewModel
+    public class TesseraAddViewModel : TesseraInputBase, ITesseraAddViewModel
     {
         private IPersonRepository Q;
-                
-        public CodiceSocioAddViewModel(IPersonRepository Repository) : base()
+        
+        private int idtessera;
+
+        public TesseraAddViewModel(IPersonRepository Repository) : base()
         {
-           
-            Titolo = "Nuovo Codice Socio";
-            
+            Titolo = "Nuova Tessera";
+ 
             FieldsVisibile = true;
             FieldsEnabled = true;
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-           
+
         }
 
         protected override void OnFinalDestruction()
         {
             Q = null;
-            
         }
 
         protected override async Task OnLoading()
         {
-            var dto = await Q.FirstPerson(_idDaModificare, token);
+
+            var dto = await Q.FirstSocio(_idDaModificare, token);
             token.ThrowIfCancellationRequested();
             if (dto == null)
             {
@@ -39,16 +40,13 @@ namespace ViewModels
             else
             {
                 BindingT = new PersonMap(dto);
-                Titolo1 = "per " + GetNomeCognome;
-                BindingT.NumeroSocio = string.Empty;
+                Titolo = "Nuova Tessera per " + GetNomeCognome;
+                Titolo1 = "Numero Socio : " + GetNumeroSocio;
                 BindingT.NumeroTessera = string.Empty;
-                await SetFocus(NumeroSocioFocus);
+                await OnNumeroTesseraFocus();
             }
-  
+            
         }
-       
-
-        private int idsocio;
 
         protected async override Task OnSaving()
         {
@@ -56,46 +54,20 @@ namespace ViewModels
 
             try
             {
-                if (int.TryParse(GetNumeroSocio, out int numeroSocio))
-                {
-                    // 2. Se la conversione riesce, controlliamo il valore
-                    if (numeroSocio <= 0) { }
-                    else
-                    {
-                        if (await Q.EsisteNumeroSocio(BindingT.NumeroSocio, token))
-                        {
-                            _isClosing = false;
-                            InfoLabel = "Codice Socio già in uso";
-                            await SetFocus(NumeroSocioFocus);
-                            return;
-                        }
-                    }
-                }
-                else
-                {
-                    // 3. Se è stringa vuota o contiene lettere, finisce qui senza crash
-                    // (In questo caso considerala come se fosse <= 0)
-                    _isClosing = false;
-                    InfoLabel = "Codice Socio non può essere zero";
-                    await SetFocus(NumeroSocioFocus);
-                    return;
-                }
-
                 if (int.TryParse(GetNumeroTessera, out int numeroTessera))
                 {
                     // 2. Se la conversione riesce, controlliamo il valore
-                    if (numeroTessera <= 0) { }
+                    if (numeroTessera <= 0) { _isClosing = false; }
                     else
                     {
                         if (await Q.EsisteNumeroTessera(BindingT.NumeroTessera, token))
                         {
                             _isClosing = false;
                             InfoLabel = "Tessera già in uso";
-                            await SetFocus(NumeroTesseraFocus);
+                            await OnNumeroTesseraFocus(); 
                             return;
                         }
                     }
-
                 }
                 else
                 {
@@ -109,16 +81,17 @@ namespace ViewModels
 
                 InfoLabel = "Salvataggio in corso...";
 
-                idsocio = await Q.AddCodiceSocio(BindingT.ToDto(), token);
+                idtessera = await Q.AddTessera(BindingT.ToDto(), token);
 
-                if (idsocio == -1)
+                if (idtessera == -1)
                 {
                     _isClosing = false;
-                    await SetFocus(NumeroSocioFocus);
+                    InfoLabel = "Errore durante il salvataggio. Verificare i dati e riprovare.";
+                    await OnNumeroTesseraFocus();
                 }
                 else
                 {
-                    await OnBack(_idDaModificare);
+                    await OnBack(_idRitorno);
                 }
             }
             catch (OperationCanceledException)
@@ -130,9 +103,10 @@ namespace ViewModels
             {
                 _isClosing = false;
                 InfoLabel = $"Errore: {ex.Message}";
-                await SetFocus(NumeroSocioFocus);
+                await OnNumeroTesseraFocus();
             }
 
+            
             
         }
     }

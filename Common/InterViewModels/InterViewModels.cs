@@ -53,6 +53,9 @@ namespace Common.InterViewModels
     public interface ICodiceSocioAddViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface ICodiceSocioDelViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface ICodiceSocioUpdViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface ITesseraAddViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface ITesseraDelViewModel : IRoutableViewModel, iSociCrudViewModel { }
+    public interface ITesseraUpdViewModel : IRoutableViewModel, iSociCrudViewModel { }
 
     public interface IConfigurazioneViewModel : IRoutableViewModel
     {
