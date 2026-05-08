@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using ControlStyles;
 using ReactiveUI;
 using System.Reactive;
 

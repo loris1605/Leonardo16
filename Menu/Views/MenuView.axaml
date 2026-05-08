@@ -96,7 +96,7 @@
                            <Style Selector="MenuItem > MenuItem" x:DataType="dt:MenuPostazioneMap">
                                <Setter Property="Header" Value="{Binding NomePostazione}" />
                                <Setter Property="Command" Value="{Binding $parent[MenuItem].DataContext.SelezionaPostazioneCommand}" />
-                               <Setter Property="CommandParameter" Value="{Binding Id}" />
+                               <Setter Property="CommandParameter" Value="{Binding CodicePostazione}" />
                            </Style>
                        </MenuItem.Styles>
                        

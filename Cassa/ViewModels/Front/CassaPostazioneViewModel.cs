@@ -87,7 +87,7 @@ namespace ViewModels
 
         protected override async Task OnLoading()
         {
-            Titolo = "POSTAZIONE CASSA " + await Q.GetPostazioneName(_postazioneId, token);
+            Titolo = "POSTAZIONE " + await Q.GetPostazioneName(_postazioneId, token);
             await SetFocus(PosizioneFocus);
             await Task.CompletedTask;
         }

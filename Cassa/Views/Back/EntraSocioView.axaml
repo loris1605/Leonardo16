@@ -4,6 +4,7 @@
              xmlns:lc="using:Leonardo"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:r="using:ReactiveUI.Avalonia"
+             xmlns:vw="clr-namespace:Views;assembly=Common"
              xmlns:vm="using:ViewModels"
              mc:Ignorable="d"
              d:DesignWidth="800"
@@ -28,7 +29,33 @@
 
         <Grid x:Name="ControlsGrid" Grid.Row="1">
 			
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>    
 
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+           </Grid.ColumnDefinitions>
+
+           <vw:EntraSocioAnagraficaView/>
 
         </Grid>
     

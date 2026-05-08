@@ -7,6 +7,7 @@ namespace Menu.Core.DTO
 {
     public class MenuDTO : BaseDTO, IMap, IMappable<Postazione>
     {
+        public int CodicePostazione {  get; set; }
         public int CodiceTipoPostazione { get; set; }
         public string NomePostazione { get; set; } = string.Empty;
         public string NomeTipoPostazione { get; set; } = string.Empty;
@@ -95,6 +96,7 @@ namespace Menu.Core.DTO
             Id = p.Id,
             // Attenzione: qui mappi PostazioneId su CodiceTipoPostazione, 
             // verifica che non debba essere p.Postazione.TipoPostazioneId
+            CodicePostazione = p.PostazioneId,
             CodiceTipoPostazione = p.PostazioneId,
             NomePostazione = p.Postazione != null ? p.Postazione.Nome : "N/A"
         };

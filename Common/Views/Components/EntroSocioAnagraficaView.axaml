@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:ui="using:ControlStyles"
+             xmlns:material="using:Material.Icons.Avalonia"
+             KeyboardNavigation.TabNavigation="Cycle"
+             Background="#F3F3F3"
+             x:CompileBindings="False"
+             x:Class="Views.EntraSocioAnagraficaView"
+             x:Name="Root">
+
+    <Grid x:Name="MainGrid" >
+    
+        <ui:PopupBorder VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+
+            <Grid x:Name="PopupGrid">
+            
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
+                </Grid.RowDefinitions>     
+                
+                <ui:UiTitolo x:Name="lblTitolo"
+                             Text="Identificazione"
+                             FontSize="22"
+                             SubTitolo="True"
+                             Margin="30,0"
+                             HorizontalAlignment="Center"/>
+            
+            </Grid>
+                        
+        </ui:PopupBorder>    
+    
+    </Grid>
+  
+</UserControl>

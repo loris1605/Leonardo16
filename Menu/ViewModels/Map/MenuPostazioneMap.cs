@@ -1,10 +1,5 @@
 ﻿using Menu.Core.DTO;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ViewModels.BindableObjects;
 
 namespace Menu.ViewModels.Map
@@ -16,6 +11,7 @@ namespace Menu.ViewModels.Map
         public MenuPostazioneMap(MenuDTO dto)
         {
             this.Id = dto.Id;
+            this.CodicePostazione = dto.CodicePostazione;
             this.CodiceTipoPostazione = dto.CodiceTipoPostazione;
             this.NomePostazione = dto.NomePostazione;
             this.NomeTipoPostazione = dto.NomeTipoPostazione;
@@ -33,6 +29,7 @@ namespace Menu.ViewModels.Map
             return new MenuDTO
             {
                 Id = this.Id,
+                CodicePostazione = this.CodicePostazione,
                 CodiceTipoPostazione = this.CodiceTipoPostazione,
                 NomePostazione = this.NomePostazione,
                 NomeTipoPostazione = this.NomeTipoPostazione,
@@ -44,6 +41,13 @@ namespace Menu.ViewModels.Map
                 NomeTipoRientro = this.NomeTipoSettore,
                 HasPermesso = this.HasPermesso,
             };
+        }
+
+        private int _codicepostazione;
+        public int CodicePostazione
+        {
+            get => _codicepostazione;
+            set => this.RaiseAndSetIfChanged(ref _codicepostazione, value);
         }
 
         private int _codicetipopostazione;
