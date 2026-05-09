@@ -72,6 +72,7 @@ namespace Leonardo16
             services.AddTransient<IListinoDbContext, ListinoDbContext>();
             services.AddTransient<IPeopleDbContext, PeopleDbContext>();
             services.AddTransient<ICassaPostazioneDbContext, CassaPostazioneDbContext>();
+            services.AddTransient<IStrisciateDbContext, StrisciateDbContext>();
 
         }
 

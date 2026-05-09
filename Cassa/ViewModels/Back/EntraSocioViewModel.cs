@@ -1,10 +1,12 @@
 ﻿using Common.InterViewModels;
+using ReactiveUI;
 using Splat;
+using System.Reactive;
 using System.Reactive.Linq;
 
 namespace ViewModels
 {
-    public class EntraSocioViewModel : BaseViewModel, IEntraSocioViewModel
+    public partial class EntraSocioViewModel : BaseViewModel, IEntraSocioViewModel
     {
         private int _postazioneId;
         private ICassaScreen _host;
@@ -12,7 +14,13 @@ namespace ViewModels
 
         public EntraSocioViewModel() : base()
         {
+            
+        }
 
+        protected override async Task OnLoading()
+        {
+
+            await SetFocus(TesseraFocus);
         }
 
         public void SetHost(ICassaScreen host) => _host = host;
@@ -39,5 +47,10 @@ namespace ViewModels
                 await _host.CassaRouter.NavigateAndReset.Execute(cassaPostazioneVm);
             }
         }
+    }
+
+    public partial class EntraSocioViewModel
+    {
+        public Interaction<Unit, Unit> TesseraFocus { get; } = new();
     }
 }

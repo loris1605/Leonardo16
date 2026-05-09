@@ -13,58 +13,108 @@
 
     <Grid x:Name="MainGrid" >
     
-        <Border VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                BorderBrush="Black"
-                >
+        <HeaderedContentControl BorderBrush="Black"
+                                Grid.Row="1"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                x:Name="AnagraficaBorder"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Margin="3"
+                                Background="Transparent">
 
-            <Grid x:Name="PopupGrid">
-            
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="50"/>
-                    <RowDefinition Height="Auto"/>
-                    
-                </Grid.RowDefinitions>     
-                
-                <ui:UiTitolo x:Name="lblTitolo"
-                             Text="Identificazione"
-                             FontSize="22"
-                             SubTitolo="True"
-                             Margin="30,0"
-                             HorizontalAlignment="Center"/>
-                
-                <Grid x:Name="InputGrid"
+            <HeaderedContentControl.Header>
+                <TextBlock Text=" IDENTIFICAZIONE "
+                           Foreground="Black"
+                           Margin="3"
+                           HorizontalAlignment="Center"/>
+            </HeaderedContentControl.Header>
+
+            <Grid x:Name="InputGrid"
                       Grid.Row="1"
                       Margin="10">
                     
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="5"/>
-                        <RowDefinition Height="Auto" MinHeight="35"/>
-                        <RowDefinition Height="Auto" MinHeight="35"/>
-                        <RowDefinition Height="Auto" MinHeight="35"/>
-                        <RowDefinition Height="Auto" MinHeight="35"/>
-                        <RowDefinition Height="Auto" MinHeight="35"/>
-                        <RowDefinition Height="Auto" MinHeight="35"/>
-                     </Grid.RowDefinitions>    
-                     
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="5"/>
+                    <RowDefinition Height="Auto" MinHeight="35"/>
+                    <RowDefinition Height="Auto" MinHeight="35"/>
+                    <RowDefinition Height="Auto" MinHeight="35"/>
+                    <RowDefinition Height="Auto" MinHeight="35"/>
+                    <RowDefinition Height="Auto" MinHeight="35"/>
+                    <RowDefinition Height="Auto" MinHeight="35"/>
+                 </Grid.RowDefinitions>    
+                 
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" MaxWidth="200"/>
+                </Grid.ColumnDefinitions>
 
-                    <ui:UiLabelForGrid Text="TESSERA (F5) :"
-                                       Margin="5,10,5,10"
-                                       Grid.Row="1"/>
+                <ui:UiLabelForGrid Text="TESSERA (F5) :"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="1"/>
+
+                <ui:UiIntegerTextBox Grid.Row="1"
+                                    x:Name="TesseraBox"
+                                    Grid.Column="1"
+                                    Margin="5,2,5,2"
+                                    VerticalAlignment="Center"/>
+
+                <ui:UiLabelForGrid Text="COGNOME :"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="2"/>
+
+                <ui:UiLabelForGrid Text="{Binding}"
+                                   Foreground="Blue"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="2"
+                                   Grid.Column="1"/>
+
+                <ui:UiLabelForGrid Text="NOME :"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="3"/>
+
+                <ui:UiLabelForGrid Text="{Binding}"
+                                   Foreground="Blue"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="3"
+                                   Grid.Column="1"/>
+
+                <ui:UiLabelForGrid Text="ETA' :"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="4"/>
+
+                <ui:UiLabelForGrid Text="{Binding}"
+                                   Foreground="Blue"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="4"
+                                   Grid.Column="1"/>
+
+                <ui:UiLabelForGrid Text="CODICE SOCIO :"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="5"/>
+
+                <ui:UiLabelForGrid Text="{Binding}"
+                                   Foreground="Blue"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="5"
+                                   Grid.Column="1"/>
+
+                <ui:UiLabelForGrid Text="POSIZIONE :"
+                                   Margin="5,10,5,10"
+                                   Grid.Row="6"/>
+
+                <ui:UiIntegerTextBox Grid.Row="6"
+                                     x:Name="PosizioneBox"
+                                     Grid.Column="1"
+                                     Margin="5,2,5,2"
+                                     VerticalAlignment="Center"/>
 
 
-                </Grid>
-
-
+            </Grid>
 
             
-            </Grid>
                         
-        </Border>    
+        </HeaderedContentControl> 
     
     </Grid>
   

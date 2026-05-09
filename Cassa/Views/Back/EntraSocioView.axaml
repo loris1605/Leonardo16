@@ -56,7 +56,10 @@
            </Grid.ColumnDefinitions>
 
            <vw:EntraSocioAnagraficaView Grid.Column="1"
-                                        Grid.Row="1"/>
+                                        Grid.Row="1"
+                                        Grid.ColumnSpan="2"
+                                        Grid.RowSpan="5"
+                                        x:Name="AnagrificaInput"/>
 
         </Grid>
     
