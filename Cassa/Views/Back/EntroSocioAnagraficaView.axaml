@@ -13,15 +13,17 @@
 
     <Grid x:Name="MainGrid" >
     
-        <ui:PopupBorder VerticalAlignment="Center"
-                        HorizontalAlignment="Center">
+        <Border VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                BorderBrush="Black"
+                >
 
             <Grid x:Name="PopupGrid">
             
                 <Grid.RowDefinitions>
                     <RowDefinition Height="50"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="10"/>
+                    
                 </Grid.RowDefinitions>     
                 
                 <ui:UiTitolo x:Name="lblTitolo"
@@ -30,10 +32,39 @@
                              SubTitolo="True"
                              Margin="30,0"
                              HorizontalAlignment="Center"/>
+                
+                <Grid x:Name="InputGrid"
+                      Grid.Row="1"
+                      Margin="10">
+                    
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                        <RowDefinition Height="Auto" MinHeight="35"/>
+                     </Grid.RowDefinitions>    
+                     
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ui:UiLabelForGrid Text="TESSERA (F5) :"
+                                       Margin="5,10,5,10"
+                                       Grid.Row="1"/>
+
+
+                </Grid>
+
+
+
             
             </Grid>
                         
-        </ui:PopupBorder>    
+        </Border>    
     
     </Grid>
   
