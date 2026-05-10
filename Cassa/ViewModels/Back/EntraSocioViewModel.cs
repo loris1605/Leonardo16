@@ -1,4 +1,5 @@
 ﻿using Common.InterViewModels;
+using DTO.Repository;
 using ReactiveUI;
 using Splat;
 using System.Reactive;
@@ -12,14 +13,16 @@ namespace ViewModels
         private ICassaScreen _host;
         private string _posizione;
 
-        public EntraSocioViewModel() : base()
+        private IStrisciataRepository _strisciataRepository;
+
+        public EntraSocioViewModel(IStrisciataRepository strisciataRepository) : base()
         {
-            
+            _strisciataRepository = strisciataRepository ?? throw new ArgumentNullException(nameof(strisciataRepository));
         }
 
         protected override async Task OnLoading()
         {
-
+            await _strisciataRepository.DevelopStrisciate(token);
             await SetFocus(TesseraFocus);
         }
 

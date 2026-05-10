@@ -155,7 +155,7 @@ namespace ViewModels
 
         readonly ObservableAsPropertyHelper<bool> _isOpen;
         public bool IsOpen => _isOpen.Value;
-        private readonly Subject<bool> _isOpenManualTrigger = new Subject<bool>();
+        private readonly Subject<bool> _isOpenManualTrigger = new();
 
     }
 }

@@ -55,11 +55,20 @@
                 <ColumnDefinition Width="*"/>
            </Grid.ColumnDefinitions>
 
-           <vw:EntraSocioAnagraficaView Grid.Column="1"
+            <Viewbox Grid.Column="1"
+                     Grid.Row="1"
+                     Grid.ColumnSpan="2"
+                     Grid.RowSpan="5">
+                    
+                <vw:EntraSocioAnagraficaView x:Name="AnagrificaInput"/>
+                     
+            </Viewbox>
+
+           <!--<vw:EntraSocioAnagraficaView Grid.Column="1"
                                         Grid.Row="1"
                                         Grid.ColumnSpan="2"
                                         Grid.RowSpan="5"
-                                        x:Name="AnagrificaInput"/>
+                                        x:Name="AnagrificaInput"/>-->
 
         </Grid>
     

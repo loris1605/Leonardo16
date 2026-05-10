@@ -91,6 +91,7 @@ namespace Leonardo16
             services.AddTransient<IListinoRepository, ListinoRepository>();
             services.AddTransient<IPersonRepository, PersonRepository>();
             services.AddTransient<ICassaPostazioneRepository, CassaPostazioneRepository>();
+            services.AddTransient<IStrisciataRepository, StrisciataRepository>();
         }
 
         private static void RegisterViewModels(IServiceCollection services)

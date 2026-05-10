@@ -14,7 +14,6 @@
     <Grid x:Name="MainGrid" >
     
         <HeaderedContentControl BorderBrush="Black"
-                                Grid.Row="1"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
                                 x:Name="AnagraficaBorder"

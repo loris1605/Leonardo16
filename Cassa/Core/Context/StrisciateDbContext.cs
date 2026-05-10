@@ -9,6 +9,8 @@ namespace Models.Context
         DbSet<Socio> Soci { get; set; }
         DbSet<Strisciata> Strisciate { get; set; }
         DbSet<Tessera> Tessere { get; set; }
+
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 
     public class StrisciateDbContext : BaseContext, IStrisciateDbContext
