@@ -2,6 +2,7 @@
 using Models.Context;
 using Models.Repository;
 using Models.Tables;
+using System;
 using System.Diagnostics;
 
 namespace DTO.Repository
@@ -32,31 +33,135 @@ namespace DTO.Repository
             var data = await GetStrisciate(ctk);
             if (data.Count == 0) return;
 
+            var uis = data.Select(s => CreateUniqueIdentifier(s)).ToList();
+
+            // Controlliamo quali esistono già sul DB con una sola query
+            var existingOnDb = await _ctx.People
+                .Where(p => uis.Contains(p.UniqueParam))
+                .Select(p => p.UniqueParam)
+                .ToListAsync(ctk);
+
+
             foreach (Strisciata item in data)
             {
-                // 1° caso - Verifichiamo se la UniqueIndentifier esiste già
                 string ui = CreateUniqueIdentifier(item);
 
-                if (await EsisteCodiceUnivoco(ui, ctk)) //se il codice univoco esiste già fermati
+                if (existingOnDb.Contains(ui))
                 {
+                    var existingPerson = await _ctx.People
+                                            .Include(p => p.Soci)
+                                                .ThenInclude(s => s.Tessere)
+                                            .FirstOrDefaultAsync(p => p.UniqueParam == ui, ctk);
 
-                    continue; 
+                    if (existingPerson != null)
+                    {
+                        // 1. Aggiornamento Anagrafica
+                        existingPerson.FirstName = item.Nome ?? string.Empty;
+                        existingPerson.SurName = item.Cognome ?? string.Empty;
+                        existingPerson.Natoil = item.Natoil;
+
+                        // 2. Gestione Socio
+                        var socioEsistente = existingPerson.Soci.FirstOrDefault(s => s.NumeroSocio == item.CodiceSocio);
+
+                        if (socioEsistente == null)
+                        {
+                            existingPerson.Soci.Add(new Socio
+                            {
+                                NumeroSocio = item.CodiceSocio,
+                                Tessere = new List<Tessera>
+                    {
+                        new Tessera { NumeroTessera = item.NumeroTessera, Scadenza = item.Scadenza }
+                    }
+                            });
+                        }
+                        else
+                        {
+                            // 3. Gestione Tessera
+                            var tesseraEsistente = socioEsistente.Tessere
+                                .FirstOrDefault(t => t.NumeroTessera == item.NumeroTessera);
+
+                            if (tesseraEsistente == null)
+                            {
+                                socioEsistente.Tessere.Add(new Tessera
+                                {
+                                    NumeroTessera = item.NumeroTessera,
+                                    Scadenza = item.Scadenza
+                                });
+                            }
+                            else
+                            {
+                                tesseraEsistente.Scadenza = item.Scadenza;
+                            }
+                        }
+                        _ctx.People.Update(existingPerson);
+                    }
+                }
+                else
+                {
+                    // Se non esiste, inseriamo tutto il nuovo grafo
+                    await _ctx.People.AddAsync(MapToPersonForInsert(item, ui), ctk);
+
+                    // Importante: aggiorniamo la lista locale per evitare duplicati se nel batch 
+                    // ci sono 2 record con lo stesso UI nuovo
+                    existingOnDb.Add(ui);
                 }
 
-                if (!await InsertNewPerson(item, ui, ctk)) continue; // se l'inserimento della persona fallisce fermati
-                await DeleteStrisciata(item.Id, ctk);
+                // Rimuoviamo la strisciata in entrambi i casi (aggiornamento o inserimento)
+                _ctx.Strisciate.Remove(item);
             }
 
-            await Task.CompletedTask;
+            // Fuori dal ciclo salviamo tutto una volta sola
+            try
+            {
+                await _ctx.SaveChangesAsync(ctk);
+                return ;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($">>> [ERROR] Add Person: {ex.InnerException?.Message ?? ex.Message}");
+                return ;
+            }
+
         }
 
         private string CreateUniqueIdentifier(Strisciata record)
         {
-            string cognome = (record.Cognome.Trim() ?? "").PadRight(3)[..3]; ;
-            string nome = (record.Nome.Trim() ?? "").PadRight(3)[..3]; ;
-            string nascita = record.Natoil.ToString();
+            // Usa "" se null, poi fai Trim
+            string cognome = (record.Cognome ?? "").Trim().PadRight(3)[..3];
+            string nome = (record.Nome ?? "").Trim().PadRight(3)[..3];
+            string nascita = record.Natoil.ToString("yyyyMMdd"); // Formato fisso essenziale!
 
-            return cognome + nome + nascita;
+            return (cognome + nome + nascita).ToUpper(); // ToUpper aiuta a evitare problemi di case-sensitivity
+        }
+
+        private Person MapToPersonForInsert(Strisciata record, string uniqueIdentifier)
+        {
+            return new Person
+            {
+                FirstName = record.Nome ?? string.Empty,
+                SurName = record.Cognome ?? string.Empty,
+                Natoil = record.Natoil,
+                UniqueParam = uniqueIdentifier,
+                Soci = new List<Socio>
+                {
+                    new Socio
+                    {
+                        NumeroSocio = record.CodiceSocio,
+                        Tessere = new List<Tessera>
+                        {
+                            new Tessera
+                            {
+                                NumeroTessera = record.NumeroTessera,
+                                Scadenza = record.Scadenza
+                            }
+                        }
+                    }
+                }
+            };
         }
 
         private async Task<bool> EsisteCodiceUnivoco(string codiceunivoco, CancellationToken ctk = default)
@@ -66,7 +171,7 @@ namespace DTO.Repository
 
             try
             {
-                var result = await _ctx.People.AnyAsync(p => p.UniqueParam == codiceunivoco, ctk);
+                var result = await _ctx.People.AsNoTracking().AnyAsync(p => p.UniqueParam == codiceunivoco, ctk);
                 return result;
             }
             catch (OperationCanceledException)
@@ -81,50 +186,7 @@ namespace DTO.Repository
             }
         }
 
-        private async Task<bool> InsertNewPerson(Strisciata record, string ui, CancellationToken ctk = default)
-        {
-            var person = new Person
-            {
-                FirstName = record.Nome ?? string.Empty,
-                SurName = record.Cognome ?? string.Empty,
-                Natoil = record.Natoil,
-                UniqueParam = ui,
-
-                Soci =
-                [
-                    new Socio
-                    {
-                        NumeroSocio = record.CodiceSocio,
-                        // Colleghiamo la Tessera direttamente al Socio
-                        Tessere =
-                        [
-                            new Tessera
-                            {
-                                NumeroTessera = record.NumeroTessera,
-                                Scadenza = record.Scadenza
-                            }
-                        ]
-                    }
-                ]
-            };
-
-            await _ctx.People.AddAsync(person, ctk);
-
-            try
-            {
-                await _ctx.SaveChangesAsync(ctk);
-                return true;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($">>> [ERROR] Add Person: {ex.InnerException?.Message ?? ex.Message}");
-                return false;
-            }
-        }
+        
 
         private async Task DeleteStrisciata(int id, CancellationToken ctk = default)
         {
@@ -140,6 +202,35 @@ namespace DTO.Repository
             catch (Exception)
             {
 
+            }
+        }
+
+        private async Task UpdateAnagrafica(Strisciata record, string ui, CancellationToken ctk = default)
+        {
+            ctk.ThrowIfCancellationRequested();
+
+            try
+            {
+                var result = await _ctx.People.Where(p => p.UniqueParam == ui).FirstOrDefaultAsync(ctk);
+                if (result == null) return;
+
+                result.SurName = record.Cognome;
+                result.FirstName = record.Nome;
+                result.Natoil = record.Natoil;
+
+                await _ctx.SaveChangesAsync(ctk);
+
+                return;
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine(">>> [INFO] Operazione annullata dall'utente.");
+                return;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($">>> [ERROR] Add: {ex.InnerException?.Message ?? ex.Message}");
+                return;
             }
         }
     }

@@ -41,6 +41,7 @@
                     <RowDefinition Height="Auto" MinHeight="35"/>
                     <RowDefinition Height="Auto" MinHeight="35"/>
                     <RowDefinition Height="Auto" MinHeight="35"/>
+                    <RowDefinition Height="50" />
                  </Grid.RowDefinitions>    
                  
                 <Grid.ColumnDefinitions>
@@ -56,13 +57,14 @@
                                     x:Name="TesseraBox"
                                     Grid.Column="1"
                                     Margin="5,2,5,2"
+                                    MoveToNextOnEnter="False"
                                     VerticalAlignment="Center"/>
 
                 <ui:UiLabelForGrid Text="COGNOME :"
                                    Margin="5,10,5,10"
                                    Grid.Row="2"/>
 
-                <ui:UiLabelForGrid Text="{Binding}"
+                <ui:UiLabelForGrid x:Name="CognomeBlock" 
                                    Foreground="Blue"
                                    Margin="5,10,5,10"
                                    Grid.Row="2"
@@ -72,7 +74,7 @@
                                    Margin="5,10,5,10"
                                    Grid.Row="3"/>
 
-                <ui:UiLabelForGrid Text="{Binding}"
+                <ui:UiLabelForGrid x:Name="NomeBlock" 
                                    Foreground="Blue"
                                    Margin="5,10,5,10"
                                    Grid.Row="3"
@@ -82,7 +84,7 @@
                                    Margin="5,10,5,10"
                                    Grid.Row="4"/>
 
-                <ui:UiLabelForGrid Text="{Binding}"
+                <ui:UiLabelForGrid x:Name="EtaBlock" 
                                    Foreground="Blue"
                                    Margin="5,10,5,10"
                                    Grid.Row="4"
@@ -92,7 +94,7 @@
                                    Margin="5,10,5,10"
                                    Grid.Row="5"/>
 
-                <ui:UiLabelForGrid Text="{Binding}"
+                <ui:UiLabelForGrid x:Name="NumeroSocioBlock"
                                    Foreground="Blue"
                                    Margin="5,10,5,10"
                                    Grid.Row="5"
@@ -107,6 +109,31 @@
                                      Grid.Column="1"
                                      Margin="5,2,5,2"
                                      VerticalAlignment="Center"/>
+
+                 <TextBlock x:Name="InfoLabel"
+                            Grid.Row="7"
+                            Foreground="White"
+                            HorizontalAlignment="Center"
+                            Margin="20,10">
+
+                     <TextBlock.Styles>
+                         <Style Selector="TextBlock">
+                             <Style.Animations>
+                                 <Animation Duration="0:0:1"
+                                            IterationCount="Infinite"
+                                            PlaybackDirection="Alternate">
+                                     <KeyFrame KeyTime="0:0:0">
+                                         <Setter Property="Opacity" Value="1.0"/>
+                                     </KeyFrame>
+                                     <KeyFrame KeyTime="0:0:1">
+                                         <Setter Property="Opacity" Value="0.3"/>
+                                     </KeyFrame>
+                                 </Animation>
+                             </Style.Animations>
+                         </Style>
+                     </TextBlock.Styles>
+
+                </TextBlock>
 
 
             </Grid>
