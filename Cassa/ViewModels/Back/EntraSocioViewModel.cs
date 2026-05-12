@@ -1,12 +1,11 @@
 ﻿using Common.InterViewModels;
 using DTO.Repository;
-using Microsoft.Identity.Client;
 using ReactiveUI;
 using Splat;
+using SysNet.Converters;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using System.Windows;
 using ViewModels.BindableObjects;
 
 namespace ViewModels
@@ -18,6 +17,7 @@ namespace ViewModels
         private string _posizione;
 
         private IStrisciataRepository _strisciataRepository;
+        private IEntraSocioRepository Q;
 
         public ReactiveCommand<Unit, Unit> TesseraCommand { get; private set; }
 
@@ -29,9 +29,10 @@ namespace ViewModels
                 
             }.CombineLatest(values => values.Any(x => x));
 
-        public EntraSocioViewModel(IStrisciataRepository strisciataRepository) : base()
+        public EntraSocioViewModel(IStrisciataRepository strisciataRepository, IEntraSocioRepository Repository) : base()
         {
             _strisciataRepository = strisciataRepository ?? throw new ArgumentNullException(nameof(strisciataRepository));
+            Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
 
             TesseraCommand = ReactiveCommand.CreateFromTask(async vm => await OnTesseraEnter());
             
@@ -49,6 +50,7 @@ namespace ViewModels
             //AddTesseraCommand = DelTesseraCommand = UpdTesseraCommand = PersonSearchCommand = null;
 
             _strisciataRepository = null;
+            Q = null;
             base.OnFinalDestruction();
         }
 
@@ -85,7 +87,18 @@ namespace ViewModels
 
         private async Task OnTesseraEnter()
         {
-            MessageBox.Show(BindingT.NumeroTessera);
+            var data = new EntraSocioMap(await Q.GetPersonByTessera(BindingT.NumeroTessera, token));
+
+            if (data.CodiceSocio == 0)
+            {
+                InfoLabel = "Tessera non trovata";
+                await SetFocus(TesseraFocus);
+            }
+            else
+            {
+                BindingT = data;
+                Eta = BindingT.Natoil.DateIntToEta();
+            }
         }
     }
 
@@ -105,6 +118,13 @@ namespace ViewModels
         {
             get => this._bindingt;
             set => this.RaiseAndSetIfChanged(ref _bindingt, value);
+        }
+
+        private int _eta;
+        public int Eta
+        {
+            get => _eta;
+            set => this.RaiseAndSetIfChanged(ref _eta, value);
         }
     }
 }

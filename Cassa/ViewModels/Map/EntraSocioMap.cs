@@ -1,9 +1,5 @@
-﻿using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DTO.Entity;
+using ReactiveUI;
 
 namespace ViewModels.BindableObjects
 {
@@ -11,7 +7,17 @@ namespace ViewModels.BindableObjects
     {
         public EntraSocioMap() { }
 
+        public EntraSocioMap(EntraSocioDTO dto)
+        {
+            this.NumeroTessera = dto.NumeroTessera;
+            this.Cognome = dto.Cognome;
+            this.Nome = dto.Nome;
+            this.Natoil = dto.Natoil;
+            this.CodiceSocio = dto.CodicePerson;
+            this.NumeroSocio = dto.NumeroSocio;
+            this.Scadenza = dto.ScadenzaTessera;
 
+        }
 
 
         private string _numeroTessera = string.Empty;

@@ -46,7 +46,7 @@
                  
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto" MaxWidth="200"/>
+                    <ColumnDefinition Width="200" />
                 </Grid.ColumnDefinitions>
 
                 <ui:UiLabelForGrid Text="TESSERA (F5) :"

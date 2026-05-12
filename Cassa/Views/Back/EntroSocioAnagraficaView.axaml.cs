@@ -69,7 +69,7 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
             .DisposeWith(d);
 
             this.OneWayBind(ViewModel,
-                    vm => vm.BindingT.Natoil.DateIntToEta(),
+                    vm => vm.Eta,
                     v => v.EtaBlock.Text)
             .DisposeWith(d);
 

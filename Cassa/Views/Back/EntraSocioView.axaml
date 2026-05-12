@@ -55,7 +55,7 @@
                 <ColumnDefinition Width="*"/>
            </Grid.ColumnDefinitions>
 
-            <Viewbox Grid.Column="1"
+            <Viewbox Grid.Column="1" MinWidth="250"
                      Grid.Row="1"
                      Grid.ColumnSpan="2"
                      Grid.RowSpan="5">
