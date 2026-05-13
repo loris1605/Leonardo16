@@ -28,7 +28,7 @@ namespace DTO.Repository
                     .ThenInclude(s => s.Person)
                 .FirstOrDefaultAsync(ctk);
 
-            if (data == null || data.Socio == null || data.Socio.Person == null) return null;
+            if (data == null || data.Socio == null || data.Socio.Person == null) return new EntraSocioDTO();
 
             return new EntraSocioDTO
             {

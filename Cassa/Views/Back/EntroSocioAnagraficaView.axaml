@@ -112,7 +112,8 @@
 
                  <TextBlock x:Name="InfoLabel"
                             Grid.Row="7"
-                            Foreground="White"
+                            Grid.ColumnSpan="2"
+                            Foreground="Red"
                             HorizontalAlignment="Center"
                             Margin="20,10">
 
