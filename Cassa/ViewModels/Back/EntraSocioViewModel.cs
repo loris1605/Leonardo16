@@ -34,6 +34,12 @@ namespace ViewModels
             _strisciataRepository = strisciataRepository ?? throw new ArgumentNullException(nameof(strisciataRepository));
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
 
+            _tesseraLabel = this.WhenAnyValue(x => x.IsSocioFound)
+                                .Skip(1) // Salta il valore iniziale per evitare di impostare la label prima della prima ricerca
+                                .Select(found => found ? "TESSERA :" : "TESSERA (F5) :")
+                                .ObserveOn(RxSchedulers.MainThreadScheduler) // Sicurezza per l'interfaccia utente
+                                .ToProperty(this, x => x.TesseraLabel, initialValue: "TESSERA :");
+
             TesseraCommand = ReactiveCommand.CreateFromTask(async vm => await OnTesseraEnter());
             
 
@@ -91,11 +97,13 @@ namespace ViewModels
 
             if (data.CodiceSocio == 0)
             {
+                IsSocioFound = false;
                 InfoLabel = "Tessera non trovata";
                 await SetFocus(TesseraFocus);
             }
             else
             {
+                IsSocioFound = true;
                 BindingT = data;
                 Eta = BindingT.Natoil.DateIntToEta();
             }
@@ -106,6 +114,7 @@ namespace ViewModels
     {
         public Interaction<Unit, Unit> TesseraFocus { get; } = new();
 
+        
         private string infolabel = string.Empty;
         public string InfoLabel
         {
@@ -127,11 +136,15 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _eta, value);
         }
 
-        private string _tesseraLabel = "TESSERA :";
-        public string TesseraLabel
+        private bool _isSocioFound;
+        public bool IsSocioFound
         {
-            get => _tesseraLabel;
-            set => this.RaiseAndSetIfChanged(ref _tesseraLabel, value);
+            get => _isSocioFound;
+            set => this.RaiseAndSetIfChanged(ref _isSocioFound, value);
         }
+
+        // 2. Proprietà calcolata (OAPH) per la Label
+        private readonly ObservableAsPropertyHelper<string> _tesseraLabel;
+        public string TesseraLabel => _tesseraLabel.Value;
     }
 }
