@@ -59,6 +59,11 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
             .DisposeWith(d);
 
             this.OneWayBind(ViewModel,
+                    vm => vm.TesseraLabel,
+                    v => v.TesseraLabel.Text)
+            .DisposeWith(d);
+
+            this.OneWayBind(ViewModel,
                     vm => vm.BindingT.Cognome,
                     v => v.CognomeBlock.Text)
             .DisposeWith(d);

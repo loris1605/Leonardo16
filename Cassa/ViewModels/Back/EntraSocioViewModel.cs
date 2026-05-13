@@ -126,5 +126,12 @@ namespace ViewModels
             get => _eta;
             set => this.RaiseAndSetIfChanged(ref _eta, value);
         }
+
+        private string _tesseraLabel = "TESSERA :";
+        public string TesseraLabel
+        {
+            get => _tesseraLabel;
+            set => this.RaiseAndSetIfChanged(ref _tesseraLabel, value);
+        }
     }
 }

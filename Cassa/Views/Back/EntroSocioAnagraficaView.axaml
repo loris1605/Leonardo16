@@ -50,6 +50,7 @@
                 </Grid.ColumnDefinitions>
 
                 <ui:UiLabelForGrid Text="TESSERA (F5) :"
+                                   x:Name="TesseraLabel"
                                    Margin="5,10,5,10"
                                    Grid.Row="1"/>
 
