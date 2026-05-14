@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Input;
 using ReactiveUI;
 using ReactiveUI.Avalonia;
-using SysNet.Converters;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -18,36 +17,63 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
 
         this.WhenActivated(d =>
         {
-
+            var tesseraHandlerDisposable = new System.Reactive.Disposables.SerialDisposable().DisposeWith(d);
             this.GetObservable(TesseraFocusProperty)
-            .Where(x => x != null)
-            .Subscribe(interaction =>
-            {
-                // 2. Registra l'handler: quando il ViewModel chiama .Handle(), esegui questo:
-                interaction!.RegisterHandler(async context =>
+                .Where(x => x != null)
+                .Subscribe(interaction =>
                 {
-                    // 3. Sposta il focus sul bottone fisico dentro lo UserControl
-                   await Task.Delay(100);
-                   TesseraBox.Focus();
-                   TesseraBox.SelectAll();
-                   context.SetOutput(Unit.Default);
-                }).DisposeWith(d);
-            })
-            .DisposeWith(d);
+                    tesseraHandlerDisposable.Disposable = interaction!.RegisterHandler(async context =>
+                    {
+                        await Task.Delay(100);
+                        TesseraBox.Focus();
+                        TesseraBox.SelectAll();
+                        context.SetOutput(Unit.Default);
+                    });
+                })
+                .DisposeWith(d);
 
-            this.WhenAnyValue(x => x.ViewModel.BindingT.CodiceSocio)
-                            .Select(codice => codice != 0)
-                            .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .BindTo(this, x => x.PosizioneBox.IsEnabled)
-                            .DisposeWith(d);
+            var posizioneHandlerDisposable = new System.Reactive.Disposables.SerialDisposable().DisposeWith(d);
+            this.GetObservable(PosizioneFocusProperty)
+                .Where(x => x != null)
+                .Subscribe(interaction =>
+                {
+                    posizioneHandlerDisposable.Disposable = interaction!.RegisterHandler(async context =>
+                    {
+                        await Task.Delay(100);
+                        PosizioneBox.Focus();
+                        PosizioneBox.SelectAll();
+                        context.SetOutput(Unit.Default);
+                    });
+                })
+                .DisposeWith(d);
 
-            Observable.FromEventPattern<EventHandler<KeyEventArgs>, KeyEventArgs>(
-                            h => this.KeyUp += h,
-                            h => this.KeyUp -= h)
-                .Where(e => e.EventArgs.Key == Key.Enter)
+            this.WhenAnyValue(
+                    x => x.ViewModel,
+                    x => x.ViewModel!.BindingT,
+                    (vm, binding) => binding != null && binding.CodiceSocio != 0)
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .BindTo(this, v => v.PosizioneBox.IsEnabled)
+                .DisposeWith(d);
+
+            var keyUpStream = Observable.FromEventPattern<EventHandler<KeyEventArgs>, KeyEventArgs>(
+                        h => this.TesseraBox.KeyUp += h,
+                        h => this.TesseraBox.KeyUp -= h)
+                    .ObserveOn(RxSchedulers.MainThreadScheduler)
+                    .Publish()
+                    .RefCount();
+
+            // Esegui TesseraCommand su INVIO
+            keyUpStream
+                .Where(e => e.EventArgs.Key == Key.Enter)
                 .Select(_ => Unit.Default)
                 .InvokeCommand(ViewModel, x => x.TesseraCommand)
+                .DisposeWith(d);
+
+            // Esegui F5Command su F5
+            keyUpStream
+                .Where(e => e.EventArgs.Key == Key.F5)
+                .Select(_ => Unit.Default)
+                .InvokeCommand(ViewModel, x => x.F5Command)
                 .DisposeWith(d);
 
 
@@ -106,5 +132,14 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
     {
         get => GetValue(TesseraFocusProperty);
         set => SetValue(TesseraFocusProperty, value);
+    }
+
+    public static readonly StyledProperty<Interaction<Unit, Unit>> PosizioneFocusProperty =
+        AvaloniaProperty.Register<EntraSocioAnagraficaView, Interaction<Unit, Unit>>(nameof(PosizioneFocus));
+
+    public Interaction<Unit, Unit> PosizioneFocus
+    {
+        get => GetValue(PosizioneFocusProperty);
+        set => SetValue(PosizioneFocusProperty, value);
     }
 }

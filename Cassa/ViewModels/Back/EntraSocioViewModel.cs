@@ -20,32 +20,49 @@ namespace ViewModels
         private IEntraSocioRepository Q;
 
         public ReactiveCommand<Unit, Unit> TesseraCommand { get; private set; }
+        public ReactiveCommand<Unit, Unit> F5Command { get; private set; }
 
         protected override IObservable<bool> IsAnythingExecuting =>
             new[]
             {
                 base.IsAnythingExecuting,
-                TesseraCommand?.IsExecuting ?? Observable.Return(false)
-                
+                TesseraCommand?.IsExecuting ?? Observable.Return(false),
+                F5Command?.IsExecuting ?? Observable.Return(false)
+
             }.CombineLatest(values => values.Any(x => x));
+
+
 
         public EntraSocioViewModel(IStrisciataRepository strisciataRepository, IEntraSocioRepository Repository) : base()
         {
             _strisciataRepository = strisciataRepository ?? throw new ArgumentNullException(nameof(strisciataRepository));
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
 
-            _tesseraLabel = this.WhenAnyValue(x => x.IsSocioFound)
-                                .Skip(1) // Salta il valore iniziale per evitare di impostare la label prima della prima ricerca
+            // 1. Aggiungi .Skip(1) così ignora lo stato iniziale di default (false)
+            var socioFoundStream = this.WhenAnyValue(x => x.IsSocioFound)
+                                       .Skip(1)
+                                       .ObserveOn(RxSchedulers.MainThreadScheduler);
+
+            // 2. Imposta l'initialValue desiderato all'apertura della pagina
+            _tesseraLabel = socioFoundStream
                                 .Select(found => found ? "TESSERA :" : "TESSERA (F5) :")
-                                .ObserveOn(RxSchedulers.MainThreadScheduler) // Sicurezza per l'interfaccia utente
                                 .ToProperty(this, x => x.TesseraLabel, initialValue: "TESSERA :");
 
+            // 3. Allinea l'initialValue vuoto per l'avvio
+            _infoLabel = socioFoundStream
+                                .Select(found => found ? "" : "Socio non Trovato")
+                                .ToProperty(this, x => x.InfoLabel, initialValue: "");
+
+
             TesseraCommand = ReactiveCommand.CreateFromTask(async vm => await OnTesseraEnter());
-            
+            F5Command = ReactiveCommand.CreateFromTask(async vm => await OnF5Pressed());
 
             this.WhenActivated(d =>
             {
                 TesseraCommand?.DisposeWith(d);
+                F5Command?.DisposeWith(d);
+                _tesseraLabel?.DisposeWith(d);
+                _infoLabel?.DisposeWith(d);
             });
         }
 
@@ -93,34 +110,46 @@ namespace ViewModels
 
         private async Task OnTesseraEnter()
         {
+            IsSocioFound = true; // Reset dello stato prima di cercare
+
             var data = new EntraSocioMap(await Q.GetPersonByTessera(BindingT.NumeroTessera, token));
 
             if (data.CodiceSocio == 0)
             {
                 IsSocioFound = false;
-                InfoLabel = "Tessera non trovata";
+                string tessera = BindingT.NumeroTessera;
+                BindingT = new(); // Resetta i dati
+                Eta = string.Empty;
+                BindingT.NumeroTessera = tessera; // Mantieni la tessera inserita
                 await SetFocus(TesseraFocus);
             }
             else
             {
                 IsSocioFound = true;
                 BindingT = data;
-                Eta = BindingT.Natoil.DateIntToEta();
+                Eta = BindingT.Natoil.DateIntToEta().ToString();
             }
+        }
+
+        private async Task OnF5Pressed()
+        {
+            if (IsSocioFound)
+            {
+                await SetFocus(TesseraFocus);
+            }
+            else
+            {
+                await SetFocus(PosizioneFocus);
+            }
+            await Task.CompletedTask;
         }
     }
 
     public partial class EntraSocioViewModel
     {
         public Interaction<Unit, Unit> TesseraFocus { get; } = new();
+        public Interaction<Unit, Unit> PosizioneFocus { get; } = new();
 
-        
-        private string infolabel = string.Empty;
-        public string InfoLabel
-        {
-            get => infolabel;
-            set => this.RaiseAndSetIfChanged(ref infolabel, value);
-        }
 
         private EntraSocioMap _bindingt = new();
         public EntraSocioMap BindingT
@@ -129,8 +158,8 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _bindingt, value);
         }
 
-        private int _eta;
-        public int Eta
+        private string _eta;
+        public string Eta
         {
             get => _eta;
             set => this.RaiseAndSetIfChanged(ref _eta, value);
@@ -146,5 +175,10 @@ namespace ViewModels
         // 2. Proprietà calcolata (OAPH) per la Label
         private readonly ObservableAsPropertyHelper<string> _tesseraLabel;
         public string TesseraLabel => _tesseraLabel.Value;
+
+        private readonly ObservableAsPropertyHelper<string> _infoLabel;
+        public string InfoLabel => _infoLabel.Value;
+
+        
     }
 }
