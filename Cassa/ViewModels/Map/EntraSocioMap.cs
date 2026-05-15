@@ -16,7 +16,7 @@ namespace ViewModels.BindableObjects
             this.CodiceSocio = dto.CodicePerson;
             this.NumeroSocio = dto.NumeroSocio;
             this.Scadenza = dto.ScadenzaTessera;
-
+            this.CodiceUnivoco = dto.CodiceUnivoco;
         }
 
 

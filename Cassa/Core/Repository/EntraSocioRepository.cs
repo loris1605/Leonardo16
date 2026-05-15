@@ -37,6 +37,7 @@ namespace DTO.Repository
                 Cognome = data.Socio.Person.SurName,
                 Nome = data.Socio.Person.FirstName,
                 Natoil = data.Socio.Person.Natoil,
+                CodiceUnivoco = data.Socio.Person.UniqueParam,
                 Blocco = !data.Abilitato,
                 NumeroSocio = data.Socio.NumeroSocio,
                 ScadenzaTessera = data.Scadenza

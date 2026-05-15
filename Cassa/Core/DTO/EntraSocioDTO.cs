@@ -11,6 +11,6 @@ namespace DTO.Entity
         public bool Blocco { get; set; }
         public string NumeroSocio { get; set; }
         public int ScadenzaTessera { get; set; }
-
+        public string CodiceUnivoco { get; set; } = string.Empty;
     }
 }

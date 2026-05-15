@@ -40,7 +40,6 @@ namespace ViewModels
 
             // 1. Aggiungi .Skip(1) così ignora lo stato iniziale di default (false)
             var socioFoundStream = this.WhenAnyValue(x => x.IsSocioFound)
-                                       .Skip(1)
                                        .ObserveOn(RxSchedulers.MainThreadScheduler);
 
             // 2. Imposta l'initialValue desiderato all'apertura della pagina
@@ -51,6 +50,7 @@ namespace ViewModels
             // 3. Allinea l'initialValue vuoto per l'avvio
             _infoLabel = socioFoundStream
                                 .Select(found => found ? "" : "Socio non Trovato")
+                                .Skip(1)
                                 .ToProperty(this, x => x.InfoLabel, initialValue: "");
 
 
@@ -110,7 +110,6 @@ namespace ViewModels
 
         private async Task OnTesseraEnter()
         {
-            IsSocioFound = true; // Reset dello stato prima di cercare
 
             var data = new EntraSocioMap(await Q.GetPersonByTessera(BindingT.NumeroTessera, token));
 
@@ -128,24 +127,34 @@ namespace ViewModels
                 IsSocioFound = true;
                 BindingT = data;
                 Eta = BindingT.Natoil.DateIntToEta().ToString();
+                
             }
         }
 
         private async Task OnF5Pressed()
         {
-            if (IsSocioFound)
-            {
-                await SetFocus(TesseraFocus);
-            }
-            else
-            {
-                await SetFocus(PosizioneFocus);
-            }
+
+            if (BindingT.NumeroTessera== string.Empty) return;
+            IsSocioFound = true;
+            await BuildVirtualSocio();
+            
+
+                        
+        }
+
+        private async Task BuildVirtualSocio()
+        {
+            BindingT.Cognome = "Socio";
+            BindingT.Nome = "Virtuale";
+            BindingT.NumeroSocio = "-" + BindingT.NumeroTessera;
+            Eta = string.Empty;
+
             await Task.CompletedTask;
+            // Qui puoi fare ulteriori operazioni con virtualSocio, come salvarlo o passarlo ad altri componenti
         }
     }
 
-    public partial class EntraSocioViewModel
+        public partial class EntraSocioViewModel
     {
         public Interaction<Unit, Unit> TesseraFocus { get; } = new();
         public Interaction<Unit, Unit> PosizioneFocus { get; } = new();
@@ -165,7 +174,7 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _eta, value);
         }
 
-        private bool _isSocioFound;
+        private bool _isSocioFound = true;
         public bool IsSocioFound
         {
             get => _isSocioFound;

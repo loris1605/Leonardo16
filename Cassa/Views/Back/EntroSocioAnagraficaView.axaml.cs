@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using ReactiveUI;
 using ReactiveUI.Avalonia;
@@ -26,35 +27,51 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
                     {
                         await Task.Delay(100);
                         TesseraBox.Focus();
-                        TesseraBox.SelectAll();
+                        await System.Windows.Threading.Dispatcher.CurrentDispatcher.InvokeAsync(() =>
+                        {
+                            TesseraBox.SelectAll();
+                        }, System.Windows.Threading.DispatcherPriority.Background);
                         context.SetOutput(Unit.Default);
                     });
-                })
-                .DisposeWith(d);
+                });
 
-            var posizioneHandlerDisposable = new System.Reactive.Disposables.SerialDisposable().DisposeWith(d);
-            this.GetObservable(PosizioneFocusProperty)
-                .Where(x => x != null)
-                .Subscribe(interaction =>
-                {
-                    posizioneHandlerDisposable.Disposable = interaction!.RegisterHandler(async context =>
-                    {
-                        await Task.Delay(100);
-                        PosizioneBox.Focus();
-                        PosizioneBox.SelectAll();
-                        context.SetOutput(Unit.Default);
-                    });
-                })
-                .DisposeWith(d);
 
-            this.WhenAnyValue(
+            PosizioneBox.GetObservable(Avalonia.Controls.Control.IsEnabledProperty)
+                        .Where(enabled => enabled == true) // Agisci solo quando passa da False a True
+                        .ObserveOn(RxSchedulers.MainThreadScheduler)
+                        .Subscribe(async _ =>
+                        {
+                            // Attendi la fine del ciclo di disposizione dei controlli a schermo
+                            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                            {
+                                PosizioneBox.Focus();
+                                PosizioneBox.SelectAll();
+                            }, Avalonia.Threading.DispatcherPriority.Background);
+                        })
+                        .DisposeWith(d);
+
+
+            // 1. Definisci il flusso sorgente centralizzato e rendilo condiviso (.Publish().RefCount())
+            var isPosizioneEnabled = this.WhenAnyValue(
                     x => x.ViewModel,
                     x => x.ViewModel!.BindingT,
-                    (vm, binding) => binding != null && binding.CodiceSocio != 0)
+                    (vm, binding) => vm != null && binding != null && binding.CodiceSocio != 0)
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Publish()
+                .RefCount(); // Mantiene il flusso attivo finché c'è almeno un BindTo collegato
+
+            // 2. Lega il flusso direttamente a PosizioneBox
+            isPosizioneEnabled
                 .BindTo(this, v => v.PosizioneBox.IsEnabled)
                 .DisposeWith(d);
 
+            // 3. Inverti il flusso (Negazione logica) e legalo a TesseraBox
+            isPosizioneEnabled
+                .Select(enabled => !enabled)
+                .BindTo(this, v => v.TesseraBox.IsEnabled)
+                .DisposeWith(d);
+
+            // --- STREAM EVENTI TASTIERA ---
             var keyUpStream = Observable.FromEventPattern<EventHandler<KeyEventArgs>, KeyEventArgs>(
                         h => this.TesseraBox.KeyUp += h,
                         h => this.TesseraBox.KeyUp -= h)
@@ -62,18 +79,20 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
                     .Publish()
                     .RefCount();
 
-            // Esegui TesseraCommand su INVIO
+            // Esegui TesseraCommand su INVIO (Esegue solo se il ViewModel è istanziato)
             keyUpStream
                 .Where(e => e.EventArgs.Key == Key.Enter)
+                .Where(_ => ViewModel != null)
                 .Select(_ => Unit.Default)
-                .InvokeCommand(ViewModel, x => x.TesseraCommand)
+                .InvokeCommand(ViewModel!, x => x.TesseraCommand)
                 .DisposeWith(d);
 
-            // Esegui F5Command su F5
+            // Esegui F5Command su F5 (Esegue solo se il ViewModel è istanziato)
             keyUpStream
                 .Where(e => e.EventArgs.Key == Key.F5)
+                .Where(_ => ViewModel != null)
                 .Select(_ => Unit.Default)
-                .InvokeCommand(ViewModel, x => x.F5Command)
+                .InvokeCommand(ViewModel!, x => x.F5Command)
                 .DisposeWith(d);
 
 
@@ -111,12 +130,21 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
 
             #endregion
 
-            #region TwoWays
+            #region TwoWays Ottimizzato con Throttle
 
-            this.Bind(ViewModel,
+            // 1. Dalla View al ViewModel con Throttle (Scrittura controllata)
+            this.TesseraBox.GetObservable(TextBox.TextProperty) // Nota: Se usi WPF usa: Observable.FromEventPattern per il TextChanged
+                .Throttle(TimeSpan.FromMilliseconds(400), RxSchedulers.MainThreadScheduler)
+                .DistinctUntilChanged()
+                .Where(_ => ViewModel?.BindingT != null)
+                .Subscribe(testo => ViewModel!.BindingT.NumeroTessera = testo)
+                .DisposeWith(d);
+
+            // 2. Dal ViewModel alla View (Lettura standard)
+            this.OneWayBind(ViewModel,
                     vm => vm.BindingT.NumeroTessera,
                     v => v.TesseraBox.Text)
-            .DisposeWith(d);
+                .DisposeWith(d);
 
             #endregion
 
