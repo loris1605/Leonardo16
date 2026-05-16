@@ -20,45 +20,58 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
         {
             var tesseraHandlerDisposable = new System.Reactive.Disposables.SerialDisposable().DisposeWith(d);
             this.GetObservable(TesseraFocusProperty)
-                .Where(x => x != null)
-                .Subscribe(interaction =>
+            .Where(x => x != null)
+            .Subscribe(interaction =>
+            {
+                // Rimuove l'handler precedente prima di registrarne uno nuovo
+                tesseraHandlerDisposable.Disposable = null;
+
+                tesseraHandlerDisposable.Disposable = interaction!.RegisterHandler(async context =>
                 {
-                    tesseraHandlerDisposable.Disposable = interaction!.RegisterHandler(async context =>
+                    // Piccolo delay per permettere alla UI di stabilizzarsi
+                    await Task.Delay(100);
+
+                    // Sposta l'esecuzione sul thread della UI di Avalonia
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        await Task.Delay(100);
                         TesseraBox.Focus();
-                        await System.Windows.Threading.Dispatcher.CurrentDispatcher.InvokeAsync(() =>
-                        {
-                            TesseraBox.SelectAll();
-                        }, System.Windows.Threading.DispatcherPriority.Background);
-                        context.SetOutput(Unit.Default);
-                    });
+                        TesseraBox.SelectAll();
+                    }, Avalonia.Threading.DispatcherPriority.Background);
+
+                    context.SetOutput(Unit.Default);
                 });
+            }).DisposeWith(d);
 
 
             PosizioneBox.GetObservable(Avalonia.Controls.Control.IsEnabledProperty)
-                        .Where(enabled => enabled == true) // Agisci solo quando passa da False a True
-                        .ObserveOn(RxSchedulers.MainThreadScheduler)
-                        .Subscribe(async _ =>
+                .Where(enabled => enabled == true) // Agisci solo quando passa da False a True
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async _ =>
+                {
+                    // 1. Attendi un istante (1-2 frame) per permettere alla UI di sbloccare il controllo
+                    await Task.Delay(50);
+
+                    // 2. Esegui il focus e la selezione sul thread principale
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        // Verifica di sicurezza: il controllo potrebbe essere stato disabilitato nel frattempo
+                        if (PosizioneBox.IsEnabled)
                         {
-                            // Attendi la fine del ciclo di disposizione dei controlli a schermo
-                            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                            {
-                                PosizioneBox.Focus();
-                                PosizioneBox.SelectAll();
-                            }, Avalonia.Threading.DispatcherPriority.Background);
-                        })
-                        .DisposeWith(d);
+                            PosizioneBox.Focus();
+                            PosizioneBox.SelectAll();
+                        }
+                    }, Avalonia.Threading.DispatcherPriority.Background);
+                })
+                .DisposeWith(d);
 
 
             // 1. Definisci il flusso sorgente centralizzato e rendilo condiviso (.Publish().RefCount())
             var isPosizioneEnabled = this.WhenAnyValue(
-                    x => x.ViewModel,
-                    x => x.ViewModel!.BindingT,
-                    (vm, binding) => vm != null && binding != null && binding.CodiceSocio != 0)
+                    x => x.ViewModel.BindingT.CodiceSocio,
+                    codice => codice != 0) // Esprime la tua condizione (0 = disabilitato, -1 o altri = abilitato)
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
                 .Publish()
-                .RefCount(); // Mantiene il flusso attivo finché c'è almeno un BindTo collegato
+                .RefCount();
 
             // 2. Lega il flusso direttamente a PosizioneBox
             isPosizioneEnabled
@@ -72,7 +85,7 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
                 .DisposeWith(d);
 
             // --- STREAM EVENTI TASTIERA ---
-            var keyUpStream = Observable.FromEventPattern<EventHandler<KeyEventArgs>, KeyEventArgs>(
+            var keyUpTesseraStream = Observable.FromEventPattern<EventHandler<KeyEventArgs>, KeyEventArgs>(
                         h => this.TesseraBox.KeyUp += h,
                         h => this.TesseraBox.KeyUp -= h)
                     .ObserveOn(RxSchedulers.MainThreadScheduler)
@@ -80,7 +93,7 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
                     .RefCount();
 
             // Esegui TesseraCommand su INVIO (Esegue solo se il ViewModel è istanziato)
-            keyUpStream
+            keyUpTesseraStream
                 .Where(e => e.EventArgs.Key == Key.Enter)
                 .Where(_ => ViewModel != null)
                 .Select(_ => Unit.Default)
@@ -88,11 +101,25 @@ public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioVi
                 .DisposeWith(d);
 
             // Esegui F5Command su F5 (Esegue solo se il ViewModel è istanziato)
-            keyUpStream
+            keyUpTesseraStream
                 .Where(e => e.EventArgs.Key == Key.F5)
                 .Where(_ => ViewModel != null)
                 .Select(_ => Unit.Default)
                 .InvokeCommand(ViewModel!, x => x.F5Command)
+                .DisposeWith(d);
+
+            var keyUpPosizioneStream = Observable.FromEventPattern<EventHandler<KeyEventArgs>, KeyEventArgs>(
+                        h => this.PosizioneBox.KeyUp += h,
+                        h => this.PosizioneBox.KeyUp -= h)
+                    .ObserveOn(RxSchedulers.MainThreadScheduler)
+                    .Publish()
+                    .RefCount();
+
+            keyUpPosizioneStream
+                .Where(e => e.EventArgs.Key == Key.Escape)
+                .Where(_ => ViewModel != null)
+                .Select(_ => Unit.Default)
+                .InvokeCommand(ViewModel!, x => x.PosizioneEscCommand)
                 .DisposeWith(d);
 
 

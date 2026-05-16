@@ -21,16 +21,17 @@ namespace ViewModels
 
         public ReactiveCommand<Unit, Unit> TesseraCommand { get; private set; }
         public ReactiveCommand<Unit, Unit> F5Command { get; private set; }
+        public ReactiveCommand<Unit, Unit> PosizioneEscCommand { get; private set; }
 
         protected override IObservable<bool> IsAnythingExecuting =>
             new[]
             {
                 base.IsAnythingExecuting,
                 TesseraCommand?.IsExecuting ?? Observable.Return(false),
+                PosizioneEscCommand?.IsExecuting ?? Observable.Return(false),
                 F5Command?.IsExecuting ?? Observable.Return(false)
 
             }.CombineLatest(values => values.Any(x => x));
-
 
 
         public EntraSocioViewModel(IStrisciataRepository strisciataRepository, IEntraSocioRepository Repository) : base()
@@ -56,11 +57,13 @@ namespace ViewModels
 
             TesseraCommand = ReactiveCommand.CreateFromTask(async vm => await OnTesseraEnter());
             F5Command = ReactiveCommand.CreateFromTask(async vm => await OnF5Pressed());
+            PosizioneEscCommand = ReactiveCommand.CreateFromTask(async vm => await OnPosizioneEsc());
 
             this.WhenActivated(d =>
             {
                 TesseraCommand?.DisposeWith(d);
                 F5Command?.DisposeWith(d);
+                PosizioneEscCommand?.DisposeWith(d);
                 _tesseraLabel?.DisposeWith(d);
                 _infoLabel?.DisposeWith(d);
             });
@@ -70,6 +73,8 @@ namespace ViewModels
         {
             // Assicuriamoci che la collezione sia nulla per il GC
             TesseraCommand = null;
+            PosizioneEscCommand = null;
+            F5Command = null;
             //AddTesseraCommand = DelTesseraCommand = UpdTesseraCommand = PersonSearchCommand = null;
 
             _strisciataRepository = null;
@@ -136,20 +141,27 @@ namespace ViewModels
 
             if (BindingT.NumeroTessera== string.Empty) return;
             IsSocioFound = true;
-            await BuildVirtualSocio();
-            
+            BuildVirtualSocio();
 
-                        
+            await Task.CompletedTask;
+
         }
 
-        private async Task BuildVirtualSocio()
+        private async Task OnPosizioneEsc()
+        {
+            BindingT = new(); // Resetta i dati
+            Eta = string.Empty;
+            await SetFocus(TesseraFocus);
+        }
+
+        private void BuildVirtualSocio()
         {
             BindingT.Cognome = "Socio";
             BindingT.Nome = "Virtuale";
             BindingT.NumeroSocio = "-" + BindingT.NumeroTessera;
             Eta = string.Empty;
+            BindingT.CodiceSocio = -1; // Indica che è un socio virtuale
 
-            await Task.CompletedTask;
             // Qui puoi fare ulteriori operazioni con virtualSocio, come salvarlo o passarlo ad altri componenti
         }
     }
