@@ -10,8 +10,10 @@ using ViewModels;
 
 namespace Views;
 
-public partial class EntraSocioAnagraficaView : ReactiveUserControl<EntraSocioViewModel>
+public partial class EntraSocioAnagraficaView : BaseUserControl<EntraSocioViewModel>
 {
+    protected override string RootControlName => "MainGrid";
+
     public EntraSocioAnagraficaView()
     {
         InitializeComponent();

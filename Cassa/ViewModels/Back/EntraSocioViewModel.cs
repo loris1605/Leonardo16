@@ -102,6 +102,7 @@ namespace ViewModels
 
         protected async override Task OnEsc()
         {
+            _isClosing = true; // Imposta il flag per indicare che stiamo chiudendo la pagina
             var cassaPostazioneVm = Locator.Current.GetService<ICassaPostazioneViewModel>();
             if (cassaPostazioneVm is not null)
             {
@@ -111,6 +112,9 @@ namespace ViewModels
 
                 await _host.CassaRouter.NavigateAndReset.Execute(cassaPostazioneVm);
             }
+            else _isClosing = false; // Se non riesce a navigare, resetta il flag per evitare di bloccare la pagina
+
+
         }
 
         private async Task OnTesseraEnter()
@@ -166,7 +170,7 @@ namespace ViewModels
         }
     }
 
-        public partial class EntraSocioViewModel
+    public partial class EntraSocioViewModel
     {
         public Interaction<Unit, Unit> TesseraFocus { get; } = new();
         public Interaction<Unit, Unit> PosizioneFocus { get; } = new();
