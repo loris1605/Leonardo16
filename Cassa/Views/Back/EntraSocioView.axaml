@@ -55,13 +55,22 @@
            </Grid.ColumnDefinitions>
 
             <Viewbox Grid.Column="1" MinWidth="250"
+                     x:Name="ContenitoreAnagrafica"
                      Grid.Row="1"
                      Grid.ColumnSpan="2"
                      Grid.RowSpan="5">
                     
-                <vw:EntraSocioAnagraficaView x:Name="AnagrificaInput"/>
+                <vw:EntraSocioAnagraficaView x:Name="AnagraficaInput"/>
                      
             </Viewbox>
+
+            <vw:EntraSocioIngressoView x:Name="EntraIngresso"
+                                       Height="{Binding #ContenitoreAnagrafica.Bounds.Height}"
+                                       Grid.Column="4" MinWidth="250"
+                                       Grid.Row="1"
+                                       Grid.ColumnSpan="2"
+                                       Grid.RowSpan="5"/>
+
 
            <!--<vw:EntraSocioAnagraficaView Grid.Column="1"
                                         Grid.Row="1"

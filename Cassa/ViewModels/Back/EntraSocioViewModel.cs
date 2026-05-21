@@ -85,6 +85,12 @@ namespace ViewModels
         protected override async Task OnLoading()
         {
             await _strisciataRepository.DevelopStrisciate(token);
+            var data  = await Q.GetIngressiByPostazione(_postazioneId, token);
+            IngressiList = data.Select(data => new EntraIngressiMap(data)).ToList();
+            if (IngressiList.Count > 0)
+            {
+                SelectedIngresso = IngressiList[0];
+            }
             await SetFocus(TesseraFocus);
         }
 
@@ -204,6 +210,19 @@ namespace ViewModels
         private readonly ObservableAsPropertyHelper<string> _infoLabel;
         public string InfoLabel => _infoLabel.Value;
 
-        
+        private List<EntraIngressiMap> _ingressiList = new();
+        public List<EntraIngressiMap> IngressiList
+        {
+            get => _ingressiList;
+            set => this.RaiseAndSetIfChanged(ref _ingressiList, value);
+        }
+
+        private EntraIngressiMap _selectedIngressi;
+        public EntraIngressiMap SelectedIngresso
+        {
+            get => _selectedIngressi;
+            set => this.RaiseAndSetIfChanged(ref _selectedIngressi, value);
+
+        }
     }
 }

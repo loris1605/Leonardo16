@@ -1,6 +1,3 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using ReactiveUI;
 using System.Reactive.Disposables.Fluent;
 using ViewModels;
@@ -20,7 +17,7 @@ public partial class EntraSocioView : BaseUserControl<EntraSocioViewModel>
 
             this.OneWayBind(ViewModel,
                 vm => vm.TesseraFocus,
-                view => view.AnagrificaInput.TesseraFocus)
+                view => view.AnagraficaInput.TesseraFocus)
             .DisposeWith(d);
         });
     }

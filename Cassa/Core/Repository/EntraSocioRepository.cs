@@ -9,6 +9,7 @@ namespace DTO.Repository
     public interface IEntraSocioRepository
     {
         Task<EntraSocioDTO> GetPersonByTessera(string numeroTessera, CancellationToken ctk = default);
+        Task<List<EntraIngressiDTO>> GetIngressiByPostazione(int postazioneId, CancellationToken ctk = default);
     }
 
     public class EntraSocioRepository : BaseRepository<EntraSocioDbContext, Scheda>, IEntraSocioRepository
@@ -44,5 +45,26 @@ namespace DTO.Repository
             };
         }
 
+        public async Task<List<EntraIngressiDTO>> GetIngressiByPostazione(int postazioneId, CancellationToken ctk = default)
+        {
+            var data = await _ctx.Tariffe
+                .AsNoTracking() // Ottimizza le performance se devi solo mostrare i dati
+                .Where(t => t.Listini.Any(l =>
+                    l.Settore != null &&
+                    l.Settore.TipoSettoreId == -1 &&
+                    l.Settore.Reparti.Any(r => r.PostazioneId == postazioneId)
+                ))
+                .ToListAsync(ctk);
+
+            return data.Select(t => new EntraIngressiDTO
+            {
+                Id = t.Id, //id tariffa
+                NomeTariffa = t.Nome,
+                EtichettaTariffa = t.Label,
+                PrezzoTariffa = t.Prezzo,
+                IsFreeDrink = t.IsFreeDrink
+            }).ToList();
+
+        }
     }
 }
