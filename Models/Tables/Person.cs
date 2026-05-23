@@ -12,8 +12,10 @@ namespace Models.Tables
         public string UniqueParam {  get; set; } = string.Empty;
 
         public List<Socio> Soci { get; set; } = [];
-        
+       
         public List<Scheda> Schede { get; set; } = [];
+
+        public Fidelity? Fidelity { get; set; }
 
         [NotMapped]
         public string Nome

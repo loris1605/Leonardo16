@@ -28,6 +28,9 @@ namespace Models.Context
         public DbSet<Giornata> Giornate { get; set; } = null!;
         public DbSet<Scheda> Schede { get; set; } = null!;
         public DbSet<Strisciata> Strisciate { get; set; } = null!;
+        public DbSet<TipoFidelity> TipiFidelity { get; set; } = null!;
+        public DbSet<Fidelity> Fidelities { get; set; } = null!;
+        public DbSet<FidelityEntry> FidelityEntries { get; set; } = null!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,6 +53,8 @@ namespace Models.Context
             SchedaConfig(modelBuilder);
             SchedaContoConfig(modelBuilder);
             StrisciateConfig(modelBuilder);
+            TipoFidelityConfig(modelBuilder);
+            FidelityConfig(modelBuilder);
         }
 
 
@@ -409,6 +414,7 @@ namespace Models.Context
         {
 
         }
+
         private static void SchedaConfig(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Scheda>()
@@ -419,7 +425,7 @@ namespace Models.Context
 
             modelBuilder.Entity<Scheda>()
                 .Property(s => s.Cognome).HasMaxLength(30);
-            
+
             modelBuilder.Entity<Scheda>()
                 .Property(s => s.Nome).HasMaxLength(30);
 
@@ -439,7 +445,7 @@ namespace Models.Context
                         .HasForeignKey(s => s.PersonId) // La chiave è PersonId
                         .OnDelete(DeleteBehavior.NoAction);
 
-            
+
 
         }
 
@@ -482,5 +488,33 @@ namespace Models.Context
             modelBuilder.Entity<Strisciata>()
                 .Property(s => s.Nome).HasMaxLength(50);
         }
+
+        private static void TipoFidelityConfig(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TipoFidelity>()
+                .Property(s => s.Nome).HasMaxLength(25);
+
+
+        }
+
+        private static void FidelityConfig(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Fidelity>()
+                .HasIndex(p => p.TipoFidelityId);
+
+            modelBuilder.Entity<Fidelity>()
+                        .HasOne(s => s.TipoFidelity)          // Una Fidelity ha una TipoFidelity
+                        .WithMany(p => p.Fidelities)    // Una TipoFidelity ha molte Fidelities
+                        .HasForeignKey(s => s.TipoFidelityId) // La chiave è TipoFidelityId
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Fidelity>()
+                        .HasOne(s => s.Person)          // Una Fidelity ha una Person
+                        .WithOne(p => p.Fidelity)       // Una Person ha una Fidelity (Specifica la lambda qui!)
+                        .HasForeignKey<Fidelity>(s => s.PersonId) // ATTENZIONE: Nei tipi Uno-a-Uno serve il tipo generico <Fidelity>
+                        .OnDelete(DeleteBehavior.NoAction);
+
+        }
     }
+
 }

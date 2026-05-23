@@ -1,13 +1,13 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             xmlns:vm="using:ViewModels"
-             xmlns:vmdt="using:ViewModels.DataTypes"
-             xmlns:ui="using:ControlStyles"
-             xmlns:r="using:ReactiveUI.Avalonia"
              xmlns:lc="using:Views"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ui="using:ControlStyles"
+             xmlns:vm="using:ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="800"
+             d:DesignHeight="450"
              KeyboardNavigation.TabNavigation="Cycle"
              Background="Transparent"
              x:DataType="vm:OperatoreGroupViewModel"
@@ -120,7 +120,7 @@
 
             <ui:UiButton x:Name="PostazioniButton"
                                  Margin="20,5"
-                                 MinHeight="50"
+                                 MinHeight="40"
                                  ToolTipText="GRUPPO POSTAZIONI"
                                  HorizontalAlignment="Stretch"
                                  Content=" POSTAZIONI "
@@ -128,7 +128,7 @@
 
             <ui:UiButton x:Name="SettoriButton"
                                  Margin="20,5"
-                                 MinHeight="50"
+                                 MinHeight="40"
                                  ToolTipText="GRUPPO SETTORI"
                                  HorizontalAlignment="Stretch"
                                  Content="SETTORI"
@@ -137,7 +137,7 @@
 
             <ui:UiButton x:Name="TariffeButton"
                                  Margin="20,5"
-                                 MinHeight="50"
+                                 MinHeight="40"
                                  ToolTipText="GRUPPO TARIFFE"
                                  HorizontalAlignment="Stretch"
                                  Content="TARIFFE"
@@ -146,10 +146,18 @@
 
             <ui:UiButton x:Name="RientriButton"
                                  Margin="20,5"
-                                 MinHeight="50"
+                                 MinHeight="40"
                                  ToolTipText="GRUPPO RIENTRI"
                                  HorizontalAlignment="Stretch"
                                  Content="RIENTRI"
+                                 HorizontalContentAlignment="Center"/>
+
+            <ui:UiButton x:Name="PromozioniButton"
+                                 Margin="20,5"
+                                 MinHeight="40"
+                                 ToolTipText="SEZIONE PROMOZIONI FIDELITY / ABBONAMENTI"
+                                 HorizontalAlignment="Stretch"
+                                 Content="PROMOZIONI"
                                  HorizontalContentAlignment="Center"/>
         
         </StackPanel>

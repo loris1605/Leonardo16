@@ -34,7 +34,7 @@ namespace ViewModels
                 return;
             }
 
-            await SetFocus(EscFocus);
+            await SetFocus(NomeFocus);
         }
 
         private async Task CaricaCombos()
