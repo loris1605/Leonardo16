@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Models.Tables
 {
@@ -12,8 +7,9 @@ namespace Models.Tables
         public int Id { get; set; }
         public int FidelityId { get; set; }
         public bool IsChecked { get; set; }
-        public Fidelity? Fidelity { get; set; }
+        public int DataIngresso { get; set; }
 
+        public Fidelity? Fidelity { get; set; }
 
 
         [NotMapped]

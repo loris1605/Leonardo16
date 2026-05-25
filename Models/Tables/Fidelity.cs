@@ -7,6 +7,7 @@ namespace Models.Tables
         public int Id { get; set; }
         public int TipoFidelityId { get; set; }
         public int PersonId { get; set; }
+        public int DataAttivazione { get; set; }
 
         public TipoFidelity? TipoFidelity { get; set; }
         public Person? Person { get; set; }

@@ -55,6 +55,7 @@ namespace Models.Context
             StrisciateConfig(modelBuilder);
             TipoFidelityConfig(modelBuilder);
             FidelityConfig(modelBuilder);
+            FidelityEntryConfig(modelBuilder);
         }
 
 
@@ -414,7 +415,6 @@ namespace Models.Context
         {
 
         }
-
         private static void SchedaConfig(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Scheda>()
@@ -448,7 +448,6 @@ namespace Models.Context
 
 
         }
-
         private static void SchedaContoConfig(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<SchedaConto>()
@@ -473,7 +472,6 @@ namespace Models.Context
                 .Property(s => s.Note).HasMaxLength(50);
 
         }
-
         private static void StrisciateConfig(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Strisciata>()
@@ -488,7 +486,6 @@ namespace Models.Context
             modelBuilder.Entity<Strisciata>()
                 .Property(s => s.Nome).HasMaxLength(50);
         }
-
         private static void TipoFidelityConfig(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TipoFidelity>()
@@ -514,6 +511,20 @@ namespace Models.Context
                         .HasForeignKey<Fidelity>(s => s.PersonId) // ATTENZIONE: Nei tipi Uno-a-Uno serve il tipo generico <Fidelity>
                         .OnDelete(DeleteBehavior.NoAction);
 
+        }
+
+        private static void FidelityEntryConfig(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<FidelityEntry>()
+                .HasIndex(p => p.FidelityId);
+
+            modelBuilder.Entity<FidelityEntry>()
+                        .HasOne(s => s.Fidelity)          // Una FidelityEntry ha una Fidelity
+                        .WithMany(p => p.FidelityEntries)    // Una Fidelity ha molte FidelityEntries
+                        .HasForeignKey(s => s.FidelityId) // La chiave è FidelityId
+                        .OnDelete(DeleteBehavior.Cascade);
+
+            
         }
     }
 

@@ -1,8 +1,6 @@
 ﻿using Common.InterViewModels;
-using Leonardo16;
 using Leonardo16.Core.Repository;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Models.Context;
 using ReactiveUI;
 using Splat;
