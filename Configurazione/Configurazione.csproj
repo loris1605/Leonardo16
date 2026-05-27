@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaXaml Remove="ViewModels\Nuova cartella\**" />
+    <Compile Remove="ViewModels\Nuova cartella\**" />
+    <EmbeddedResource Remove="ViewModels\Nuova cartella\**" />
+    <None Remove="ViewModels\Nuova cartella\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaXaml Remove="Views\Promozione\Fidelity\FidelityGroupView.axaml" />
   </ItemGroup>
 
@@ -24,7 +31,6 @@
 
   <ItemGroup>
     <Folder Include="Core\Listino\DTO\" />
-    <Folder Include="ViewModels\Nuova cartella\" />
     <Folder Include="Views\Promozione\Fidelity\" />
   </ItemGroup>
 

@@ -8,11 +8,12 @@ namespace Models.Tables
         public int TipoFidelityId { get; set; }
         public int PersonId { get; set; }
         public int DataAttivazione { get; set; }
+        
 
         public TipoFidelity? TipoFidelity { get; set; }
         public Person? Person { get; set; }
 
-        public List<FidelityEntry> FidelityEntries { get; set; } = [];
+        public List<FidelityConto> FidelityConti { get; set; } = [];
 
 
         [NotMapped]

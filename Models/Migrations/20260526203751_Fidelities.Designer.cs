@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Models.Context;
 
@@ -11,9 +12,11 @@ using Models.Context;
 namespace Models.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526203751_Fidelities")]
+    partial class Fidelities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,7 +79,7 @@ namespace Models.Migrations
                     b.ToTable("Fidelities");
                 });
 
-            modelBuilder.Entity("Models.Tables.FidelityConto", b =>
+            modelBuilder.Entity("Models.Tables.FidelityEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -84,14 +87,14 @@ namespace Models.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DataOra")
+                    b.Property<int>("DataIngresso")
                         .HasColumnType("int");
 
                     b.Property<int>("FidelityId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Value")
-                        .HasColumnType("int");
+                    b.Property<bool>("IsChecked")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -648,83 +651,17 @@ namespace Models.Migrations
                     b.Property<int>("DurataGG")
                         .HasColumnType("int");
 
+                    b.Property<int>("EntryBeforeFree")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
-                    b.Property<int>("TipoFidelityInputId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TipoFidelityOutputId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("TipoFidelityInputId");
-
-                    b.HasIndex("TipoFidelityOutputId");
 
                     b.ToTable("TipiFidelity");
-                });
-
-            modelBuilder.Entity("Models.Tables.TipoFidelityInput", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TipiFidelityInput");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Nome = "Ingressi"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Nome = "Incassi"
-                        });
-                });
-
-            modelBuilder.Entity("Models.Tables.TipoFidelityOutput", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TipiFidelityOutput");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Nome = "Ingressi"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Nome = "Sconto"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Nome = "Premio"
-                        });
                 });
 
             modelBuilder.Entity("Models.Tables.TipoPostazione", b =>
@@ -853,10 +790,10 @@ namespace Models.Migrations
                     b.Navigation("TipoFidelity");
                 });
 
-            modelBuilder.Entity("Models.Tables.FidelityConto", b =>
+            modelBuilder.Entity("Models.Tables.FidelityEntry", b =>
                 {
                     b.HasOne("Models.Tables.Fidelity", "Fidelity")
-                        .WithMany("FidelityConti")
+                        .WithMany("FidelityEntries")
                         .HasForeignKey("FidelityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -995,28 +932,9 @@ namespace Models.Migrations
                     b.Navigation("Socio");
                 });
 
-            modelBuilder.Entity("Models.Tables.TipoFidelity", b =>
-                {
-                    b.HasOne("Models.Tables.TipoFidelityInput", "TipoFidelityInput")
-                        .WithMany("TipiFidelity")
-                        .HasForeignKey("TipoFidelityInputId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Models.Tables.TipoFidelityOutput", "TipoFidelityOutput")
-                        .WithMany("TipiFidelity")
-                        .HasForeignKey("TipoFidelityOutputId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TipoFidelityInput");
-
-                    b.Navigation("TipoFidelityOutput");
-                });
-
             modelBuilder.Entity("Models.Tables.Fidelity", b =>
                 {
-                    b.Navigation("FidelityConti");
+                    b.Navigation("FidelityEntries");
                 });
 
             modelBuilder.Entity("Models.Tables.Operatore", b =>
@@ -1065,16 +983,6 @@ namespace Models.Migrations
             modelBuilder.Entity("Models.Tables.TipoFidelity", b =>
                 {
                     b.Navigation("Fidelities");
-                });
-
-            modelBuilder.Entity("Models.Tables.TipoFidelityInput", b =>
-                {
-                    b.Navigation("TipiFidelity");
-                });
-
-            modelBuilder.Entity("Models.Tables.TipoFidelityOutput", b =>
-                {
-                    b.Navigation("TipiFidelity");
                 });
 
             modelBuilder.Entity("Models.Tables.TipoPostazione", b =>

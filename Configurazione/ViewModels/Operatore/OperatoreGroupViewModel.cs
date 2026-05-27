@@ -115,6 +115,8 @@ namespace ViewModels
                 }
             }, canHasSelection);
 
+           
+
             InitializeLoadingHelper();
 
             this.WhenActivated(d =>

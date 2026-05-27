@@ -28,9 +28,11 @@ namespace Models.Context
         public DbSet<Giornata> Giornate { get; set; } = null!;
         public DbSet<Scheda> Schede { get; set; } = null!;
         public DbSet<Strisciata> Strisciate { get; set; } = null!;
+        public DbSet<TipoFidelityInput> TipiFidelityInput { get; set; } = null!;
+        public DbSet<TipoFidelityOutput> TipiFidelityOutput { get; set; } = null!;
         public DbSet<TipoFidelity> TipiFidelity { get; set; } = null!;
         public DbSet<Fidelity> Fidelities { get; set; } = null!;
-        public DbSet<FidelityEntry> FidelityEntries { get; set; } = null!;
+        public DbSet<FidelityConto> FidelityEntries { get; set; } = null!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,9 +55,11 @@ namespace Models.Context
             SchedaConfig(modelBuilder);
             SchedaContoConfig(modelBuilder);
             StrisciateConfig(modelBuilder);
+            TipoFidelityInputConfig(modelBuilder);
+            TipoFidelityOutputConfig(modelBuilder);
             TipoFidelityConfig(modelBuilder);
             FidelityConfig(modelBuilder);
-            FidelityEntryConfig(modelBuilder);
+            FidelityContoConfig(modelBuilder);
         }
 
 
@@ -486,10 +490,73 @@ namespace Models.Context
             modelBuilder.Entity<Strisciata>()
                 .Property(s => s.Nome).HasMaxLength(50);
         }
+
+        private static void TipoFidelityInputConfig(ModelBuilder modelBuilder)
+        {
+
+            // Configura lunghezze massime per evitare nvarchar(max) inefficienti
+            modelBuilder.Entity<TipoFidelityInput>().Property(p => p.Nome).HasMaxLength(30);
+
+            modelBuilder.Entity<TipoFidelityInput>()
+                    .Property(e => e.Id)
+                    .ValueGeneratedNever();
+
+            modelBuilder.Entity<TipoFidelityInput>().HasData(
+                    new TipoFidelityInput
+                    {
+                        Id = 1,
+                        Nome = "Ingressi"
+                    },
+                    new TipoFidelityInput
+                    {
+                        Id = 2,
+                        Nome = "Incassi"
+                    });
+        }
+
+        private static void TipoFidelityOutputConfig(ModelBuilder modelBuilder)
+        {
+
+            // Configura lunghezze massime per evitare nvarchar(max) inefficienti
+            modelBuilder.Entity<TipoFidelityOutput>().Property(p => p.Nome).HasMaxLength(30);
+            modelBuilder.Entity<TipoFidelityOutput>()
+                    .Property(e => e.Id)
+                    .ValueGeneratedNever();
+
+            modelBuilder.Entity<TipoFidelityOutput>().HasData(
+                    new TipoFidelityOutput
+                    {
+                        Id = 1,
+                        Nome = "Ingressi"
+                    },
+                    new TipoFidelityOutput
+                    {
+                        Id = 2,
+                        Nome = "Sconto"
+                    },
+                    new TipoFidelityOutput
+                    {
+                        Id = 3,
+                        Nome = "Premio"
+                    });
+        }
+
         private static void TipoFidelityConfig(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TipoFidelity>()
                 .Property(s => s.Nome).HasMaxLength(25);
+
+            modelBuilder.Entity<TipoFidelity>()
+                        .HasOne(s => s.TipoFidelityInput)          // Una TipoFidelity ha una TipoFidelityInput
+                        .WithMany(p => p.TipiFidelity)    // Una TipoFidelityInput ha molte TipoFidelity
+                        .HasForeignKey(s => s.TipoFidelityInputId) // La chiave è TipoFidelityInputId
+                        .OnDelete(DeleteBehavior.Cascade);
+           
+            modelBuilder.Entity<TipoFidelity>()
+                        .HasOne(s => s.TipoFidelityOutput)          // Una TipoFidelity ha una TipoFidelityOutput
+                        .WithMany(p => p.TipiFidelity)    // Una TipoFidelityOutput ha molte TipoFidelity
+                        .HasForeignKey(s => s.TipoFidelityOutputId) // La chiave è TipoFidelityOutputId
+                        .OnDelete(DeleteBehavior.Cascade);
 
 
         }
@@ -513,17 +580,14 @@ namespace Models.Context
 
         }
 
-        private static void FidelityEntryConfig(ModelBuilder modelBuilder)
+        private static void FidelityContoConfig(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<FidelityEntry>()
-                .HasIndex(p => p.FidelityId);
-
-            modelBuilder.Entity<FidelityEntry>()
+           
+            modelBuilder.Entity<FidelityConto>()
                         .HasOne(s => s.Fidelity)          // Una FidelityEntry ha una Fidelity
-                        .WithMany(p => p.FidelityEntries)    // Una Fidelity ha molte FidelityEntries
+                        .WithMany(p => p.FidelityConti)    // Una Fidelity ha molte FidelityEntries
                         .HasForeignKey(s => s.FidelityId) // La chiave è FidelityId
                         .OnDelete(DeleteBehavior.Cascade);
-
             
         }
     }

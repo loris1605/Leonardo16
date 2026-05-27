@@ -2,12 +2,12 @@
 
 namespace Models.Tables
 {
-    public class FidelityEntry : IStandardTable
+    public class FidelityConto : IStandardTable
     {
         public int Id { get; set; }
         public int FidelityId { get; set; }
-        public bool IsChecked { get; set; }
-        public int DataIngresso { get; set; }
+        public int Value { get; set; }
+        public int DataOra { get; set; }
 
         public Fidelity? Fidelity { get; set; }
 
