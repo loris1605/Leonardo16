@@ -81,6 +81,7 @@ namespace Common.InterViewModels
     {
         void SetHost(IConfigurazioneScreen host);
     }
+
     public interface IOperatoreAddViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IOperatoreDelViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }
     public interface IOperatoreUpdViewModel : IRoutableViewModel, iConfigurazioneCrudViewModel { }

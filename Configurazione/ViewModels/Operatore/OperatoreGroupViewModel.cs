@@ -6,7 +6,6 @@ using ReactiveUI;
 using Splat;
 using System.Diagnostics;
 using System.Reactive;
-using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using ViewModels.BindableObjects;
 
@@ -31,17 +30,8 @@ namespace ViewModels
             x => x.GroupBindingT,
             (item) => item != null && item.CodicePermesso == 0);
 
+        protected override IObservable<bool> IsAnythingExecuting { get; }
         
-        protected override IObservable<bool> IsAnythingExecuting =>
-            new[]
-            {
-                base.IsAnythingExecuting,
-                PostazioniCommand?.IsExecuting ?? Observable.Return(false),
-                SettoriCommand?.IsExecuting ?? Observable.Return(false),
-                PermessiCommand?.IsExecuting ?? Observable.Return(false),
-                TariffeCommand?.IsExecuting ?? Observable.Return(false)
-            }.CombineLatest(values => values.Any(x => x));
-
         public OperatoreGroupViewModel(IOperatoreRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
@@ -49,7 +39,7 @@ namespace ViewModels
             var canHasSelection = this.WhenAnyValue(x => x.GroupBindingT).Select(item => item != null);
 
 
-            // Navigazioni Semplici (NavigateAndReset)
+            //Navigazioni Semplici(NavigateAndReset)
             PostazioniCommand = ReactiveCommand.CreateFromObservable(
             () =>
             {
@@ -115,25 +105,29 @@ namespace ViewModels
                 }
             }, canHasSelection);
 
-           
+            IsAnythingExecuting = new[]
+                {
+                   base.IsAnythingExecuting,
+                   PostazioniCommand.IsExecuting,
+                   SettoriCommand.IsExecuting,
+                   PermessiCommand.IsExecuting,
+                   TariffeCommand.IsExecuting
+                }.CombineLatest(values => values.Any(x => x));
 
             InitializeLoadingHelper();
 
-            this.WhenActivated(d =>
-            {
+            //this.WhenActivated(d =>
+            //{
                
-                PostazioniCommand?.DisposeWith(d);
-                SettoriCommand?.DisposeWith(d);
-                TariffeCommand?.DisposeWith(d);
-                PermessiCommand?.DisposeWith(d);
+                
 
-            });
+            //});
           
 
         }
 
         public void SetHost(IConfigurazioneScreen host) => _host = host;
-
+        
         protected override void OnFinalDestruction()
         {
             // Assicuriamoci che la collezione sia nulla per il GC

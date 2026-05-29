@@ -32,15 +32,9 @@ namespace ViewModels
             (item, codiceSocio, hasP) => item != null && codiceSocio == 0 && !hasP
         );
 
-        protected override IObservable<bool> IsAnythingExecuting =>
-            new[]
-            {
-                base.IsAnythingExecuting,
-                OperatoriCommand?.IsExecuting ?? Observable.Return(false),
-                SettoriCommand?.IsExecuting ?? Observable.Return(false),
-                RepartiCommand?.IsExecuting ?? Observable.Return(false),
-                TariffeCommand?.IsExecuting ?? Observable.Return(false)
-            }.CombineLatest(values => values.Any(x => x));
+        protected override IObservable<bool> IsAnythingExecuting { get; }
+
+        
 
         public PostazioneGroupViewModel(IPostazioneRepository Repository) : base(null)
         {
@@ -116,15 +110,15 @@ namespace ViewModels
 
             InitializeLoadingHelper();
 
-            this.WhenActivated(d =>
+            IsAnythingExecuting =
+            new[]
             {
-
-                OperatoriCommand?.DisposeWith(d);
-                SettoriCommand?.DisposeWith(d);
-                TariffeCommand?.DisposeWith(d);
-                RepartiCommand?.DisposeWith(d);
-
-            });
+                base.IsAnythingExecuting,
+                OperatoriCommand?.IsExecuting ?? Observable.Return(false),
+                SettoriCommand?.IsExecuting ?? Observable.Return(false),
+                RepartiCommand?.IsExecuting ?? Observable.Return(false),
+                TariffeCommand?.IsExecuting ?? Observable.Return(false)
+            }.CombineLatest(values => values.Any(x => x));
                   
         }
 
