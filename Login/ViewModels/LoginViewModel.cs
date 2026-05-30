@@ -13,13 +13,16 @@ namespace ViewModels
 {
     
 
-    public partial class LoginViewModel : BaseViewModel, ILoginViewModel
+    public partial class LoginViewModel : ViewModelBase, ILoginViewModel
     {
+        // ---------------------------------------------------------------------
+        // 1. Dipendenze e Campi Privati
+        // ---------------------------------------------------------------------
         private ILoginRepository Q;
         private IScreen _host;
 
 
-        protected override IObservable<bool> canSave => this.WhenAnyValue(
+        protected override IObservable<bool> CanSave => this.WhenAnyValue(
             x => x.PasswordText,
             x => x.BindingT,
             (pass, operatore) =>
@@ -49,7 +52,7 @@ namespace ViewModels
 
         protected override async Task OnLoading()
         {
-            var dbData = await Q.GetOperatoriAbilitati(token);
+            var dbData = await Q.GetOperatoriAbilitati(Token);
 
             if (dbData?.Count > 0)
             {
@@ -58,7 +61,7 @@ namespace ViewModels
                 // Aggiorna la DataSource della UI
                 DataSource = dbData.Select(dto => new LoginMap(dto)).ToList();
 
-                // Seleziona il primo
+                // Seleziona il primo operatore
                 BindingT = DataSource[0];
             }
 
@@ -69,8 +72,7 @@ namespace ViewModels
 
         protected override async Task OnSaving()
         {
-            _isClosing = true; // Blocco preventivo immediato
-
+            
             try
             {
                 // Salva le impostazioni dell'operatore selezionato
@@ -89,77 +91,76 @@ namespace ViewModels
 
         }
 
-        private async Task GoToMenu()
-        {
-            _isClosing = true;
-            var menuVm = Locator.Current.GetService<IMenuViewModel>();
-            if (menuVm != null)
-            {
-                // 2. Impostiamo l'host (lo screen principale)
-                menuVm.SetHost(_host);
+        
 
-                try
-                {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(menuVm);
-                    }, RxSchedulers.MainThreadScheduler);
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
-                }
-            }
-            else
-            {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
-            }
+        protected override Task OnEsc()
+        {
+            OnAppShutDown(); // Riutilizza il metodo centralizzato della base per spegnere l'app
+            return Task.CompletedTask;
         }
 
-        protected async override Task OnEsc()
+        // ---------------------------------------------------------------------
+        // 5. Metodi di Supporto Privati
+        // ---------------------------------------------------------------------
+        private async Task GoToMenu()
         {
-            _isClosing = true; // Blocco preventivo immediato
+            var menuVm = Locator.Current.GetService<IMenuViewModel>();
 
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
-                lifetime.Shutdown();
+            if (menuVm == null)
+            {
+                _isClosing = false; // Permette di riprovare se il DI fallisce
+                Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
+                return;
+            }
 
-            await Task.CompletedTask;
+            menuVm.SetHost(_host);
 
+            try
+            {
+                _isClosing = true;
+
+                // Navigazione reattiva nativa e pulita sul thread della UI, senza wrapper Observable extra
+                await _host.Router.NavigateAndReset.Execute(menuVm)
+                    .ObserveOn(RxSchedulers.MainThreadScheduler);
+            }
+            catch (Exception ex)
+            {
+                _isClosing = false;
+                Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
+            }
+
+            
         }
     }
 
     public partial class LoginViewModel
     {
-        //DataSource della ComboBox
-        private List<LoginMap> _datasource;
-        public List<LoginMap> DataSource
-        {
-            get => _datasource;
-            set => this.RaiseAndSetIfChanged(ref _datasource, value);
-        }
-
-        private string _mypassordtext = string.Empty;
+        // ---------------------------------------------------------------------
+        // 2. Proprietà e Stato della UI (con Bindings)
+        // ---------------------------------------------------------------------
+        private string _passwordText;
         public string PasswordText
         {
-            get => _mypassordtext;
-            set => this.RaiseAndSetIfChanged(ref _mypassordtext, value);
+            get => _passwordText;
+            set => this.RaiseAndSetIfChanged(ref _passwordText, value);
         }
 
-        private LoginMap bindingt = new();
+        private LoginMap _bindingT;
         public LoginMap BindingT
         {
-            get => bindingt;
-            set => this.RaiseAndSetIfChanged(ref bindingt, value);
+            get => _bindingT;
+            set => this.RaiseAndSetIfChanged(ref _bindingT, value);
         }
 
-        #region Observable
+        private List<LoginMap> _dataSource;
+        public List<LoginMap> DataSource
+        {
+            get => _dataSource;
+            set => this.RaiseAndSetIfChanged(ref _dataSource, value);
+        }
 
+        // Interazioni con la View
         public Interaction<Unit, Unit> PasswordFocus { get; } = new();
-
-        #endregion
 
     }
 }
