@@ -15,7 +15,11 @@ namespace ViewModels
  
     public class PersonGroupViewModel : GroupViewModelBase<PersonMap>, IGroupViewModelBase, IPersonGroupViewModel
     {
+        // ---------------------------------------------------------------------
+        // 1. Dipendenze e Comandi Reattivi Locali
+        // ---------------------------------------------------------------------
         private IPersonRepository Q;
+        protected ISociScreen _host;
 
         public ReactiveCommand<Unit, Unit> AddCodiceSocioCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> DelCodiceSocioCommand { get; protected set; }
@@ -25,13 +29,14 @@ namespace ViewModels
         public ReactiveCommand<Unit, Unit> UpdTesseraCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> PersonSearchCommand { get; protected set; }
 
-        protected ISociScreen _host;
-
         public IObservable<bool> CanAction { get; }
 
+        // ---------------------------------------------------------------------
+        // 2. Condizioni di Esecuzione (Override Regole di Validazione)
+        // ---------------------------------------------------------------------
         protected override IObservable<bool> canDel => this.WhenAnyValue(
             x => x.GroupBindingT,
-            x => x.GroupBindingT.CodiceSocio, // Osserva esplicitamente la proprietà interna
+            x => x.GroupBindingT.CodiceSocio, // Osserva esplicitamente la proprietà interna nel model mappato
             (item, codiceSocio) => item != null && codiceSocio == 0
         );
 
@@ -80,37 +85,50 @@ namespace ViewModels
 
             PersonSearchCommand = ReactiveCommand.CreateFromTask(async () => await NavigateTo<IPersonSearchViewModel>());
 
-            InitializeLoadingHelper();
 
             this.WhenActivated(d =>
             {
-                AddCodiceSocioCommand?.DisposeWith(d);
-                DelCodiceSocioCommand?.DisposeWith(d);
-                UpdCodiceSocioCommand?.DisposeWith(d);
-                AddTesseraCommand?.DisposeWith(d);
-                DelTesseraCommand?.DisposeWith(d);
-                UpdTesseraCommand?.DisposeWith(d);
-                PersonSearchCommand?.DisposeWith(d);
+                // Sottoscrizione centralizzata alle eccezioni per preservare la stabilità dell'applicazione
+                AddCodiceSocioCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore AddCodiceSocio: {ex.Message}")).DisposeWith(d);
+                DelCodiceSocioCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore DelCodiceSocio: {ex.Message}")).DisposeWith(d);
+                UpdCodiceSocioCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore UpdCodiceSocio: {ex.Message}")).DisposeWith(d);
+                AddTesseraCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore AddTessera: {ex.Message}")).DisposeWith(d);
+                DelTesseraCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore DelTessera: {ex.Message}")).DisposeWith(d);
+                UpdTesseraCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore UpdTessera: {ex.Message}")).DisposeWith(d);
+                PersonSearchCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore PersonSearch: {ex.Message}")).DisposeWith(d);
+
+                // Pulizia automatica dei comandi locali alla disattivazione
+                AddCodiceSocioCommand.DisposeWith(d);
+                DelCodiceSocioCommand.DisposeWith(d);
+                UpdCodiceSocioCommand.DisposeWith(d);
+                AddTesseraCommand.DisposeWith(d);
+                DelTesseraCommand.DisposeWith(d);
+                UpdTesseraCommand.DisposeWith(d);
+                PersonSearchCommand.DisposeWith(d);
             });
 
 
         }
-      
+
         protected override void OnFinalDestruction()
         {
-            // Assicuriamoci che la collezione sia nulla per il GC
+            // Pulizia e dereferenziazione esplicita per agevolare l'intervento del Garbage Collector
             AddCodiceSocioCommand = DelCodiceSocioCommand = UpdCodiceSocioCommand = null;
             AddTesseraCommand = DelTesseraCommand = UpdTesseraCommand = PersonSearchCommand = null;
-
+            _host = null;
             Q = null;
+
             base.OnFinalDestruction();
         }
 
         public void SetHost(ISociScreen host) => _host = host;
 
+        // ---------------------------------------------------------------------
+        // 4. Ciclo di Vita ed Implementazione IGroupViewModelBase
+        // ---------------------------------------------------------------------
         protected override async Task OnLoading()
         {
-            var data = await Q.Load(0, token);
+            var data = await Q.Load(0, Token);
             if (data?.Count > 0)
             {
                 await UpdateCollection(data, 0);
@@ -125,7 +143,7 @@ namespace ViewModels
 
         private async Task UpdateCollection(List<PersonDTO> data, int id)
         {
-            var mapped = await Task.Run(() => data.Select(dto => new PersonMap(dto)).ToList(), token);
+            var mapped = await Task.Run(() => data.Select(dto => new PersonMap(dto)).ToList(), Token);
             var view = new DataGridCollectionView(mapped);
             view.GroupDescriptions.Add(new DataGridPathGroupDescription("Titolo"));
 
@@ -138,12 +156,12 @@ namespace ViewModels
             GroupFocus = true;
         }
 
-        public async Task CaricaDataSource(int id = 0)
+        public override async Task CaricaDataSource(int id = 0)
         {
             try
             {
-                var data = await Q.Load(id, token);
-                token.ThrowIfCancellationRequested();
+                var data = await Q.Load(id, Token);
+                Token.ThrowIfCancellationRequested();
                 await UpdateCollection(data, id);
             }
             catch (OperationCanceledException) { }
@@ -163,7 +181,7 @@ namespace ViewModels
                     var v = new DataGridCollectionView(list);
                     v.GroupDescriptions.Add(new DataGridPathGroupDescription("Titolo"));
                     return v;
-                }, token);
+                }, Token);
 
                 // 3. Aggiornamento UI sul thread principale
                 GroupedDataSource = view;

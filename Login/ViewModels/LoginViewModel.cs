@@ -1,6 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Common.InterViewModels;
+﻿using Common.InterViewModels;
 using DTO.Repository;
 using ReactiveUI;
 using Splat;
@@ -22,6 +20,9 @@ namespace ViewModels
         private IScreen _host;
 
 
+        // ---------------------------------------------------------------------
+        // 3. Condizioni di Esecuzione (Override)
+        // ---------------------------------------------------------------------
         protected override IObservable<bool> CanSave => this.WhenAnyValue(
             x => x.PasswordText,
             x => x.BindingT,
@@ -44,12 +45,19 @@ namespace ViewModels
 
         protected override void OnFinalDestruction()
         {
+            // Pulizia esplicita per agevolare il Garbage Collector forzato della Base
             Q = null;
+            _host = null;
             DataSource = null;
             BindingT = null;
+            PasswordText = null;
+
             base.OnFinalDestruction();
         }
 
+        // ---------------------------------------------------------------------
+        // 4. Ciclo di Vita (Override dei Metodi Virtuali)
+        // ---------------------------------------------------------------------
         protected override async Task OnLoading()
         {
             var dbData = await Q.GetOperatoriAbilitati(Token);

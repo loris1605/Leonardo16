@@ -30,7 +30,7 @@ namespace ViewModels
         // ---------------------------------------------------------------------
         // 3. Gestione dello Stato (OAPH & Token)
         // ---------------------------------------------------------------------
-        private readonly ObservableAsPropertyHelper<bool> _isLoading;
+        protected ObservableAsPropertyHelper<bool> _isLoading;
         public bool IsLoading => _isLoading.Value;
 
         protected bool _isClosing;
@@ -133,6 +133,16 @@ namespace ViewModels
             });
         }
 
+        protected void InitializeLoadingHelper()
+        {
+            // Smaltisce il vecchio helper se esiste (opzionale ma pulito)
+            _isLoading?.Dispose();
+
+            _isLoading = IsAnythingExecuting
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .ToProperty(this, x => x.IsLoading);
+        }
+
         // ---------------------------------------------------------------------
         // 6. Wrapper di Esecuzione Protetto (Invocati dai Comandi)
         // ---------------------------------------------------------------------
@@ -190,6 +200,7 @@ namespace ViewModels
             await TriggerInteraction(focusInteraction, Unit.Default, delay);
         }
 
+        
         private static void TriggerGarbageCollection()
         {
 #if DEBUG

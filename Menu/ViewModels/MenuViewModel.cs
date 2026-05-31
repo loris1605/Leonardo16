@@ -12,62 +12,77 @@ using System.Reactive.Linq;
 namespace ViewModels
 {
    
-    public partial class MenuViewModel : BaseViewModel, IMenuViewModel
+    public partial class MenuViewModel : ViewModelBase, IMenuViewModel
     {
+        // ---------------------------------------------------------------------
+        // 1. Dipendenze e Campi Privati
+        // ---------------------------------------------------------------------
         private IMenuRepository Q;
         private IScreen _host;
 
+        // Implementazione dell'interfaccia IRoutableViewModel richiesta da ReactiveUI
+        public new IScreen HostScreen => _host;
+
+        // ---------------------------------------------------------------------
+        // 2. Comandi Reattivi Esposti alla View
+        // ---------------------------------------------------------------------
         public ReactiveCommand<string, Unit> NavigateCommand { get; }
         public ReactiveCommand<int, Unit> SelezionaPostazioneCommand { get; }
         public ReactiveCommand<Unit, Unit> LogoutCommand { get; }
         public ReactiveCommand<Unit, Unit> ConnectionCommand { get; }
-        public ReactiveCommand<Unit,Unit> ConfigurazioneCommand { get; }
-        public ReactiveCommand<Unit,Unit> SociCommand { get; }
+        public ReactiveCommand<Unit, Unit> ConfigurazioneCommand { get; }
+        public ReactiveCommand<Unit, Unit> SociCommand { get; }
         public ReactiveCommand<Unit, Unit> ApriGiornataCommand { get; }
 
+        // ---------------------------------------------------------------------
+        // 3. Flussi Reattivi Centralizzati (Override Controllo Doppio Clic Senza "base")
+        // ---------------------------------------------------------------------
         protected override IObservable<bool> IsAnythingExecuting =>
-            new[]
-            {
-                base.IsAnythingExecuting,
-                NavigateCommand?.IsExecuting ?? Observable.Return(false),
-                SelezionaPostazioneCommand?.IsExecuting ?? Observable.Return(false),
-                LogoutCommand?.IsExecuting ?? Observable.Return(false),
-                ConnectionCommand?.IsExecuting ?? Observable.Return(false),
-                ConfigurazioneCommand?.IsExecuting ?? Observable.Return(false),
-                SociCommand?.IsExecuting ?? Observable.Return(false),
-                ApriGiornataCommand?.IsExecuting ?? Observable.Return(false)
-            }.CombineLatest(values => values.Any(x => x));
+            Observable.CombineLatest(
+                // 1. Comandi ereditati dalla classe base
+                this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
+                // 2. Comandi specifici di questa schermata (gestiti in modo safe se null all'avvio)
+                this.WhenAnyValue(x => x.SelezionaPostazioneCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.LogoutCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.ConnectionCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.ConfigurazioneCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.SociCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.ApriGiornataCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                // Se anche uno solo dei 9 comandi totali è in esecuzione, IsLoading diventa true e la UI si blocca a 0ms
+                (l, s, e, sel, log, conn, conf, soc, apri) => l || s || e || sel || log || conn || conf || soc || apri)
+            .DistinctUntilChanged();
 
 
+        // ---------------------------------------------------------------------
+        // Constructor
+        // ---------------------------------------------------------------------
         public MenuViewModel(IMenuRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
 
+            // 1. Collegamento e aggiornamento delle proprietà OAPH definite nel file parziale
             _chiudiGiornataEnabled = this.WhenAnyValue(x => x.ApriGiornataEnabled)
                 .Select(x => !x)
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
                 .ToProperty(this, x => x.ChiudiGiornataEnabled);
 
-            // 2. Gestisci la stringa della Sessione
             _sessioneContabile = this.WhenAnyValue(x => x.ApriGiornataEnabled)
-                    .Select(v => $"Sessione Contabile {(v ? "Chiusa" : "Aperta")}")
-                    .ToProperty(this, x => x.SessioneContabile);
+                .Select(v => $"Sessione Contabile {(v ? "Chiusa" : "Aperta")}")
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .ToProperty(this, x => x.SessioneContabile);
 
+            // Vincolo generale di navigazione basato sullo stato globale IsLoading della base
             var canNavigate = this.WhenAnyValue(x => x.IsLoading)
                 .Select(isLoading => !isLoading)
-                .Throttle(TimeSpan.FromMilliseconds(500)) // Ignora i clic per i primi 500ms
-                .ObserveOn(RxSchedulers.MainThreadScheduler)
-                .StartWith(false); // Parte disabilitato per sicurezza
+                .ObserveOn(RxSchedulers.MainThreadScheduler);
 
-            //NavigateCommand = ReactiveCommand.CreateFromTask<string>(ExecuteNavigation, canNavigate);
-
+            // Inizializzazione dei Comandi
             SelezionaPostazioneCommand = ReactiveCommand.CreateFromTask<int>(GoToCassa, canNavigate);
-
             LogoutCommand = ReactiveCommand.CreateFromTask(GoToLogin, canNavigate);
-
             ConnectionCommand = ReactiveCommand.CreateFromTask(GoToConnection, canNavigate);
-
             ConfigurazioneCommand = ReactiveCommand.CreateFromTask(GoToConfigurazione, canNavigate);
-
             SociCommand = ReactiveCommand.CreateFromTask(GoToSoci, canNavigate);
 
             var canApriFinal = this.WhenAnyValue(x => x.ApriGiornataEnabled, x => x.IsLoading,
@@ -75,15 +90,24 @@ namespace ViewModels
 
             ApriGiornataCommand = ReactiveCommand.CreateFromTask(ExecuteOpenGiornata, canApriFinal);
 
+            // Gestione del Ciclo di Vita (Activation)
             this.WhenActivated(d =>
             {
-                LogoutCommand?.DisposeWith(d);
-                SelezionaPostazioneCommand?.DisposeWith(d);
-                NavigateCommand?.DisposeWith(d);
-                ConfigurazioneCommand?.DisposeWith(d);
-                ApriGiornataCommand?.DisposeWith(d);
-                SociCommand?.DisposeWith(d);
-                ConnectionCommand?.DisposeWith(d);
+                // Gestione e tracciamento centralizzato delle eccezioni
+                SelezionaPostazioneCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Selezione Cassa: {ex.Message}")).DisposeWith(d);
+                LogoutCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Logout: {ex.Message}")).DisposeWith(d);
+                ConnectionCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Connessione: {ex.Message}")).DisposeWith(d);
+                ConfigurazioneCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Configurazione: {ex.Message}")).DisposeWith(d);
+                SociCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Soci: {ex.Message}")).DisposeWith(d);
+                ApriGiornataCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Apertura Giornata: {ex.Message}")).DisposeWith(d);
+
+                // Pulizia delle risorse e delle sottoscrizioni all'attivazione/disattivazione della View
+                LogoutCommand.DisposeWith(d);
+                SelezionaPostazioneCommand.DisposeWith(d);
+                ConfigurazioneCommand.DisposeWith(d);
+                ApriGiornataCommand.DisposeWith(d);
+                SociCommand.DisposeWith(d);
+                ConnectionCommand.DisposeWith(d);
             });
 
         }
@@ -93,31 +117,41 @@ namespace ViewModels
             _host = host;
         }
 
-
-        protected override void OnFinalDestruction()
-        {
-            CassaPostazioniDataSource?.Clear(); // Svuota la lista
-            Q = null;
-            base.OnFinalDestruction();
-        }
-
+        // ---------------------------------------------------------------------
+        // 4. Ciclo di Vita (Override dei Metodi Virtuali della Base)
+        // ---------------------------------------------------------------------
+        
         protected override async Task OnLoading()
         {
             if (GlobalValuesC.MySetting == null) return;
 
             AttivaPermessi();
 
-            var listaDto = await Q.CaricaPostazioniCassa(GlobalValuesC.MySetting.IDOPERATORE, token);
+            // Caricamento dei dati asincroni passando correttamente il Token della base
+            var listaDto = await Q.CaricaPostazioniCassa(GlobalValuesC.MySetting.IDOPERATORE, Token);
 
             CassaPostazioniDataSource = listaDto
-                                        .Select(dto => new MenuPostazioneMap(dto))
-                                        .ToList();
+                .Select(dto => new MenuPostazioneMap(dto))
+                .ToList();
 
-            ApriGiornataEnabled = !(await Q.EsisteGiornataAperta(token));
+            ApriGiornataEnabled = !(await Q.EsisteGiornataAperta(Token));
 
-            if (GlobalValuesC.MySetting.POSTAZIONI?.Count == 0) ApriPostazioneEnabled = false;
-
+            if (GlobalValuesC.MySetting.POSTAZIONI?.Count == 0)
+            {
+                ApriPostazioneEnabled = false;
+            }
         }
+        protected override async Task OnEsc() => await GoToLogin();
+        protected override void OnFinalDestruction()
+        {
+            CassaPostazioniDataSource?.Clear();
+            Q = null;
+            _host = null;
+
+            base.OnFinalDestruction();
+        }
+
+        
 
         private void AttivaPermessi()
         {
@@ -169,7 +203,15 @@ namespace ViewModels
 
         }
 
-        
+                
+
+    }
+
+    public partial class MenuViewModel
+    {
+        // ---------------------------------------------------------------------
+        // 5. Logica Interna (Task dei Comandi)
+        // ---------------------------------------------------------------------
         private async Task GoToCassa(int postazioneId)
         {
             _isClosing = true;
@@ -316,22 +358,24 @@ namespace ViewModels
             }
         }
 
-        //protected override async Task OnSaving() => await Task.CompletedTask;
-
         private async Task ExecuteOpenGiornata()
         {
-            // OnOpenGiornata dovrebbe essere asincrono nel repository
-            bool result = await Task.Run(() => Q.OpenGiornata(token));
-            if (result) ApriGiornataEnabled = false;
+            // Utilizzo del Task.Run combinato con il Token ereditato per preservare la reattività della UI
+            bool result = await Task.Run(() => Q.OpenGiornata(Token), Token);
+            if (result)
+            {
+                ApriGiornataEnabled = false;
+            }
         }
-
-        protected override async Task OnEsc() => await GoToLogin();
-
     }
 
     public partial class MenuViewModel
     {
-        //Voci visibili nel Menu
+        // ---------------------------------------------------------------------
+        // 1. Visibilità dei Moduli e Permessi del Menu
+        // ---------------------------------------------------------------------
+        #region Visibility Properties
+
         private List<bool> _visibile = [];
         public List<bool> Visibile
         {
@@ -381,12 +425,12 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _mypulizievisible, value);
         }
 
-        private List<MenuPostazioneMap> _mycassapostazionidatasource = null;
-        public List<MenuPostazioneMap> CassaPostazioniDataSource
-        {
-            get => _mycassapostazionidatasource;
-            set => this.RaiseAndSetIfChanged(ref _mycassapostazionidatasource, value);
-        }
+        #endregion
+
+        // ---------------------------------------------------------------------
+        // 2. Dati Operatore e Postazioni (Cassa)
+        // ---------------------------------------------------------------------
+        #region Operator and Workstation Data
 
         private string _myoperatorename = string.Empty;
         public string OperatoreName
@@ -395,8 +439,33 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _myoperatorename, value);
         }
 
-        readonly ObservableAsPropertyHelper<string> _sessioneContabile;
+        private List<MenuPostazioneMap> _mycassapostazionidatasource = null;
+        public List<MenuPostazioneMap> CassaPostazioniDataSource
+        {
+            get => _mycassapostazionidatasource;
+            set => this.RaiseAndSetIfChanged(ref _mycassapostazionidatasource, value);
+        }
+
+        private MenuPostazioneMap _selectedPostazione;
+        public MenuPostazioneMap SelectedPostazione
+        {
+            get => _selectedPostazione;
+            set => this.RaiseAndSetIfChanged(ref _selectedPostazione, value);
+        }
+
+        #endregion
+
+        // ---------------------------------------------------------------------
+        // 3. Gestione Stato Sessione Contabile (Giornata / Postazione)
+        // ---------------------------------------------------------------------
+        #region Accounting Session Properties
+
+        // Definizioni degli OAPH (saranno valorizzati tramite .ToProperty() nel costruttore)
+        private readonly ObservableAsPropertyHelper<string> _sessioneContabile;
         public string SessioneContabile => _sessioneContabile.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _chiudiGiornataEnabled;
+        public bool ChiudiGiornataEnabled => _chiudiGiornataEnabled.Value;
 
         private bool _apriGiornataEnabled;
         public bool ApriGiornataEnabled
@@ -412,8 +481,12 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _myapripostazioneenabled, value);
         }
 
-        readonly ObservableAsPropertyHelper<bool> _chiudiGiornataEnabled;
-        public bool ChiudiGiornataEnabled => _chiudiGiornataEnabled.Value;
+        #endregion
+
+        // ---------------------------------------------------------------------
+        // 4. Stato Generale del Menu
+        // ---------------------------------------------------------------------
+        #region General UI State
 
         private bool _isMenuReady = false;
         public bool IsMenuReady
@@ -422,14 +495,8 @@ namespace ViewModels
             set => this.RaiseAndSetIfChanged(ref _isMenuReady, value);
         }
 
-        private MenuPostazioneMap _selectedPostazione;
-        public MenuPostazioneMap SelectedPostazione
-        {
-            get => _selectedPostazione;
-            set => this.RaiseAndSetIfChanged(ref _selectedPostazione, value);
-        }
-
+        #endregion
     }
 
-    
+
 }

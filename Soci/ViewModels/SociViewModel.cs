@@ -7,16 +7,43 @@ using System.Reactive.Linq;
 namespace ViewModels
 {
    
-    public partial class SociViewModel : BaseViewModel, ISociScreen, ISociViewModel
+    public partial class SociViewModel : ViewModelBase, ISociScreen, ISociViewModel
     {
+        // ---------------------------------------------------------------------
+        // 1. Router Interni (Sub-Routing) e Dipendenze
+        // ---------------------------------------------------------------------
         public RoutingState GroupRouter { get; } = new RoutingState();
         public RoutingState InputRouter { get; } = new RoutingState();
+
+        // Espone il router principale richiesto dall'infrastruttura ReactiveUI
         public RoutingState Router => GroupRouter;
 
         private IScreen _host;
-    
+        public new IScreen HostScreen => _host;
+
+        // ---------------------------------------------------------------------
+        // 2. Controllo Esecuzione Centralizzato (Prevenzione Doppi Clic)
+        // ---------------------------------------------------------------------
+        protected override IObservable<bool> IsAnythingExecuting =>
+            Observable.CombineLatest(
+                // 1. Comandi base ereditati
+                this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
+                // 2. Monitoraggio delle esecuzioni dei router (Navigazioni in corso)
+                this.WhenAnyObservable(x => x.GroupRouter.NavigateAndReset.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.GroupRouter.Navigate.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.InputRouter.NavigateAndReset.IsExecuting).StartWith(false),
+                // Se qualunque operazione o cambio pagina è attivo, blocca la UI
+                (l, s, e, gReset, gNav, iReset) => l || s || e || gReset || gNav || iReset)
+            .DistinctUntilChanged();
+
+        // ---------------------------------------------------------------------
+        // Constructor
+        // ---------------------------------------------------------------------
         public SociViewModel() : base(null)
         {
+            // La gestione del ciclo di vita dei router o sottoscrizioni aggiuntive va qui
             
         }
 
@@ -25,27 +52,33 @@ namespace ViewModels
             _host = host;
         }
 
+        // ---------------------------------------------------------------------
+        // 3. Ciclo di Vita (Override dei Metodi Virtuali della Base)
+        // ---------------------------------------------------------------------
+
         protected override void OnFinalDestruction()
         {
-            GroupRouter.NavigationStack.Clear();
-            InputRouter.NavigationStack.Clear();
+            // Svuotiamo gli stack di navigazione dei router interni per liberare le View collegate
+            GroupRouter?.NavigationStack.Clear();
+            InputRouter?.NavigationStack.Clear();
+            _host = null;
+
+            base.OnFinalDestruction();
         }
 
         protected override async Task OnLoading()
         {
-            // Creiamo l'istanza della prima pagina (OperatoreGroupViewModel)
-            // Passando "this" come host, così il GroupViewModel saprà dove navigare
+            // Recuperiamo l'istanza della prima pagina (IPersonGroupViewModel)
             var firstPage = Locator.Current.GetService<IPersonGroupViewModel>();
             if (firstPage != null)
             {
-                firstPage?.SetHost(this);
+                // Passiamo "this" come host, così il GroupViewModel saprà dove navigare
+                firstPage.SetHost(this);
                 try
                 {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await GroupRouter.NavigateAndReset.Execute(firstPage);
-                    }, RxSchedulers.MainThreadScheduler);
+                    // Eseguiamo la navigazione iniziale sul Main Thread in modo nativo
+                    await GroupRouter.NavigateAndReset.Execute(firstPage)
+                        .ObserveOn(RxSchedulers.MainThreadScheduler);
                 }
                 catch (Exception ex)
                 {
@@ -54,45 +87,19 @@ namespace ViewModels
                 }
             }
         }
-
-        public void AggiornaGridByObject(object model)
-        {
-            if (GroupRouter.GetCurrentViewModel() is IGroupViewModelBase groupVm)
-            {
-                groupVm.CaricaByModel(model);
-            }
-        }
-      
-
-        public void AggiornaGridByInt(int id)
-        {
-            if (GroupRouter.GetCurrentViewModel() is IGroupViewModelBase groupVm)
-            {
-                // Passiamo l'ID al metodo di caricamento della lista
-                groupVm.CaricaDataSource(id);
-
-                // Se hai un comando di ricarica nel GroupViewModel:
-                // groupVm.LoadCommand.Execute().Subscribe();
-            }
-        }
-
         protected override async Task OnSaving() => await Task.CompletedTask;
-
-        protected async override Task OnEsc()
+        protected override async Task OnEsc()
         {
             _isClosing = true;
             var menuVm = Locator.Current.GetService<IMenuViewModel>();
             if (menuVm != null)
             {
-                // 2. Impostiamo l'host (lo screen principale)
                 menuVm.SetHost(_host);
                 try
                 {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(menuVm);
-                    }, RxSchedulers.MainThreadScheduler);
+                    // Ritorno sicuro e asincrono al Menu principale resettando lo stack
+                    await _host.Router.NavigateAndReset.Execute(menuVm)
+                        .ObserveOn(RxSchedulers.MainThreadScheduler);
                 }
                 catch (Exception ex)
                 {
@@ -102,10 +109,29 @@ namespace ViewModels
             }
             else
             {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                _isClosing = false; // Consente di riprovare se il DI fallisce
                 Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
             }
+        }
 
+        // ---------------------------------------------------------------------
+        // 4. Metodi di Interfaccia e Sincronizzazione Griglie (ISociScreen)
+        // ---------------------------------------------------------------------
+        public void AggiornaGridByObject(object model)
+        {
+            if (GroupRouter.GetCurrentViewModel() is IGroupViewModelBase groupVm)
+            {
+                groupVm.CaricaByModel(model);
+            }
+        }
+
+        public void AggiornaGridByInt(int id)
+        {
+            if (GroupRouter.GetCurrentViewModel() is IGroupViewModelBase groupVm)
+            {
+                // Passiamo l'ID al metodo di caricamento della lista
+                groupVm.CaricaDataSource(id);
+            }
         }
 
     }

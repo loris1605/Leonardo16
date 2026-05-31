@@ -142,7 +142,7 @@ namespace ViewModels
 
         protected override async Task OnLoading()
         {
-            var data = await Q.Load(0, token);
+            var data = await Q.Load(0, Token);
             if (data?.Count > 0)
             {
                 await UpdateCollection(data, 0);
@@ -157,7 +157,7 @@ namespace ViewModels
 
         private async Task UpdateCollection(List<SettoreDTO> data, int id)
         {
-            var mapped = await Task.Run(() => data.Select(dto => new SettoreMap(dto)).ToList(), token);
+            var mapped = await Task.Run(() => data.Select(dto => new SettoreMap(dto)).ToList(), Token);
             var view = new DataGridCollectionView(mapped);
             view.GroupDescriptions.Add(new DataGridPathGroupDescription("Titolo"));
 
@@ -170,11 +170,11 @@ namespace ViewModels
             GroupFocus = true;
         }
 
-        public async Task CaricaDataSource(int id = 0)
+        public override async Task CaricaDataSource(int id = 0)
         {
             try
             {
-                var data = await Q.Load(id, token);
+                var data = await Q.Load(id, Token);
                 await UpdateCollection(data, id);
             }
             catch (OperationCanceledException) { }

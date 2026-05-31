@@ -1,7 +1,5 @@
 ﻿using Avalonia.Collections;
-using DTO.Entity;
 using ReactiveUI;
-using SysNet;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -18,29 +16,51 @@ namespace ViewModels
 
     }
 
-    public abstract partial class GroupViewModelBase<TMap> : BaseViewModel where TMap : class, new()
+    public abstract partial class GroupViewModelBase<TMap> : ViewModelBase where TMap : class, new()
     {
 
+        // ---------------------------------------------------------------------
+        // 1. Comandi Reattivi Centralizzati del Gruppo
+        // ---------------------------------------------------------------------
         public ReactiveCommand<Unit, Unit> AddCommand { get; }
         public ReactiveCommand<Unit, Unit> UpdCommand { get; }
         public ReactiveCommand<Unit, Unit> DelCommand { get; }
         public ReactiveCommand<Unit, Unit> FilterCommand { get; }
 
+        // ---------------------------------------------------------------------
+        // 2. Condizioni di Esecuzione (Overridabili dalle classi figlie)
+        // ---------------------------------------------------------------------
         protected virtual IObservable<bool> canAdd => Observable.Return(true);
         protected virtual IObservable<bool> canDel => Observable.Return(true);
         protected IObservable<bool> canUpd => this.WhenAnyValue(x => x.GroupBindingT)
-                                                           .Select(item => item != null);
+                                                   .Select(item => item != null);
 
-        
+        // ---------------------------------------------------------------------
+        // 3. Flussi Reattivi Centralizzati (Override Controllo Doppio Clic Senza "base")
+        // ---------------------------------------------------------------------
+        protected override IObservable<bool> IsAnythingExecuting =>
+            Observable.CombineLatest(
+                // 1. Monitoriamo i comandi ereditati dalla classe base
+                this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
+                this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
+                // 2. Monitoriamo i comandi locali astratti di questa classe intermedia
+                this.WhenAnyValue(x => x.AddCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.UpdCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                this.WhenAnyValue(x => x.DelCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
+                // Se un qualunque comando sta elaborando, IsLoading diventa true e la UI si blocca a 0ms
+                (l, s, e, add, upd, del) => l || s || e || add || upd || del)
+            .DistinctUntilChanged();
 
+
+        // ---------------------------------------------------------------------
+        // Constructor
+        // ---------------------------------------------------------------------
         public GroupViewModelBase(IScreen host) : base(host)
         {
-            
             var canExecuteGeneral = this.WhenAnyValue(x => x.IsLoading).Select(l => !l);
 
-
-            
-            // 2. Comandi legati all'IsLoading automatico della BaseViewModel
+            // Inizializzazione dei comandi incrociati con i vincoli generali e specifici delle classi figlie
             AddCommand = ReactiveCommand.CreateFromTask(ExecuteAdding,
                 canExecuteGeneral.CombineLatest(canAdd, (gen, child) => gen && child));
 
@@ -52,33 +72,25 @@ namespace ViewModels
 
             FilterCommand = LoadCommand;
 
-            InitializeLoadingHelper(); // Attivazione iniziale
+            
 
             this.WhenActivated(d =>
             {
+                // Registrazione degli errori dei comandi per evitare crash spuri
+                AddCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Aggiungi: {ex.Message}")).DisposeWith(d);
+                DelCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Elimina: {ex.Message}")).DisposeWith(d);
+                UpdCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Modifica: {ex.Message}")).DisposeWith(d);
+
                 Disposable.Create(() =>
                 {
-                    // PULIZIA CRITICA: Sgancia la View della griglia
+                    // PULIZIA CRITICA: Sgancia esplicitamente le sorgenti dati della View deattivata per il GC
                     GroupedDataSource = null;
                     DataSource = null;
-
                 }).DisposeWith(d);
 
-                
-
                 HandleCommandsDisposal(d);
-
             });
         }
-
-        protected override IObservable<bool> IsAnythingExecuting =>
-            new[]
-            {
-                base.IsAnythingExecuting,
-                AddCommand?.IsExecuting ?? Observable.Return(false),
-                UpdCommand?.IsExecuting ?? Observable.Return(false),
-                DelCommand?.IsExecuting ?? Observable.Return(false)
-            }.CombineLatest(values => values.Any(x => x));
 
         private void HandleCommandsDisposal(CompositeDisposable d)
         {
@@ -90,44 +102,53 @@ namespace ViewModels
 
         protected override void OnFinalDestruction()
         {
-            // Assicuriamoci che la collezione sia nulla per il GC
+            // Assicuriamoci che le collezioni pesanti siano nulle prima della rimozione dallo stack
             GroupedDataSource = null;
             DataSource = null;
             base.OnFinalDestruction();
         }
 
-        public virtual Task CaricaByModel(object model) { return Task.CompletedTask; }
+        
 
 
+        // ---------------------------------------------------------------------
+        // 4. Wrapper di Esecuzione Protetti (Invocati dai pulsanti della View)
+        // ---------------------------------------------------------------------
         public async Task ExecuteAdding()
         {
             if (_isClosing) return;
-            await Task.Delay(50, token);
+            await Task.Delay(50, Token);
             try { await OnAdding(); }
             catch (Exception ex) { Debug.WriteLine($"ERRORE ADD: {ex.Message}"); }
-            // IsLoading torna false da solo se aggiungi AddCommand all'OAPH della base
         }
 
         public async Task ExecuteDeleting()
         {
             if (_isClosing) return;
-            await Task.Delay(50, token);
+            await Task.Delay(50, Token);
             try { await OnDeleting(); }
             catch (Exception ex) { Debug.WriteLine($"ERRORE DELETE: {ex.Message}"); }
-            // IsLoading torna false da solo se aggiungi DelCommand all'OAPH della base
         }
+
         public async Task ExecuteUpdating()
         {
             if (_isClosing) return;
-            await Task.Delay(50, token);
+            await Task.Delay(50, Token);
             try { await OnUpdating(); }
             catch (Exception ex) { Debug.WriteLine($"ERRORE UPDATE: {ex.Message}"); }
-            // IsLoading torna false da solo se aggiungi UpdCommand all'OAPH della base
         }
 
+        // ---------------------------------------------------------------------
+        // 5. Metodi Virtuali ed Astratti (Hook obbligatori per le classi concrete)
+        // ---------------------------------------------------------------------
         protected abstract Task OnAdding();
         protected abstract Task OnDeleting();
         protected abstract Task OnUpdating();
+
+        public virtual Task CaricaByModel(object model) => Task.CompletedTask;
+        public virtual Task CaricaDataSource(int id) => Task.CompletedTask; // Integrato per supportare ISociScreen
+
+       
 
 
         #region DataSource

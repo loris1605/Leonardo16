@@ -14,68 +14,110 @@ namespace ViewModels
 {
     
 
-    public partial class ConnectionViewModel : BaseViewModel, IConnectionViewModel
+    public partial class ConnectionViewModel : ViewModelBase, IConnectionViewModel
     {
+        // ---------------------------------------------------------------------
+        // 1. Campi Privati e Stato Interno
+        // ---------------------------------------------------------------------
         protected IScreen _host;
+        private readonly ObservableAsPropertyHelper<bool> _isUiReady;
+
+        // ---------------------------------------------------------------------
+        // 2. Proprietà di Sola Lettura e Interazioni
+        // ---------------------------------------------------------------------
+        public bool IsUiReady => _isUiReady.Value;
         public Interaction<Unit, Unit> UserIdFocus { get; } = new();
 
-        #region Commands
 
+        // Comandi Reattivi esposti alla View
         public ReactiveCommand<Unit, Unit> CheckCommand { get; protected set; }
         public ReactiveCommand<Unit, Unit> AvviaCommand { get; protected set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _isUiReady;
-        public bool IsUiReady => _isUiReady.Value;
-
-        #endregion
-
+        // ---------------------------------------------------------------------
+        // 3. Condizioni di Esecuzione e Flussi Reattivi
+        // ---------------------------------------------------------------------
         private IObservable<bool> canCheck => this.WhenAnyValue(
-        x => x.DatabaseText, x => x.PasswordText, x => x.UserIdText, x => x.SelectedInstance,
-        (db, pass, user, server) =>
-            !string.IsNullOrWhiteSpace(db) && !string.IsNullOrWhiteSpace(pass) &&
-            !string.IsNullOrWhiteSpace(user) && !string.IsNullOrWhiteSpace(server));
+            x => x.DatabaseText, x => x.PasswordText, x => x.UserIdText, x => x.SelectedInstance,
+            (db, pass, user, server) =>
+                !string.IsNullOrWhiteSpace(db) && !string.IsNullOrWhiteSpace(pass) &&
+                !string.IsNullOrWhiteSpace(user) && !string.IsNullOrWhiteSpace(server));
 
-        // Estendiamo IsAnythingExecuting per includere CheckCommand
+        // ---------------------------------------------------------------------
+        // 5. Flussi Reattivi Centralizzati (Override Corretto)
+        // ---------------------------------------------------------------------
         protected override IObservable<bool> IsAnythingExecuting =>
-            base.IsAnythingExecuting.CombineLatest(
-                // Usiamo StartWith(false) per gestire il momento in cui il comando è null
-                this.WhenAnyValue(x => x.CheckCommand)
-                    .SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                this.WhenAnyValue(x => x.AvviaCommand)
-                    .SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                (baseExec, check, avvia) => baseExec || check || avvia);
+            Observable.CombineLatest(
+                // 1. Monitoriamo i comandi della classe base
+                this.WhenAnyObservable(
+                    x => x.LoadCommand.IsExecuting,
+                    x => x.SaveCommand.IsExecuting,
+                    x => x.EscPressedCommand.IsExecuting),
+                // 2. Monitoriamo i due comandi specifici di questa schermata
+                this.WhenAnyObservable(
+                    x => x.CheckCommand.IsExecuting,
+                    x => x.AvviaCommand.IsExecuting),
+                // Se anche uno solo di questi 5 comandi è in esecuzione, restituisce true
+                (baseExec, localExec) => baseExec || localExec)
+            .DistinctUntilChanged();
 
         public ConnectionViewModel() : base(null)
         {
-           _isUiReady = this.WhenAnyValue(
-                                x => x.IsLoading,
-                                x => x.IsDataLoaded,
-                                (loading, loaded) => !loading && loaded)
-                            .ToProperty(this, x => x.IsUiReady);
+            // 1. Inizializzazione dello stato di prontezza della UI (già presente)
+            _isUiReady = this.WhenAnyValue(
+                    x => x.IsLoading,
+                    x => x.IsDataLoaded,
+                    (loading, loaded) => !loading && loaded)
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .ToProperty(this, x => x.IsUiReady);
 
-
-
+            // 2. Inizializzazione dei Comandi dedicati della schermata
             CheckCommand = ReactiveCommand.CreateFromTask(OnCheckConnectionAsync, canCheck);
-            AvviaCommand = ReactiveCommand.CreateFromTask(GoToLogin, this.WhenAnyValue(x => x.IsLoading, x => !x));
+            AvviaCommand = ReactiveCommand.CreateFromTask(GoToLogin, this.WhenAnyValue(x => x.IsLoading, loading => !loading));
+
+            // =====================================================================
+            // SOLUZIONE REATTIVA: Uniamo l'esecuzione dei comandi locali a IsLoading della base
+            // =====================================================================
+            this.WhenAnyObservable(
+                    x => x.CheckCommand.IsExecuting,
+                    x => x.AvviaCommand.IsExecuting)
+                .Where(executing => executing) // Se uno dei comandi parte (true)
+                .Subscribe(_ =>
+                {
+                    // Forziamo lo stato di chiusura/blocco temporaneo per fermare i doppi clic
+                    // Questo si integra perfettamente con i controlli della tua ViewModelBase
+                    _isClosing = true;
+                });
+
+            // Quando i comandi finiscono, ripristiniamo lo stato se l'app non sta cambiando schermata
+            CheckCommand.IsExecuting
+                .CombineLatest(AvviaCommand.IsExecuting, (c, a) => c || a)
+                .Where(anyExecuting => !anyExecuting) // Quando entrambi hanno finito (false)
+                .Subscribe(_ =>
+                {
+                    // Se GoToLogin non ha impostato definitivamente _isClosing a true per cambiare pagina, sblocchiamo
+                    if (AvviaCommand.IsExecuting.Latest().First() == false && !_isClosing)
+                    {
+                        _isClosing = false;
+                    }
+                });
+            // =====================================================================
 
             // 3. Gestione del ciclo di vita (Activation)
             this.WhenActivated(d =>
             {
                 CheckCommand.ThrownExceptions
-    .               Subscribe(ex => {
-                       // Qui l'app NON crasha più. Puoi mostrare un messaggio all'utente.
-                       Debug.WriteLine($"Errore nel comando Check: {ex.Message}");
-                       IsDataLoaded = true; // Sblocca la UI se necessario
-    }               ).DisposeWith(d); // 'd' dal WhenActivated
+                    .Subscribe(ex =>
+                    {
+                        Debug.WriteLine($"[WARN] Errore nel comando Check: {ex.Message}");
+                        IsDataLoaded = true;
+                    })
+                    .DisposeWith(d);
 
-                // Pulizia delle sottoscrizioni dei comandi quando la View viene deattivata
-                CheckCommand?.DisposeWith(d);
-                AvviaCommand?.DisposeWith(d);
-
-                // Se hai altre sottoscrizioni WhenAnyValue specifiche, vanno qui
+                CheckCommand.DisposeWith(d);
+                AvviaCommand.DisposeWith(d);
             });
-
         }
+
 
         public void SetHost(IScreen host)
         {
@@ -86,60 +128,59 @@ namespace ViewModels
         protected override void OnFinalDestruction()
         {
             SqlInstances?.Clear();
+            _host = null;
             CheckCommand = null;
             AvviaCommand = null;
             base.OnFinalDestruction();
         }
 
+        // ---------------------------------------------------------------------
+        // 5. Metodi di Logica Interna (Task dei Comandi)
+        // ---------------------------------------------------------------------
         private async Task OnCheckConnectionAsync()
         {
-
-            // Non serve IsLoading = true manuale
             var connectionString = $"Server={SelectedInstance?.Trim()};Database={DatabaseText?.Trim()};" +
                                    $"User Id={UserIdText?.Trim()};Password={PasswordText};" +
                                    "TrustServerCertificate=true;Connect Timeout=5;";
 
             try
             {
-                // ... preparazione connectionString ...
                 SysNet.Connection.SetConnectionString(connectionString);
 
                 using (var db = new AppDbContext())
                 {
-                    // Se qui scoppia l'eccezione, viene catturata dal catch sotto
-                    await db.Database.MigrateAsync(token);
+                    // Esegue le migrazioni del database usando il Token della classe base
+                    await db.Database.MigrateAsync(Token);
                 }
 
                 AvviaVisibile = true;
             }
             catch (Exception ex)
             {
-                // Gestisci l'errore localmente così il comando finisce "pulito"
-                Debug.WriteLine($"Fallimento Migrazione: {ex.Message}");
-                // Qui potresti triggerare un'Interaction per mostrare un messaggio all'utente
+                Debug.WriteLine($"Fallimento Migrazione / Connessione: {ex.Message}");
+                // Qui puoi inserire un'interazione per mostrare un popup di errore grafico nella View
+                AvviaVisibile = false;
             }
             finally
             {
-                await SetFocus(UserIdFocus);
+                await SetFocus(UserIdFocus, delay: 50);
             }
         }
 
-        
+
         private async Task GoToLogin()
         {
-            _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
+            _isClosing = true; // Blocca i comandi generali durante la transizione di schermata
+
             var loginVm = Locator.Current.GetService<ILoginViewModel>();
             if (loginVm != null)
             {
-                // 2. Impostiamo l'host (lo screen principale)
                 loginVm.SetHost(_host);
                 try
                 {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(loginVm);
-                    }, RxSchedulers.MainThreadScheduler);
+                    // Navigazione nativa e pulita con reset dello stack, forzata sul thread UI principale
+                    await _host.Router.NavigateAndReset.Execute(loginVm)
+                        .ObserveOn(RxSchedulers.MainThreadScheduler);
                 }
                 catch (Exception ex)
                 {
@@ -149,22 +190,23 @@ namespace ViewModels
             }
             else
             {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+                _isClosing = false; // Consente di riprovare se la risoluzione IoC fallisce
                 Debug.WriteLine("ERRORE CRITICO: ILoginViewModel non è stato risolto dal Locator.");
             }
         }
 
-        //Carica la ComboBox con le IstanzeSql
+
+        // ---------------------------------------------------------------------
+        // 4. Ciclo di Vita (Override dei Metodi Virtuali della Base)
+        // ---------------------------------------------------------------------
         protected override async Task OnLoading()
         {
-            IsDataLoaded = false; // Reset
+            IsDataLoaded = false; // Reset dello stato di caricamento dati
 
+            // 1. Recupero delle istanze SQL in background (utilizzando il Token ereditato dalla base)
+            var instances = await Task.Run(() => SqlInstanceFinder.GetInstances(), Token) ?? new List<string>();
 
-            // 1. Recupero dati in background (Task.Run va bene per SqlInstanceFinder)
-            var instances = await Task.Run(() => SqlInstanceFinder.GetInstances(), token) ?? new List<string>();
-
-            // 2. Ritorno sul thread principale per aggiornare la UI
-            // Usiamo l'estensione di ReactiveUI per essere sicuri
+            // 2. Ritorno sicuro sul thread della UI per aggiornare la collezione
             await Observable.Start(() =>
             {
                 SqlInstances.Clear();
@@ -174,16 +216,18 @@ namespace ViewModels
                 }
 
                 if (SqlInstances.Count > 0)
+                {
                     SelectedInstance = SqlInstances[0];
-
-            }, RxSchedulers.MainThreadScheduler); // RxApp è più standard di RxSchedulers
+                }
+            }, RxSchedulers.MainThreadScheduler);
 
             IsDataLoaded = true;
 
-            _ = Task.Delay(300).ContinueWith(async _ =>
+            // Spostamento del focus sull'ID utente in modo asincrono e thread-safe tramite la base
+            if (!_isClosing)
             {
-                await SetFocus(UserIdFocus);
-            });
+                await SetFocus(UserIdFocus, delay: 300);
+            }
         }
 
         protected override Task OnSaving() => Task.CompletedTask;
