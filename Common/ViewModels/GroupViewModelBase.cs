@@ -72,32 +72,10 @@ namespace ViewModels
 
             FilterCommand = LoadCommand;
 
-            
+            AddCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Aggiungi: {ex.Message}"));
+            DelCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Elimina: {ex.Message}"));
+            UpdCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Modifica: {ex.Message}"));
 
-            this.WhenActivated(d =>
-            {
-                // Registrazione degli errori dei comandi per evitare crash spuri
-                AddCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Aggiungi: {ex.Message}")).DisposeWith(d);
-                DelCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Elimina: {ex.Message}")).DisposeWith(d);
-                UpdCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Modifica: {ex.Message}")).DisposeWith(d);
-
-                Disposable.Create(() =>
-                {
-                    // PULIZIA CRITICA: Sgancia esplicitamente le sorgenti dati della View deattivata per il GC
-                    GroupedDataSource = null;
-                    DataSource = null;
-                }).DisposeWith(d);
-
-                HandleCommandsDisposal(d);
-            });
-        }
-
-        private void HandleCommandsDisposal(CompositeDisposable d)
-        {
-            AddCommand?.DisposeWith(d);
-            UpdCommand?.DisposeWith(d);
-            DelCommand?.DisposeWith(d);
-            FilterCommand?.DisposeWith(d);
         }
 
         protected override void OnFinalDestruction()
@@ -107,8 +85,6 @@ namespace ViewModels
             DataSource = null;
             base.OnFinalDestruction();
         }
-
-        
 
 
         // ---------------------------------------------------------------------

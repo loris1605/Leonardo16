@@ -60,8 +60,9 @@ namespace ViewModels
                 (baseExec, localExec) => baseExec || localExec)
             .DistinctUntilChanged();
 
-        public ConnectionViewModel() : base(null)
+        public ConnectionViewModel(IScreen host) : base(null)
         {
+            _host = host;
             // 1. Inizializzazione dello stato di prontezza della UI (già presente)
             _isUiReady = this.WhenAnyValue(
                     x => x.IsLoading,
@@ -118,12 +119,6 @@ namespace ViewModels
             });
         }
 
-
-        public void SetHost(IScreen host)
-        {
-            _host = host;
-        }
-
     
         protected override void OnFinalDestruction()
         {
@@ -175,12 +170,11 @@ namespace ViewModels
             var loginVm = Locator.Current.GetService<ILoginViewModel>();
             if (loginVm != null)
             {
-                loginVm.SetHost(_host);
                 try
                 {
                     // Navigazione nativa e pulita con reset dello stack, forzata sul thread UI principale
-                    await _host.Router.NavigateAndReset.Execute(loginVm)
-                        .ObserveOn(RxSchedulers.MainThreadScheduler);
+                    await _host.Router.NavigateAndReset.Execute(loginVm);
+                        
                 }
                 catch (Exception ex)
                 {

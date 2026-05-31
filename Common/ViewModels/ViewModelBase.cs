@@ -10,7 +10,7 @@ using System.Reactive.Threading.Tasks;
 
 namespace ViewModels
 {
-    public abstract class ViewModelBase : ReactiveObject, IRoutableViewModel, IActivatableViewModel
+    public abstract partial class ViewModelBase : ReactiveObject, IRoutableViewModel, IActivatableViewModel
     {
         // ---------------------------------------------------------------------
         // 1. Proprietà e Implementazione Interfacce (Routing & Activation)
@@ -64,15 +64,15 @@ namespace ViewModels
             HostScreen = hostScreen;
             UrlPathSegment = urlPathSegment ?? GetType().Name;
 
-            // Inizializzazione OAPH legata allo scheduler principale
-            _isLoading = IsAnythingExecuting
-                .ObserveOn(RxSchedulers.MainThreadScheduler)
-                .ToProperty(this, x => x.IsLoading);
+            // 1. Inizializzazione OAPH unica tramite il metodo ereditabile.
+            // Grazie al polimorfismo, se una classe figlia fa l'override di IsAnythingExecuting,
+            // questo metodo userà IMMEDIATAMENTE il flusso corretto ed esteso della figlia.
+            InitializeLoadingHelper();
 
             var isCommandRunning = this.WhenAnyValue(x => x.IsLoading);
 
             // Regola generale: non eseguire comandi se uno di essi è già in esecuzione (con throttle)
-            // Server per evitare i doppi click
+            // Serve per evitare i doppi click
             var canExecuteGeneral = isCommandRunning
                 .Select(loading => !loading)
                 // Evita transizioni spurie e repentine sotto i 100ms
@@ -98,24 +98,28 @@ namespace ViewModels
             EscPressedCommand = ReactiveCommand.CreateFromTask(ExecuteEscing, canEscEffective);
             AppExitCommand = ReactiveCommand.Create(OnAppShutDown);
 
+            // Gestione centralizzata degli errori dei comandi (Durata pari alla VM)
+            // In ReactiveUI, le ThrownExceptions vanno ascoltate qui per evitare crash globali dell'applicazione
+            LoadCommand.ThrownExceptions
+                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore nel caricamento: {ex.Message}"));
+            SaveCommand.ThrownExceptions
+                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore nel salvataggio: {ex.Message}"));
+            EscPressedCommand.ThrownExceptions
+                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore tasto ESC: {ex.Message}"));
+
             TriggerGarbageCollection();
 
-            // Gestione del Ciclo di Vita (Activation)
+            // Gestione del Ciclo di Vita della VIEW (Activation)
             this.WhenActivated(disposables =>
             {
                 _cts = new CancellationTokenSource();
 
-                // Auto-avvio del caricamento all'attivazione
+                // Auto-avvio del caricamento all'attivazione della View
                 Observable.Return(Unit.Default)
                     .InvokeCommand(LoadCommand)
                     .DisposeWith(disposables);
 
-                // Gestione centralizzata degli errori di caricamento
-                LoadCommand.ThrownExceptions
-                    .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore nel caricamento: {ex.Message}"))
-                    .DisposeWith(disposables);
-
-                // Logica di smaltimento risorse (Teardown)
+                // Logica di smaltimento risorse (Teardown quando la View viene scollegata o chiusa)
                 Disposable.Create(() =>
                 {
                     _cts?.Cancel();
@@ -125,19 +129,16 @@ namespace ViewModels
                     OnFinalDestruction();
                 }).DisposeWith(disposables);
 
-                // Registrazione dei comandi nei disposables
-                LoadCommand.DisposeWith(disposables);
-                SaveCommand.DisposeWith(disposables);
-                EscPressedCommand.DisposeWith(disposables);
-                AppExitCommand.DisposeWith(disposables);
+                // ⚠️ RIMOSSI I .DisposeWith(disposables) DEI COMANDI DA QUI!
+                // I comandi appartengono alla ViewModel e devono sopravvivere ai cambi di pagina della View.
+                // Verranno distrutti automaticamente dal GC insieme alla ViewModel.
             });
         }
 
+
         protected void InitializeLoadingHelper()
         {
-            // Smaltisce il vecchio helper se esiste (opzionale ma pulito)
-            _isLoading?.Dispose();
-
+                        
             _isLoading = IsAnythingExecuting
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
                 .ToProperty(this, x => x.IsLoading);
@@ -169,6 +170,11 @@ namespace ViewModels
             catch (Exception ex) { Debug.WriteLine($"ERRORE ESC: {ex.Message}"); }
         }
 
+        
+    }
+
+    public abstract partial class ViewModelBase
+    {
         // ---------------------------------------------------------------------
         // 7. Metodi Virtuali di Ciclo di Vita (Hook per le classi derivate)
         // ---------------------------------------------------------------------
@@ -200,7 +206,7 @@ namespace ViewModels
             await TriggerInteraction(focusInteraction, Unit.Default, delay);
         }
 
-        
+
         private static void TriggerGarbageCollection()
         {
 #if DEBUG

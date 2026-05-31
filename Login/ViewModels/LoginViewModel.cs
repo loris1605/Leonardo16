@@ -32,16 +32,12 @@ namespace ViewModels
                 pass == operatore.Password);
 
 
-        public LoginViewModel(ILoginRepository Repository) : base(null)
+        public LoginViewModel(IScreen host, ILoginRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-            
+            _host = host;
         } 
 
-        public void SetHost(IScreen host)
-        {
-            _host = host;
-        }
 
         protected override void OnFinalDestruction()
         {
@@ -128,8 +124,7 @@ namespace ViewModels
                 _isClosing = true;
 
                 // Navigazione reattiva nativa e pulita sul thread della UI, senza wrapper Observable extra
-                await _host.Router.NavigateAndReset.Execute(menuVm)
-                    .ObserveOn(RxSchedulers.MainThreadScheduler);
+                await _host.Router.NavigateAndReset.Execute(menuVm);
             }
             catch (Exception ex)
             {

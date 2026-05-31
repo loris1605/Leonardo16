@@ -215,6 +215,7 @@ namespace ViewModels
         private async Task GoToCassa(int postazioneId)
         {
             _isClosing = true;
+
             var cassaVm = Locator.Current.GetService<ICassaViewModel>();
             if (cassaVm != null)
             {
@@ -222,10 +223,7 @@ namespace ViewModels
                 cassaVm.SetPostazioneId(postazioneId);
                 try
                 {
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(cassaVm);
-                    }, RxSchedulers.MainThreadScheduler);
+                    await _host.Router.NavigateAndReset.Execute(cassaVm);
                 }
                 catch (Exception ex)
                 {
@@ -249,14 +247,10 @@ namespace ViewModels
             if (loginVm != null)
             {
                 // 2. Impostiamo l'host (lo screen principale)
-                loginVm.SetHost(_host);
                 try
                 {
                     // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(loginVm);
-                    }, RxSchedulers.MainThreadScheduler);
+                    await _host.Router.NavigateAndReset.Execute(loginVm);
                 }
                 catch (Exception ex)
                 {
@@ -278,14 +272,10 @@ namespace ViewModels
             if (connectionVm != null)
             {
                 // 2. Impostiamo l'host (lo screen principale)
-                connectionVm.SetHost(_host);
                 try
                 {
                     // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(connectionVm);
-                    }, RxSchedulers.MainThreadScheduler);
+                    await _host.Router.NavigateAndReset.Execute(connectionVm);
                 }
                 catch (Exception ex)
                 {
@@ -311,10 +301,7 @@ namespace ViewModels
                 try
                 {
                     // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(configurazioneVm);
-                    }, RxSchedulers.MainThreadScheduler);
+                    await _host.Router.NavigateAndReset.Execute(configurazioneVm);
                 }
                 catch (Exception ex)
                 {
@@ -336,14 +323,10 @@ namespace ViewModels
             if (sociVm != null)
             {
                 // 2. Impostiamo l'host (lo screen principale)
-                sociVm.SetHost(_host);
                 try
                 {
                     // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await Observable.Start(async () =>
-                    {
-                        await _host.Router.NavigateAndReset.Execute(sociVm);
-                    }, RxSchedulers.MainThreadScheduler);
+                    await _host.Router.NavigateAndReset.Execute(sociVm);
                 }
                 catch (Exception ex)
                 {

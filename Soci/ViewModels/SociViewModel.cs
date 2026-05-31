@@ -41,15 +41,9 @@ namespace ViewModels
         // ---------------------------------------------------------------------
         // Constructor
         // ---------------------------------------------------------------------
-        public SociViewModel() : base(null)
+        public SociViewModel(IScreen host) : base(null)
         {
-            // La gestione del ciclo di vita dei router o sottoscrizioni aggiuntive va qui
-            
-        }
-
-        public void SetHost(IScreen host)
-        {
-            _host = host;
+            _host = host;            
         }
 
         // ---------------------------------------------------------------------

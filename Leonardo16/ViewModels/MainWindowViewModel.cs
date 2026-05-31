@@ -70,26 +70,25 @@ namespace ViewModels
 
                     // 3. Risoluzione ViewModel e navigazione sul Main Thread
                     var loginVM = Locator.Current.GetService<ILoginViewModel>();
-                    if (loginVM != null)
+
+                    try
                     {
-                        loginVM.SetHost(this);
-                        // Forza l'esecuzione del comando di navigazione sul thread UI
-                        await Observable.Start(async () =>
-                            await Router.NavigateAndReset.Execute(loginVM),
-                            RxSchedulers.MainThreadScheduler);
+                        // Navigazione nativa e pulita con reset dello stack, forzata sul thread UI principale
+                        await Router.NavigateAndReset.Execute(loginVM);
+
                     }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"ERRORE durante la navigazione al Login: {ex.Message}");
+                    }
+
                 }
                 else
                 {
                     // 4. Gestione caso Server spento / Errore connessione
                     var connectionVM = Locator.Current.GetService<IConnectionViewModel>();
-                    if (connectionVM != null)
-                    {
-                        connectionVM.SetHost(this);
-                        await Observable.Start(async () =>
-                            await Router.NavigateAndReset.Execute(connectionVM),
-                            RxSchedulers.MainThreadScheduler);
-                    }
+                    if (connectionVM != null) await Router.NavigateAndReset.Execute(connectionVM);
+                   
                 }
             }
             catch (Exception ex)
