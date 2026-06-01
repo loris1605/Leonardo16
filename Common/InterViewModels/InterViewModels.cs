@@ -4,16 +4,10 @@ namespace Common.InterViewModels
 {
    
     public interface IMainWindowViewModel : IRoutableViewModel { }
-
     public interface ILoginViewModel : IRoutableViewModel { }
-
     public interface IConnectionViewModel : IRoutableViewModel { }
+    public interface IMenuViewModel : IRoutableViewModel { }
     
-
-    public interface IMenuViewModel : IRoutableViewModel
-    {
-        void SetHost(IScreen host);
-    }
 
     public interface ISociViewModel : IRoutableViewModel { }
     

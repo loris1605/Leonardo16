@@ -65,7 +65,6 @@ namespace ViewModels
                 SettingsRouter.NavigationStack.Clear(); // Pulisce anche il router delle impostazioni se necessario
 
                 // 2. Impostiamo l'host (lo screen principale)
-                menuVm.SetHost(_host);
                 try
                 {
                     // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI

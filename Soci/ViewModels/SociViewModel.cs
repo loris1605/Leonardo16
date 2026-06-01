@@ -88,7 +88,6 @@ namespace ViewModels
             var menuVm = Locator.Current.GetService<IMenuViewModel>();
             if (menuVm != null)
             {
-                menuVm.SetHost(_host);
                 try
                 {
                     // Ritorno sicuro e asincrono al Menu principale resettando lo stack

@@ -203,9 +203,12 @@ namespace Leonardo16
 
         private static void RegisterViews(IServiceCollection services)
         {
-            services.AddTransient<MainWindow>();
-            services.AddSingleton<IScreen>(sp => sp.GetRequiredService<MainWindowViewModel>());
-            
+            services.AddTransient<MainWindow>();// 2. Risolvi IScreen estraendo l'istanza dall'interfaccia IMainWindowViewModel appena registrata
+            services.AddSingleton<IScreen>(sp => {
+                var mainWindowVm = sp.GetRequiredService<IMainWindowViewModel>();
+                return (IScreen)mainWindowVm;
+            });
+
         }
 
         

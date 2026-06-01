@@ -77,7 +77,6 @@ namespace ViewModels
             if (menuVm != null)
             {
                 // 2. Impostiamo l'host (lo screen principale)
-                menuVm.SetHost(_host);
                 try
                 {
                     // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI

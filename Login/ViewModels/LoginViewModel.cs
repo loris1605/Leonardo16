@@ -117,8 +117,7 @@ namespace ViewModels
                 return;
             }
 
-            menuVm.SetHost(_host);
-
+           
             try
             {
                 _isClosing = true;

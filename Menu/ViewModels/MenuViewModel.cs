@@ -58,9 +58,10 @@ namespace ViewModels
         // ---------------------------------------------------------------------
         // Constructor
         // ---------------------------------------------------------------------
-        public MenuViewModel(IMenuRepository Repository) : base(null)
+        public MenuViewModel(IScreen host, IMenuRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
+            _host = host;
 
             // 1. Collegamento e aggiornamento delle proprietà OAPH definite nel file parziale
             _chiudiGiornataEnabled = this.WhenAnyValue(x => x.ApriGiornataEnabled)
@@ -110,11 +111,6 @@ namespace ViewModels
                 ConnectionCommand.DisposeWith(d);
             });
 
-        }
-
-        public void SetHost(IScreen host)
-        {
-            _host = host;
         }
 
         // ---------------------------------------------------------------------
