@@ -94,7 +94,7 @@ namespace ViewModels
                 }
             });
 
-            InitializeLoadingHelper();
+            
 
             this.WhenActivated(d =>
             {

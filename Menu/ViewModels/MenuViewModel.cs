@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace ViewModels
 {
@@ -147,7 +148,13 @@ namespace ViewModels
             base.OnFinalDestruction();
         }
 
-        
+        // 1. Aggiungi questo Subject per notificare l'esterno
+        private readonly Subject<Unit> _menuToLogin = new();
+        public IObservable<Unit> MenuToLogin => _menuToLogin.AsObservable();
+
+        private readonly Subject<Unit> _menuToSoci = new();
+        public IObservable<Unit> MenuToSoci => _menuToSoci.AsObservable();
+
 
         private void AttivaPermessi()
         {
@@ -239,26 +246,10 @@ namespace ViewModels
         private async Task GoToLogin()
         {
             _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
-            var loginVm = Locator.Current.GetService<ILoginViewModel>();
-            if (loginVm != null)
-            {
-                // 2. Impostiamo l'host (lo screen principale)
-                try
-                {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await _host.Router.NavigateAndReset.Execute(loginVm);
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione al Login: {ex.Message}");
-                }
-            }
-            else
-            {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: ILoginViewModel non è stato risolto dal Locator.");
-            }
+            _menuToLogin.OnNext(Unit.Default);
+            _menuToLogin.OnCompleted();
+
+            await Task.CompletedTask;
         }
 
         private async Task GoToConnection()
@@ -315,26 +306,31 @@ namespace ViewModels
         private async Task GoToSoci()
         {
             _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
-            var sociVm = Locator.Current.GetService<ISociViewModel>();
-            if (sociVm != null)
-            {
-                // 2. Impostiamo l'host (lo screen principale)
-                try
-                {
-                    // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
-                    await _host.Router.NavigateAndReset.Execute(sociVm);
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione alla Soci: {ex.Message}");
-                }
-            }
-            else
-            {
-                _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: ISociViewModel non è stato risolto dal Locator.");
-            }
+            _menuToSoci.OnNext(Unit.Default);
+            _menuToSoci.OnCompleted();
+
+            await Task.CompletedTask;
+
+            //var sociVm = Locator.Current.GetService<ISociViewModel>();
+            //if (sociVm != null)
+            //{
+            //    // 2. Impostiamo l'host (lo screen principale)
+            //    try
+            //    {
+            //        // 3. Eseguiamo la navigazione FORZANDOLA sul Main Thread della UI
+            //        await _host.Router.NavigateAndReset.Execute(sociVm);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        _isClosing = false;
+            //        Debug.WriteLine($"ERRORE durante la navigazione alla Soci: {ex.Message}");
+            //    }
+            //}
+            //else
+            //{
+            //    _isClosing = false; // Permette all'utente di riprovare se il DI fallisce
+            //    Debug.WriteLine("ERRORE CRITICO: ISociViewModel non è stato risolto dal Locator.");
+            //}
         }
 
         private async Task ExecuteOpenGiornata()

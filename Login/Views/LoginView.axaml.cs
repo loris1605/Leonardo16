@@ -1,12 +1,8 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using ReactiveUI;
-using ReactiveUI.Avalonia;
-using System;
-using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -25,74 +21,76 @@ public partial class LoginView : BaseUserControl<LoginViewModel>
 
         this.WhenActivated(d =>
         {
-            ViewModel?.PasswordFocus
-                    .RegisterHandler(interaction =>
-                    {
-                        Dispatcher.UIThread.Post(() =>
+            // BLINDARE L'ATTIVAZIONE: Eseguiamo i binding e i comandi solo quando
+            // il ViewModel è realmente presente e agganciato alla View
+            this.WhenAnyValue(x => x.ViewModel)
+                .Where(vm => vm != null)
+                .Subscribe(vm =>
+                {
+                    // Crea un CompositeDisposable dedicato al ciclo di vita del singolo ViewModel agganciato
+                    var vmDisposables = new CompositeDisposable();
+
+                    // 1. Gestione Focus Interaction
+                    vm.PasswordFocus
+                        .RegisterHandler(async interaction =>
                         {
-                            PasswordBox.Focus();
-                            PasswordBox.SelectAll();
-                        });
-                        interaction.SetOutput(Unit.Default);
+                            await Dispatcher.UIThread.InvokeAsync(() =>
+                            {
+                                PasswordBox.Focus();
+                                PasswordBox.SelectAll();
+                            });
+                            interaction.SetOutput(Unit.Default);
+                        })
+                        .DisposeWith(vmDisposables);
+
+                    // 2. Gestione Tasto ESCAPE
+                    Observable.FromEventPattern<KeyEventArgs>(this, nameof(this.KeyDown))
+                        .Where(e => e.EventArgs.Key == Key.Escape)
+                        .Select(_ => Unit.Default)
+                        .InvokeCommand(vm.EscPressedCommand)
+                        .DisposeWith(vmDisposables);
+
+                    // 3. Gestione Tasto ENTER sulla PasswordBox (Bypass del blocco nativo)
+                    Observable.Create<EventPattern<KeyEventArgs>>(observer =>
+                    {
+                        void handler(object s, KeyEventArgs e) => observer.OnNext(new EventPattern<KeyEventArgs>(s, e));
+
+                        // CORRETTO: Usiamo RoutingStrategies.Tunneling (con la -ing finale)
+                        PasswordBox.AddHandler(InputElement.KeyDownEvent, handler, RoutingStrategies.Tunnel, true);
+
+                        return Disposable.Create(() => PasswordBox.RemoveHandler(InputElement.KeyDownEvent, handler));
                     })
-                    .DisposeWith(d);
-
-            // Esc Key Pressed
-            Observable.FromEventPattern<KeyEventArgs>(this, nameof(this.KeyDown))
-                    .Where(e => e.EventArgs.Key == Key.Escape)
-                    .Select(_ => Unit.Default) // <--- AGGIUNGI QUESTA RIGA
-                    .InvokeCommand(ViewModel, vm => vm.EscPressedCommand)
-                    .DisposeWith(d);
-
-            //// Enter Key Pressed
-            Observable.FromEventPattern<KeyEventArgs>(PasswordBox, nameof(PasswordBox.KeyUp))
                     .Where(e => e.EventArgs.Key == Key.Enter)
-                    .Select(_ => Unit.Default) // <--- AGGIUNGI QUESTA RIGA
-                    .InvokeCommand(ViewModel, vm => vm.SaveCommand)
-            .DisposeWith(d);
+                    .Select(_ => Unit.Default)
+                    .InvokeCommand(vm.SaveCommand) // Ora sicuro perché 'vm' non è nullo
+                    .DisposeWith(vmDisposables);
 
-            #region TwoWay
+                    // 4. BINDING REATTIVI
+                    this.Bind(vm, viewModel => viewModel.PasswordText, view => view.PasswordBox.Text)
+                        .DisposeWith(vmDisposables);
 
-            //Bind PasswordText to TextBox
-            this.Bind(ViewModel,
-                      vm => vm.PasswordText,
-                      v => v.PasswordBox.Text)
+                    this.Bind(vm, viewModel => viewModel.BindingT, view => view.OperatoreCombo.SelectedItem)
+                        .DisposeWith(vmDisposables);
+
+                    // Pulisce tutto se il ViewModel cambia o la View viene disattivata
+                    vmDisposables.DisposeWith(d);
+                })
                 .DisposeWith(d);
 
-            // Bind SelectedItem to ComboBox
-            this.Bind(ViewModel,
-                      vm => vm.BindingT,
-                      v => v.OperatoreCombo.SelectedItem)
-                .DisposeWith(d);
-
-            #endregion
-
-            #region OneWay
-
-
-            #endregion
-
-            #region Commands
-
-
-            #endregion
-
-            //Evento DropDownClose sulla Combo
+            // 5. EVENTO COMBO BOX (Indipendente dal ViewModel, legato solo alla View)
             Observable.FromEventPattern<EventHandler, EventArgs>(
                         h => OperatoreCombo.DropDownClosed += h,
                         h => OperatoreCombo.DropDownClosed -= h)
-            .Subscribe(_ =>
-            {
-                // Rimando al dispatcher per sicurezza
-                Dispatcher.UIThread.InvokeAsync(() =>
+                .Select(_ => Unit.Default)
+                .Subscribe(async _ =>
                 {
-                    PasswordBox.Focus();
-                    PasswordBox.SelectAll();
-                });
-            })
-            .DisposeWith(d);
-           
-
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        PasswordBox.Focus();
+                        PasswordBox.SelectAll();
+                    });
+                })
+                .DisposeWith(d);
         });
     }
 

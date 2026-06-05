@@ -1,15 +1,14 @@
 ﻿using Common.InterViewModels;
 using DTO.Repository;
 using ReactiveUI;
-using Splat;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
-    
 
     public partial class LoginViewModel : ViewModelBase, ILoginViewModel
     {
@@ -29,13 +28,17 @@ namespace ViewModels
             (pass, operatore) =>
                 !string.IsNullOrWhiteSpace(pass) &&
                 operatore != null &&
-                pass == operatore.Password);
+                pass == operatore.Password)
+            // Evita che ogni singolo carattere digitato intasi il flusso CombineLatest della base
+            .DistinctUntilChanged()
+            .ObserveOn(RxSchedulers.MainThreadScheduler);
 
 
-        public LoginViewModel(IScreen host, ILoginRepository Repository) : base(null)
+        public LoginViewModel(IScreen host, ILoginRepository Repository) : base(host)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
             _host = host;
+
         } 
 
 
@@ -58,19 +61,25 @@ namespace ViewModels
         {
             var dbData = await Q.GetOperatoriAbilitati(Token);
 
+            if (Token.IsCancellationRequested) return;
+
             if (dbData?.Count > 0)
             {
-
+                var localList = dbData.Select(dto => new LoginMap(dto)).ToList();
                 // Trasforma l'Expression in una funzione e usala con LINQ .Select()
                 // Aggiorna la DataSource della UI
-                DataSource = dbData.Select(dto => new LoginMap(dto)).ToList();
 
+                DataSource = localList;
+                await Task.Delay(10, Token);
+                if (Token.IsCancellationRequested) return;
                 // Seleziona il primo operatore
-                BindingT = DataSource[0];
+                BindingT = localList[0];
             }
 
-            if (!_isClosing)
+            if (!_isClosing && !Token.IsCancellationRequested)
+            {
                 await SetFocus(PasswordFocus);
+            }
 
         }
 
@@ -80,10 +89,18 @@ namespace ViewModels
             try
             {
                 // Salva le impostazioni dell'operatore selezionato
-                await Q.SaveSettings(BindingT.ToDto());
+                await Q.SaveSettings(BindingT.ToDto(), Token);
 
                 // Naviga al Menu principale resettando lo stack di navigazione
-                await GoToMenu();
+                // 2. Al posto di GoToMenu(), suoniamo il campanello!
+                _isClosing = true;
+                _loginSuccesso.OnNext(Unit.Default);
+                _loginSuccesso.OnCompleted(); // Chiude il canale per sempre
+            }
+            catch (OperationCanceledException)
+            {
+                _isClosing = false;
+                Debug.WriteLine("Salvataggio login annullato tramite Token.");
             }
             catch (Exception ex)
             {
@@ -103,40 +120,14 @@ namespace ViewModels
             return Task.CompletedTask;
         }
 
-        // ---------------------------------------------------------------------
-        // 5. Metodi di Supporto Privati
-        // ---------------------------------------------------------------------
-        private async Task GoToMenu()
-        {
-            var menuVm = Locator.Current.GetService<IMenuViewModel>();
-
-            if (menuVm == null)
-            {
-                _isClosing = false; // Permette di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
-                return;
-            }
-
-           
-            try
-            {
-                _isClosing = true;
-
-                // Navigazione reattiva nativa e pulita sul thread della UI, senza wrapper Observable extra
-                await _host.Router.NavigateAndReset.Execute(menuVm);
-            }
-            catch (Exception ex)
-            {
-                _isClosing = false;
-                Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
-            }
-
-            
-        }
     }
 
     public partial class LoginViewModel
     {
+        // 1. Aggiungi questo Subject per notificare l'esterno
+        private readonly Subject<Unit> _loginSuccesso = new();
+        public IObservable<Unit> LoginSuccesso => _loginSuccesso.AsObservable();
+
         // ---------------------------------------------------------------------
         // 2. Proprietà e Stato della UI (con Bindings)
         // ---------------------------------------------------------------------

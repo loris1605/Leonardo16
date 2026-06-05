@@ -1,13 +1,20 @@
 ﻿using ReactiveUI;
+using System.Reactive;
 
 namespace Common.InterViewModels
 {
    
     public interface IMainWindowViewModel : IRoutableViewModel { }
-    public interface ILoginViewModel : IRoutableViewModel { }
+    public interface ILoginViewModel : IRoutableViewModel
+    {
+        IObservable<Unit> LoginSuccesso { get; }
+    }
+
     public interface IConnectionViewModel : IRoutableViewModel { }
-    public interface IMenuViewModel : IRoutableViewModel { }
-    
+    public interface IMenuViewModel : IRoutableViewModel
+    {
+        IObservable<Unit> MenuToLogin { get; }
+    }
 
     public interface ISociViewModel : IRoutableViewModel { }
     

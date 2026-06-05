@@ -108,7 +108,7 @@ namespace ViewModels
                 }
             }, canHasSelection);
 
-            InitializeLoadingHelper();
+            
 
             IsAnythingExecuting =
             new[]

@@ -114,7 +114,7 @@ namespace ViewModels
                    TariffeCommand.IsExecuting
                 }.CombineLatest(values => values.Any(x => x));
 
-            InitializeLoadingHelper();
+            
 
             //this.WhenActivated(d =>
             //{

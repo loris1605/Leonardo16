@@ -1,6 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using ReactiveUI;
+﻿using ReactiveUI;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -34,8 +32,9 @@ namespace ViewModels
         public bool IsLoading => _isLoading.Value;
 
         protected bool _isClosing;
-        protected CancellationTokenSource _cts;
-        protected CancellationToken Token => _cts?.Token ?? CancellationToken.None;
+
+        protected CancellationTokenSource _cts = new();
+        protected CancellationToken Token => _cts.Token;
 
         // ---------------------------------------------------------------------
         // 4. Condizioni di Esecuzione Sotto-Classi (Override facoltativi)
@@ -43,16 +42,23 @@ namespace ViewModels
         protected virtual IObservable<bool> CanSave => Observable.Return(true);
         protected virtual IObservable<bool> CanEsc => Observable.Return(true);
 
+        // Contenitore per le sottoscrizioni che devono durare quanto il ViewModel
+        private readonly CompositeDisposable d = new();
+
         // ---------------------------------------------------------------------
         // 5. Flussi Reattivi Centralizzati
         // ---------------------------------------------------------------------
+        
         protected virtual IObservable<bool> IsAnythingExecuting =>
-            Observable.CombineLatest(
-                this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
-                this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
-                this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
-                (l, s, e) => l || s || e)
-            .DistinctUntilChanged();
+        Observable.Defer(() => Observable.CombineLatest(
+            this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
+            this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
+            this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
+            (l, s, e) => l || s || e))
+        .DistinctUntilChanged();
+
+
+
 
         // ---------------------------------------------------------------------
         // Constructor
@@ -64,10 +70,12 @@ namespace ViewModels
             HostScreen = hostScreen;
             UrlPathSegment = urlPathSegment ?? GetType().Name;
 
-            // 1. Inizializzazione OAPH unica tramite il metodo ereditabile.
-            // Grazie al polimorfismo, se una classe figlia fa l'override di IsAnythingExecuting,
-            // questo metodo userà IMMEDIATAMENTE il flusso corretto ed esteso della figlia.
-            InitializeLoadingHelper();
+            // RISOLTO: Inizializzazione OAPH sicura al 100% per il polimorfismo.
+            // Utilizzando l'operatore Defer nell'IsAnythingExecuting, questo ToProperty 
+            // non romperà il costruttore delle classi figlie.
+            _isLoading = IsAnythingExecuting
+                .ToProperty(this, x => x.IsLoading)
+                .DisposeWith(d);
 
             var isCommandRunning = this.WhenAnyValue(x => x.IsLoading);
 
@@ -76,7 +84,7 @@ namespace ViewModels
             var canExecuteGeneral = isCommandRunning
                 .Select(loading => !loading)
                 // Evita transizioni spurie e repentine sotto i 100ms
-                .Throttle(TimeSpan.FromMilliseconds(100), RxSchedulers.MainThreadScheduler)
+                .Throttle(TimeSpan.FromMilliseconds(100))
                 // FONDAMENTALE: Se un comando parte, la UI deve disabilitarsi SUBITO (0 ms) per bloccare il doppio clic
                 .Merge(isCommandRunning.Where(loading => loading).Select(_ => false))
                 .StartWith(true)
@@ -85,12 +93,10 @@ namespace ViewModels
 
             // Combinazione delle logiche generali con i vincoli specifici
             var canSaveEffective = canExecuteGeneral
-                .CombineLatest(CanSave, (gen, s) => gen && s)
-                .ObserveOn(RxSchedulers.MainThreadScheduler);
+                .CombineLatest(CanSave, (gen, s) => gen && s);
 
             var canEscEffective = canExecuteGeneral
-                .CombineLatest(CanEsc, (gen, e) => gen && e)
-                .ObserveOn(RxSchedulers.MainThreadScheduler);
+                .CombineLatest(CanEsc, (gen, e) => gen && e);
 
             // Inizializzazione dei Comandi
             LoadCommand = ReactiveCommand.CreateFromTask(ExecuteLoading, canExecuteGeneral);
@@ -101,19 +107,21 @@ namespace ViewModels
             // Gestione centralizzata degli errori dei comandi (Durata pari alla VM)
             // In ReactiveUI, le ThrownExceptions vanno ascoltate qui per evitare crash globali dell'applicazione
             LoadCommand.ThrownExceptions
-                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore nel caricamento: {ex.Message}"));
+                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore nel caricamento: {ex.Message}"))
+                .DisposeWith(d);
             SaveCommand.ThrownExceptions
-                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore nel salvataggio: {ex.Message}"));
+                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore nel salvataggio: {ex.Message}"))
+                .DisposeWith(d);
             EscPressedCommand.ThrownExceptions
-                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore tasto ESC: {ex.Message}"));
+                .Subscribe(ex => Debug.WriteLine($"***** [VM] {GetType().Name} Errore tasto ESC: {ex.Message}"))
+                .DisposeWith(d);
 
             TriggerGarbageCollection();
 
             // Gestione del Ciclo di Vita della VIEW (Activation)
             this.WhenActivated(disposables =>
             {
-                _cts = new CancellationTokenSource();
-
+                
                 // Auto-avvio del caricamento all'attivazione della View
                 Observable.Return(Unit.Default)
                     .InvokeCommand(LoadCommand)
@@ -124,7 +132,6 @@ namespace ViewModels
                 {
                     _cts?.Cancel();
                     _cts?.Dispose();
-                    _cts = null;
 
                     OnFinalDestruction();
                 }).DisposeWith(disposables);
@@ -135,14 +142,6 @@ namespace ViewModels
             });
         }
 
-
-        protected void InitializeLoadingHelper()
-        {
-                        
-            _isLoading = IsAnythingExecuting
-                .ObserveOn(RxSchedulers.MainThreadScheduler)
-                .ToProperty(this, x => x.IsLoading);
-        }
 
         // ---------------------------------------------------------------------
         // 6. Wrapper di Esecuzione Protetto (Invocati dai Comandi)
@@ -185,6 +184,16 @@ namespace ViewModels
         //  CORRETTO: Deve essere void, non Task
         protected virtual void OnFinalDestruction()
         {
+            // Annulla i task in corso legati alla VM prima di distruggerla
+            if (!_cts.IsCancellationRequested)
+            {
+                _cts.Cancel();
+                _cts.Dispose();
+            }
+
+            // Svuota e distrugge tutte le sottoscrizioni nate nel costruttore (Evita Memory Leak)
+            d.Dispose();
+
             TriggerGarbageCollection();
             Debug.WriteLine($"***** [VM] {GetType().Name} {GetHashCode()} rimosso dallo stack *****");
         }
@@ -195,7 +204,7 @@ namespace ViewModels
         protected void OnAppShutDown()
         {
             _isClosing = true;
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime lifetime)
             {
                 lifetime.Shutdown();
             }
@@ -210,10 +219,16 @@ namespace ViewModels
         private static void TriggerGarbageCollection()
         {
 #if DEBUG
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            // Eseguiamo la raccolta sul pool di thread, lasciando libero il thread UI
+            Task.Run(async () =>
+            {
+                await Task.Delay(200); // Lascia il tempo ad Avalonia di smontare la View
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                Debug.WriteLine("***** [GC] Raccolta forzata completata in background *****");
+            });
 #endif
         }
 

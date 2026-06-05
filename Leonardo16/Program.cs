@@ -10,6 +10,7 @@ using ReactiveUI.Avalonia;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Reactive.Concurrency;
 using ViewModels;
 using Views;
 
@@ -19,8 +20,32 @@ namespace Leonardo16
     internal class Program
     {
         [STAThread]
-        public static void Main(string[] args) => BuildAvaloniaApp()
+        public static void Main(string[] args)
+        {
+            // Usiamo lo scheduler centralizzato per catturare l'errore in modo sicuro
+            RxSchedulers.MainThreadScheduler.Schedule(() =>
+            {
+                // Ci mettiamo in ascolto degli errori non gestiti registrati sulla nostra infrastruttura reattiva
+                System.AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+                {
+                    if (e.ExceptionObject is Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine("====================================================");
+                        System.Diagnostics.Debug.WriteLine($"🚨 CRASH REATTIVO INTERCETTATO (RxSchedulers): {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Origine: {ex.TargetSite}");
+                        System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
+                        if (ex.InnerException != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                        }
+                        System.Diagnostics.Debug.WriteLine("====================================================");
+                    }
+                };
+            });
+
+            BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
+        }
 
         public static AppBuilder BuildAvaloniaApp()
         {
@@ -61,8 +86,7 @@ namespace Leonardo16
         {
             services.AddTransient<AppDbContext>();
             services.AddTransient<ISettingDbContext, SettingDbContext>();
-            services.AddTransient<ILoginDbContext, LoginDbContext>();
-            services.AddTransient<IMenuDbContext, MenuDbContext>();
+            //services.AddTransient<IMenuDbContext, MenuDbContext>();
             services.AddTransient<IOperatoreDbContext, OperatoreDbContext>();
             services.AddTransient<IPostazioneDbContext, PostazioneDbContext>();
             services.AddTransient<ISettoreDbContext, SettoreDbContext>();
@@ -81,8 +105,7 @@ namespace Leonardo16
         {
             // Repository
             services.AddTransient<ISettingRepository, SettingRepository>();
-            services.AddTransient<ILoginRepository, LoginRepository>();
-            services.AddTransient<IMenuRepository, MenuRepository>();
+            //services.AddTransient<IMenuRepository, MenuRepository>();
             services.AddTransient<IOperatoreRepository, OperatoreRepository>();
             services.AddTransient<IPostazioneRepository, PostazioneRepository>();
             services.AddTransient<ISettoreRepository, SettoreRepository >();
@@ -100,11 +123,10 @@ namespace Leonardo16
         {
             
             // ViewModels
-            services.AddTransient<IMainWindowViewModel, MainWindowViewModel>();
+            services.AddSingleton<IMainWindowViewModel, MainWindowViewModel>();
 
-            services.AddTransient<IConnectionViewModel, ConnectionViewModel>();
-            services.AddTransient<ILoginViewModel, LoginViewModel>();
-            services.AddTransient<IMenuViewModel, MenuViewModel>();
+            //services.AddTransient<IConnectionViewModel, ConnectionViewModel>();
+            //services.AddTransient<IMenuViewModel, MenuViewModel>();
 
             services.AddTransient<ISociViewModel, SociViewModel>();
             services.AddTransient<IPersonGroupViewModel, PersonGroupViewModel>();
@@ -157,10 +179,9 @@ namespace Leonardo16
             // Views (Necessarie per il Routing di ReactiveUI)
 
             services.AddTransient<IViewFor<MainWindowViewModel>, MainWindow>();
-            services.AddTransient<IViewFor<LoginViewModel>, LoginView>();
-            services.AddTransient<IViewFor<ConnectionViewModel>, ConnectionView>();
+            //services.AddTransient<IViewFor<ConnectionViewModel>, ConnectionView>();
 
-            services.AddTransient<IViewFor<MenuViewModel>, MenuView>();
+           // services.AddTransient<IViewFor<MenuViewModel>, MenuView>();
 
             services.AddTransient<IViewFor<SociViewModel>, SociView>();
             services.AddTransient<IViewFor<PersonGroupViewModel>, PersonGroupView>();
