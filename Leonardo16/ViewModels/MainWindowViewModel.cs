@@ -258,7 +258,7 @@ namespace ViewModels
                         .ObserveOn(RxSchedulers.MainThreadScheduler)
                         .Subscribe(async _ =>
                         {
-                            // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
+                            // Quando riceviamo il segnale di uscita riuscito, navighiamo al Menu
                             await GoToMenu();
                         });
 

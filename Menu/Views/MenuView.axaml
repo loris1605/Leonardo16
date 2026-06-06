@@ -7,7 +7,6 @@
              xmlns:dt="using:Menu.ViewModels.Map"
              xmlns:ui="using:ControlStyles"
              xmlns:lc="using:Leonardo"
-             xmlns:material="using:Material.Icons.Avalonia"
              KeyboardNavigation.TabNavigation="Cycle"
              Background="#F3F3F3"
              x:DataType="vm:MenuViewModel"
@@ -57,10 +56,10 @@
 
                         <ui:UiMenuItem x:Name="SociItem"
                                        Header="  SOCI  "
-                                       Command="{Binding SociCommand}"
+                                       Command="{Binding #Root.((vm:MenuViewModel)DataContext).SociCommand}"
                                        MaxHeight="50"/>
 
-                        <ui:UiMenuItem x:Name="ConfigurazioneItem"
+                        <!--<ui:UiMenuItem x:Name="ConfigurazioneItem"
                                        Header="  CONFIGURAZIONE  " 
                                        Command="{Binding ConfigurazioneCommand}"
                                        MaxHeight="50"/>
@@ -69,7 +68,7 @@
                                        Header="  SERVIZI  " 
                                        MaxHeight="50"
                                        Command="{Binding NavigateCommand}"
-                                       CommandParameter="Servizi"/>
+                                       CommandParameter="Servizi"/>-->
                     
                     
                     </ui:UiMenuItem>

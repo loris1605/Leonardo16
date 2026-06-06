@@ -86,7 +86,6 @@ namespace Leonardo16
         {
             services.AddTransient<AppDbContext>();
             services.AddTransient<ISettingDbContext, SettingDbContext>();
-            //services.AddTransient<IMenuDbContext, MenuDbContext>();
             services.AddTransient<IOperatoreDbContext, OperatoreDbContext>();
             services.AddTransient<IPostazioneDbContext, PostazioneDbContext>();
             services.AddTransient<ISettoreDbContext, SettoreDbContext>();
@@ -94,7 +93,6 @@ namespace Leonardo16
             services.AddTransient<IPermessoDbContext, PermessoDbContext>();
             services.AddTransient<IRepartoDbContext, RepartoDbContext>();
             services.AddTransient<IListinoDbContext, ListinoDbContext>();
-            services.AddTransient<IPeopleDbContext, PeopleDbContext>();
             services.AddTransient<ICassaPostazioneDbContext, CassaPostazioneDbContext>();
             services.AddTransient<IStrisciateDbContext, StrisciateDbContext>();
             services.AddTransient<IEntraSocioDbContext,  EntraSocioDbContext>();
@@ -105,7 +103,6 @@ namespace Leonardo16
         {
             // Repository
             services.AddTransient<ISettingRepository, SettingRepository>();
-            //services.AddTransient<IMenuRepository, MenuRepository>();
             services.AddTransient<IOperatoreRepository, OperatoreRepository>();
             services.AddTransient<IPostazioneRepository, PostazioneRepository>();
             services.AddTransient<ISettoreRepository, SettoreRepository >();
@@ -113,7 +110,6 @@ namespace Leonardo16
             services.AddTransient<IPermessoRepository, PermessoRepository>();
             services.AddTransient<IRepartoRepository, RepartoRepository>();
             services.AddTransient<IListinoRepository, ListinoRepository>();
-            services.AddTransient<IPersonRepository, PersonRepository>();
             services.AddTransient<ICassaPostazioneRepository, CassaPostazioneRepository>();
             services.AddTransient<IStrisciataRepository, StrisciataRepository>();
             services.AddTransient<IEntraSocioRepository, EntraSocioRepository>();
@@ -128,18 +124,18 @@ namespace Leonardo16
             //services.AddTransient<IConnectionViewModel, ConnectionViewModel>();
             //services.AddTransient<IMenuViewModel, MenuViewModel>();
 
-            services.AddTransient<ISociViewModel, SociViewModel>();
-            services.AddTransient<IPersonGroupViewModel, PersonGroupViewModel>();
-            services.AddTransient<IPersonAddViewModel, PersonAddViewModel>();
-            services.AddTransient<IPersonDelViewModel, PersonDelViewModel>();
-            services.AddTransient<IPersonUpdViewModel, PersonUpdViewModel>();
-            services.AddTransient<IPersonSearchViewModel, PersonSearchViewModel>();
-            services.AddTransient<ICodiceSocioAddViewModel, CodiceSocioAddViewModel>();
-            services.AddTransient<ICodiceSocioDelViewModel, CodiceSocioDelViewModel>();
-            services.AddTransient<ICodiceSocioUpdViewModel, CodiceSocioUpdViewModel>();
-            services.AddTransient<ITesseraAddViewModel, TesseraAddViewModel>();
-            services.AddTransient<ITesseraDelViewModel, TesseraDelViewModel>();
-            services.AddTransient<ITesseraUpdViewModel, TesseraUpdViewModel>();
+            //services.AddTransient<ISociViewModel, SociViewModel>();
+            //services.AddTransient<IPersonGroupViewModel, PersonGroupViewModel>();
+            //services.AddTransient<IPersonAddViewModel, PersonAddViewModel>();
+            //services.AddTransient<IPersonDelViewModel, PersonDelViewModel>();
+            //services.AddTransient<IPersonUpdViewModel, PersonUpdViewModel>();
+            //services.AddTransient<IPersonSearchViewModel, PersonSearchViewModel>();
+            //services.AddTransient<ICodiceSocioAddViewModel, CodiceSocioAddViewModel>();
+            //services.AddTransient<ICodiceSocioDelViewModel, CodiceSocioDelViewModel>();
+            //services.AddTransient<ICodiceSocioUpdViewModel, CodiceSocioUpdViewModel>();
+            //services.AddTransient<ITesseraAddViewModel, TesseraAddViewModel>();
+            //services.AddTransient<ITesseraDelViewModel, TesseraDelViewModel>();
+            //services.AddTransient<ITesseraUpdViewModel, TesseraUpdViewModel>();
 
             services.AddTransient<IConfigurazioneViewModel, ConfigurazioneViewModel>();
 
@@ -183,18 +179,18 @@ namespace Leonardo16
 
            // services.AddTransient<IViewFor<MenuViewModel>, MenuView>();
 
-            services.AddTransient<IViewFor<SociViewModel>, SociView>();
-            services.AddTransient<IViewFor<PersonGroupViewModel>, PersonGroupView>();
-            services.AddTransient<IViewFor<PersonAddViewModel>, PersonInputView>();
-            services.AddTransient<IViewFor<PersonDelViewModel>, PersonInputView>();
-            services.AddTransient<IViewFor<PersonUpdViewModel>, PersonInputView>();
-            services.AddTransient<IViewFor<PersonSearchViewModel>, PersonSearchView>();
-            services.AddTransient<IViewFor<CodiceSocioAddViewModel>, SocioInputView>();
-            services.AddTransient<IViewFor<CodiceSocioDelViewModel>, SocioInputView>();
-            services.AddTransient<IViewFor<CodiceSocioUpdViewModel>, SocioInputView>();
-            services.AddTransient<IViewFor<TesseraAddViewModel>, TesseraInputView>();
-            services.AddTransient<IViewFor<TesseraDelViewModel>, TesseraInputView>();
-            services.AddTransient<IViewFor<TesseraUpdViewModel>, TesseraInputView>();
+            //services.AddTransient<IViewFor<SociViewModel>, SociView>();
+            //services.AddTransient<IViewFor<PersonGroupViewModel>, PersonGroupView>();
+            //services.AddTransient<IViewFor<PersonAddViewModel>, PersonInputView>();
+            //services.AddTransient<IViewFor<PersonDelViewModel>, PersonInputView>();
+            //services.AddTransient<IViewFor<PersonUpdViewModel>, PersonInputView>();
+            //services.AddTransient<IViewFor<PersonSearchViewModel>, PersonSearchView>();
+            //services.AddTransient<IViewFor<CodiceSocioAddViewModel>, SocioInputView>();
+            //services.AddTransient<IViewFor<CodiceSocioDelViewModel>, SocioInputView>();
+            //services.AddTransient<IViewFor<CodiceSocioUpdViewModel>, SocioInputView>();
+            //services.AddTransient<IViewFor<TesseraAddViewModel>, TesseraInputView>();
+            //services.AddTransient<IViewFor<TesseraDelViewModel>, TesseraInputView>();
+            //services.AddTransient<IViewFor<TesseraUpdViewModel>, TesseraInputView>();
 
             services.AddTransient<IViewFor<ConfigurazioneViewModel>, ConfigurazioneView>();
             services.AddTransient<IViewFor<OperatoreGroupViewModel>, OperatoreGroupView>();

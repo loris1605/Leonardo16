@@ -33,7 +33,6 @@
     
     <ProjectReference Include="..\ControlStyles\ControlStyles.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />
-    <ProjectReference Include="..\Soci\Soci.csproj" />
     <ProjectReference Include="..\SysNet\SysNet.csproj" />
 
 	  <!-- Caricamento posticipato: compila la DLL e FORZA la copia in output -->
@@ -60,6 +59,17 @@
 	  </ProjectReference>
 
 	  <ProjectReference Include="..\Menu\Menu.csproj">
+		  <!-- Impedisce al compilatore C# di vedere le classi del Login all'avvio -->
+		  <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
+		  <!-- DICE A MSBUILD: Tratta l'output di questo progetto come se fosse Contenuto Libero -->
+		  <OutputItemType>Content</OutputItemType>
+
+		  <!-- Forza la copia fisica dei file compilati nella cartella bin\Debug\... dell'app principale -->
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </ProjectReference>
+
+	  <ProjectReference Include="..\Soci\Soci.csproj">
 		  <!-- Impedisce al compilatore C# di vedere le classi del Login all'avvio -->
 		  <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 

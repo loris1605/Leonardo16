@@ -6,7 +6,6 @@ using ReactiveUI;
 using Splat;
 using System.Diagnostics;
 using System.Reactive;
-using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -39,21 +38,23 @@ namespace ViewModels
         // 3. Flussi Reattivi Centralizzati (Override Controllo Doppio Clic Senza "base")
         // ---------------------------------------------------------------------
         protected override IObservable<bool> IsAnythingExecuting =>
-            Observable.CombineLatest(
-                // 1. Comandi ereditati dalla classe base
-                this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
-                this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
-                this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
-                // 2. Comandi specifici di questa schermata (gestiti in modo safe se null all'avvio)
-                this.WhenAnyValue(x => x.SelezionaPostazioneCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                this.WhenAnyValue(x => x.LogoutCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                this.WhenAnyValue(x => x.ConnectionCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                this.WhenAnyValue(x => x.ConfigurazioneCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                this.WhenAnyValue(x => x.SociCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                this.WhenAnyValue(x => x.ApriGiornataCommand).SelectMany(cmd => cmd?.IsExecuting ?? Observable.Return(false)),
-                // Se anche uno solo dei 9 comandi totali è in esecuzione, IsLoading diventa true e la UI si blocca a 0ms
-                (l, s, e, sel, log, conn, conf, soc, apri) => l || s || e || sel || log || conn || conf || soc || apri)
-            .DistinctUntilChanged();
+        Observable.CombineLatest(
+            // 1. Comandi ereditati dalla classe base
+            this.WhenAnyObservable(x => x.LoadCommand.IsExecuting).StartWith(false),
+            this.WhenAnyObservable(x => x.SaveCommand.IsExecuting).StartWith(false),
+            this.WhenAnyObservable(x => x.EscPressedCommand.IsExecuting).StartWith(false),
+            // 2. Comandi specifici osservati in modo sicuro direttamente tramite le loro proprietà
+            this.WhenAnyObservable(
+                x => x.SelezionaPostazioneCommand.IsExecuting,
+                x => x.LogoutCommand.IsExecuting,
+                x => x.ConnectionCommand.IsExecuting,
+                x => x.ConfigurazioneCommand.IsExecuting,
+                x => x.SociCommand.IsExecuting,
+                x => x.ApriGiornataCommand.IsExecuting
+            ).StartWith(false),
+            // Se anche uno solo è in esecuzione, restituisce true
+            (baseLoad, baseSave, baseEsc, localExec) => baseLoad || baseSave || baseEsc || localExec)
+        .DistinctUntilChanged();
 
 
         // ---------------------------------------------------------------------
@@ -80,37 +81,24 @@ namespace ViewModels
                 .Select(isLoading => !isLoading)
                 .ObserveOn(RxSchedulers.MainThreadScheduler);
 
+            var canApriFinal = this.WhenAnyValue(x => x.ApriGiornataEnabled);
+
             // Inizializzazione dei Comandi
             SelezionaPostazioneCommand = ReactiveCommand.CreateFromTask<int>(GoToCassa, canNavigate);
             LogoutCommand = ReactiveCommand.CreateFromTask(GoToLogin, canNavigate);
             ConnectionCommand = ReactiveCommand.CreateFromTask(GoToConnection, canNavigate);
             ConfigurazioneCommand = ReactiveCommand.CreateFromTask(GoToConfigurazione, canNavigate);
             SociCommand = ReactiveCommand.CreateFromTask(GoToSoci, canNavigate);
-
-            var canApriFinal = this.WhenAnyValue(x => x.ApriGiornataEnabled, x => x.IsLoading,
-                    (enabled, loading) => enabled && !loading);
-
             ApriGiornataCommand = ReactiveCommand.CreateFromTask(ExecuteOpenGiornata, canApriFinal);
 
-            // Gestione del Ciclo di Vita (Activation)
-            this.WhenActivated(d =>
-            {
-                // Gestione e tracciamento centralizzato delle eccezioni
-                SelezionaPostazioneCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Selezione Cassa: {ex.Message}")).DisposeWith(d);
-                LogoutCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Logout: {ex.Message}")).DisposeWith(d);
-                ConnectionCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Connessione: {ex.Message}")).DisposeWith(d);
-                ConfigurazioneCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Configurazione: {ex.Message}")).DisposeWith(d);
-                SociCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Soci: {ex.Message}")).DisposeWith(d);
-                ApriGiornataCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore comando Apertura Giornata: {ex.Message}")).DisposeWith(d);
+            //4.Gestione centralizzata delle Eccezioni(Ciclo di vita del ViewModel)
+            SelezionaPostazioneCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore Selezione Cassa: {ex.Message}"));
+            LogoutCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore Logout: {ex.Message}"));
+            ConnectionCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore Connessione: {ex.Message}"));
+            ConfigurazioneCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore Configurazione: {ex.Message}"));
+            SociCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore Soci: {ex.Message}"));
+            ApriGiornataCommand.ThrownExceptions.Subscribe(ex => Debug.WriteLine($"Errore Apertura Giornata: {ex.Message}"));
 
-                // Pulizia delle risorse e delle sottoscrizioni all'attivazione/disattivazione della View
-                LogoutCommand.DisposeWith(d);
-                SelezionaPostazioneCommand.DisposeWith(d);
-                ConfigurazioneCommand.DisposeWith(d);
-                ApriGiornataCommand.DisposeWith(d);
-                SociCommand.DisposeWith(d);
-                ConnectionCommand.DisposeWith(d);
-            });
 
         }
 
@@ -154,10 +142,6 @@ namespace ViewModels
 
         private readonly Subject<Unit> _menuToSoci = new();
         public IObservable<Unit> MenuToSoci => _menuToSoci.AsObservable();
-
-        private readonly Subject<Unit> _sociToMenu = new();
-        public IObservable<Unit> SociToMenu => _sociToMenu.AsObservable();
-
 
         private void AttivaPermessi()
         {
@@ -250,7 +234,6 @@ namespace ViewModels
         {
             _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
             _menuToLogin.OnNext(Unit.Default);
-            _menuToLogin.OnCompleted();
 
             await Task.CompletedTask;
         }
@@ -309,8 +292,7 @@ namespace ViewModels
         private async Task GoToSoci()
         {
             _isClosing = true; // Impedisce ulteriori interazioni durante la navigazione
-            _sociToMenu.OnNext(Unit.Default);
-            _sociToMenu.OnCompleted();
+            _menuToSoci.OnNext(Unit.Default);
 
             await Task.CompletedTask;
 

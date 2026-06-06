@@ -56,7 +56,7 @@ namespace ViewModels
         public PersonGroupViewModel(IPersonRepository Repository) : base(null)
         {
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
-
+            
             var canAction = this.WhenAnyValue(x => x.GroupBindingT).Select(item => item != null);
 
             var canSocioExists = this.WhenAnyValue(x => x.GroupBindingT)

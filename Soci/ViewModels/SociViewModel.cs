@@ -68,7 +68,7 @@ namespace ViewModels
 
         protected override async Task OnLoading()
         {
-            // Recuperiamo l'istanza della prima pagina (IPersonGroupViewModel)
+            //Recuperiamo l'istanza della prima pagina (IPersonGroupViewModel)
             var firstPage = Locator.Current.GetService<IPersonGroupViewModel>();
             if (firstPage != null)
             {
@@ -93,26 +93,31 @@ namespace ViewModels
         protected override async Task OnEsc()
         {
             _isClosing = true;
-            var menuVm = Locator.Current.GetService<IMenuViewModel>();
-            if (menuVm != null)
-            {
-                try
-                {
-                    // Ritorno sicuro e asincrono al Menu principale resettando lo stack
-                    await _host.Router.NavigateAndReset.Execute(menuVm)
-                        .ObserveOn(RxSchedulers.MainThreadScheduler);
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
-                }
-            }
-            else
-            {
-                _isClosing = false; // Consente di riprovare se il DI fallisce
-                Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
-            }
+            _sociToMenu.OnNext(Unit.Default);
+            _sociToMenu.OnCompleted(); // Chiude il canale per sempre, prevenendo ulteriori notifiche
+
+            await Task.CompletedTask;
+
+            //var menuVm = Locator.Current.GetService<IMenuViewModel>();
+            //if (menuVm != null)
+            //{
+            //    try
+            //    {
+            //        // Ritorno sicuro e asincrono al Menu principale resettando lo stack
+            //        await _host.Router.NavigateAndReset.Execute(menuVm)
+            //            .ObserveOn(RxSchedulers.MainThreadScheduler);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        _isClosing = false;
+            //        Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
+            //    }
+            //}
+            //else
+            //{
+            //    _isClosing = false; // Consente di riprovare se il DI fallisce
+            //    Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
+            //}
         }
 
         // ---------------------------------------------------------------------
@@ -149,5 +154,7 @@ namespace ViewModels
         }
 
         #endregion
+
+        
     }
 }

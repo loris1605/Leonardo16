@@ -7,6 +7,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaXaml Remove="ViewModels\CodiceSocio\**" />
+    <AvaloniaXaml Remove="ViewModels\Tessera\**" />
+    <AvaloniaXaml Remove="Views\CodiceSocio\**" />
+    <AvaloniaXaml Remove="Views\Tessera\**" />
+    <Compile Remove="ViewModels\CodiceSocio\**" />
+    <Compile Remove="ViewModels\Tessera\**" />
+    <Compile Remove="Views\CodiceSocio\**" />
+    <Compile Remove="Views\Tessera\**" />
+    <EmbeddedResource Remove="ViewModels\CodiceSocio\**" />
+    <EmbeddedResource Remove="ViewModels\Tessera\**" />
+    <EmbeddedResource Remove="Views\CodiceSocio\**" />
+    <EmbeddedResource Remove="Views\Tessera\**" />
+    <None Remove="ViewModels\CodiceSocio\**" />
+    <None Remove="ViewModels\Tessera\**" />
+    <None Remove="Views\CodiceSocio\**" />
+    <None Remove="Views\Tessera\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Remove="Views\Person\PersonInputView.axaml" />
+    <AvaloniaXaml Remove="Views\Person\PersonSearchView.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Views\Person\PersonInputView.axaml.cs" />
+    <Compile Remove="Views\Person\PersonSearchView.axaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\ControlStyles\ControlStyles.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />

@@ -34,9 +34,16 @@ namespace Soci
                 return new SociViewModel(screen);
             }, typeof(ISociViewModel));
 
+            Locator.CurrentMutable.Register(() => new PersonGroupViewModel(Locator.Current.GetService<IPersonRepository>()), typeof(IPersonGroupViewModel));
+
             // Registriamo la View associata all'interfaccia e alla classe concreta per il Router
             Locator.CurrentMutable.Register(() => new SociView(), typeof(IViewFor<ISociViewModel>));
             Locator.CurrentMutable.Register(() => new SociView(), typeof(IViewFor<SociViewModel>));
+
+            
+
+            Locator.CurrentMutable.Register(() => new PersonGroupView(), typeof(IViewFor<IPersonGroupViewModel>));
+            Locator.CurrentMutable.Register(() => new PersonGroupView(), typeof(IViewFor<PersonGroupViewModel>));
 
             System.Diagnostics.Debug.WriteLine("***** [DLL-INIT] Soci Registrazioni Splat completate in modalità Lazy *****");
         }

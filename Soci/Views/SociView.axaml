@@ -25,7 +25,6 @@
                       ToolTipText="TORNA A MENU PRINCIPALE"
                       ExitCommand="{Binding EscPressedCommand}"
                       x:Name="Title"/>
-
                 
         
         <Grid x:Name="MainGrid"
