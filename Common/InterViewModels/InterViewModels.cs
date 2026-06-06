@@ -14,9 +14,13 @@ namespace Common.InterViewModels
     public interface IMenuViewModel : IRoutableViewModel
     {
         IObservable<Unit> MenuToLogin { get; }
+        IObservable<Unit> MenuToSoci { get; }
     }
 
-    public interface ISociViewModel : IRoutableViewModel { }
+    public interface ISociViewModel : IRoutableViewModel
+    {
+        IObservable<Unit> SociToMenu { get; }
+    }
     
 
     public interface ISociScreen : IScreen

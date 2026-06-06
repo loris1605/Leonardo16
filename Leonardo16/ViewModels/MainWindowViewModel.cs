@@ -209,6 +209,15 @@ namespace ViewModels
                             await GoToLogin();
                         });
 
+                    menuVM.MenuToSoci
+                        .Take(1) // Prendiamo solo il primo evento di successo
+                        .ObserveOn(RxSchedulers.MainThreadScheduler)
+                        .Subscribe(async _ =>
+                        {
+                            // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
+                            await GoToSoci();
+                        });
+
 
                     // Eseguiamo la navigazione e segnaliamo il completamento del Task
                     Router.NavigateAndReset.Execute(menuVM)
@@ -216,7 +225,7 @@ namespace ViewModels
                 }
                 else
                 {
-                    Debug.WriteLine(">>> [ERROR] Impossibile risolvere ILoginViewModel.");
+                    Debug.WriteLine(">>> [ERROR] Impossibile risolvere IMenuViewModel.");
                     tcs.SetResult();
                 }
             }
@@ -225,6 +234,54 @@ namespace ViewModels
                 tcs.SetException(ex);
             }
 
+        }
+
+        private async Task GoToSoci()
+        {
+            await Task.Run(() => ModuleLoader.EnsureSociModuleLoaded());
+
+            var tcs = new TaskCompletionSource();
+
+            // 3. Risoluzione ViewModel e navigazione sul Main Thread
+            RxSchedulers.MainThreadScheduler.Schedule(() =>
+            {
+                try
+                {
+                    // Nascendo qui dentro, il costruttore del LoginViewModel 
+                    // viene eseguito sul thread UI, azzerando l'errore Cross-Thread!
+                    var sociVM = Locator.Current.GetService<ISociViewModel>();
+
+                    if (sociVM != null)
+                    {
+                        sociVM.SociToMenu
+                        .Take(1) // Prendiamo solo il primo evento di successo
+                        .ObserveOn(RxSchedulers.MainThreadScheduler)
+                        .Subscribe(async _ =>
+                        {
+                            // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
+                            await GoToMenu();
+                        });
+
+
+                        // Eseguiamo la navigazione e segnaliamo il completamento del Task
+                        Router.NavigateAndReset.Execute(sociVM)
+                            .Subscribe(_ => tcs.SetResult(), ex => tcs.SetException(ex));
+                    }
+                    else
+                    {
+                        Debug.WriteLine(">>> [ERROR] Impossibile risolvere ISociViewModel.");
+                        tcs.SetResult();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+
+            });
+
+            // Attendiamo che il thread della UI abbia finito l'operazione
+            await tcs.Task;
         }
     }
 }

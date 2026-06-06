@@ -85,6 +85,7 @@ namespace ViewModels
                 .Select(loading => !loading)
                 // Evita transizioni spurie e repentine sotto i 100ms
                 .Throttle(TimeSpan.FromMilliseconds(100))
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
                 // FONDAMENTALE: Se un comando parte, la UI deve disabilitarsi SUBITO (0 ms) per bloccare il doppio clic
                 .Merge(isCommandRunning.Where(loading => loading).Select(_ => false))
                 .StartWith(true)

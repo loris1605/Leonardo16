@@ -17,10 +17,10 @@ public partial class SociView : BaseUserControl<SociViewModel>
 
             #region OneWay
 
-            this.OneWayBind(ViewModel,
-                            vm => vm.GroupEnabled,
-                            v => v.RouterHost.IsEnabled)
-                .DisposeWith(d);
+            //this.OneWayBind(ViewModel,
+            //                vm => vm.GroupEnabled,
+            //                v => v.RouterHost.IsEnabled)
+            //    .DisposeWith(d);
 
             #endregion
 

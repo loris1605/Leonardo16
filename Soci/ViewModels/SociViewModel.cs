@@ -2,7 +2,9 @@
 using ReactiveUI;
 using Splat;
 using System.Diagnostics;
+using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace ViewModels
 {
@@ -38,10 +40,14 @@ namespace ViewModels
                 (l, s, e, gReset, gNav, iReset) => l || s || e || gReset || gNav || iReset)
             .DistinctUntilChanged();
 
+        // 1. Aggiungi questo Subject per notificare l'esterno
+        private readonly Subject<Unit> _sociToMenu = new();
+        public IObservable<Unit> SociToMenu => _sociToMenu.AsObservable();
+
         // ---------------------------------------------------------------------
         // Constructor
         // ---------------------------------------------------------------------
-        public SociViewModel(IScreen host) : base(null)
+        public SociViewModel(IScreen host) : base(host)
         {
             _host = host;            
         }
@@ -80,6 +86,8 @@ namespace ViewModels
                     Debug.WriteLine($"ERRORE durante la navigazione al PersonGroup: {ex.Message}");
                 }
             }
+
+            await Task.CompletedTask;
         }
         protected override async Task OnSaving() => await Task.CompletedTask;
         protected override async Task OnEsc()
