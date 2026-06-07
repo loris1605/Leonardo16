@@ -43,7 +43,9 @@ namespace Common.InterViewModels
     public interface IPersonGroupViewModel : IRoutableViewModel
     {
         void SetHost(ISociScreen host);
+        IObservable<Unit> GroupToPersonAdd { get; }
     }
+
     public interface IPersonAddViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface IPersonUpdViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface IPersonDelViewModel : IRoutableViewModel, iSociCrudViewModel { }

@@ -3,12 +3,13 @@ using ReactiveUI;
 using Splat;
 using System.Diagnostics;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 namespace ViewModels
 {
-   
+
     public partial class SociViewModel : ViewModelBase, ISociScreen, ISociViewModel
     {
         // ---------------------------------------------------------------------
@@ -49,7 +50,7 @@ namespace ViewModels
         // ---------------------------------------------------------------------
         public SociViewModel(IScreen host) : base(host)
         {
-            _host = host;            
+            _host = host;
         }
 
         // ---------------------------------------------------------------------
@@ -66,29 +67,7 @@ namespace ViewModels
             base.OnFinalDestruction();
         }
 
-        protected override async Task OnLoading()
-        {
-            //Recuperiamo l'istanza della prima pagina (IPersonGroupViewModel)
-            var firstPage = Locator.Current.GetService<IPersonGroupViewModel>();
-            if (firstPage != null)
-            {
-                // Passiamo "this" come host, così il GroupViewModel saprà dove navigare
-                firstPage.SetHost(this);
-                try
-                {
-                    // Eseguiamo la navigazione iniziale sul Main Thread in modo nativo
-                    await GroupRouter.NavigateAndReset.Execute(firstPage)
-                        .ObserveOn(RxSchedulers.MainThreadScheduler);
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"ERRORE durante la navigazione al PersonGroup: {ex.Message}");
-                }
-            }
-
-            await Task.CompletedTask;
-        }
+        protected override async Task OnLoading() => await GoToPersonGroup();
         protected override async Task OnSaving() => await Task.CompletedTask;
         protected override async Task OnEsc()
         {
@@ -97,27 +76,7 @@ namespace ViewModels
             _sociToMenu.OnCompleted(); // Chiude il canale per sempre, prevenendo ulteriori notifiche
 
             await Task.CompletedTask;
-
-            //var menuVm = Locator.Current.GetService<IMenuViewModel>();
-            //if (menuVm != null)
-            //{
-            //    try
-            //    {
-            //        // Ritorno sicuro e asincrono al Menu principale resettando lo stack
-            //        await _host.Router.NavigateAndReset.Execute(menuVm)
-            //            .ObserveOn(RxSchedulers.MainThreadScheduler);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        _isClosing = false;
-            //        Debug.WriteLine($"ERRORE durante la navigazione al Menu: {ex.Message}");
-            //    }
-            //}
-            //else
-            //{
-            //    _isClosing = false; // Consente di riprovare se il DI fallisce
-            //    Debug.WriteLine("ERRORE CRITICO: IMenuViewModel non è stato risolto dal Locator.");
-            //}
+         
         }
 
         // ---------------------------------------------------------------------
@@ -155,6 +114,103 @@ namespace ViewModels
 
         #endregion
 
-        
+
+    }
+
+    public partial class SociViewModel
+    {
+        private async Task GoToPersonGroup()
+        {
+            
+            var tcs = new TaskCompletionSource();
+
+            // 3. Risoluzione ViewModel e navigazione sul Main Thread
+            RxSchedulers.MainThreadScheduler.Schedule(() =>
+            {
+                try
+                {
+                    // Nascendo qui dentro, il costruttore del LoginViewModel 
+                    // viene eseguito sul thread UI, azzerando l'errore Cross-Thread!
+                    var personVM = Locator.Current.GetService<IPersonGroupViewModel>();
+
+                    if (personVM != null)
+                    {
+                        personVM.GroupToPersonAdd
+                            .Take(1) // Prendiamo solo il primo evento di successo
+                            .ObserveOn(RxSchedulers.MainThreadScheduler)
+                            .Subscribe(async _ =>
+                            {
+                                // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
+                                await GoToPersonAdd();
+                            });
+
+
+                        // Eseguiamo la navigazione e segnaliamo il completamento del Task
+                        GroupRouter.NavigateAndReset.Execute(personVM)
+                            .Subscribe(_ => tcs.SetResult(), ex => tcs.SetException(ex));
+                    }
+                    else
+                    {
+                        Debug.WriteLine(">>> [ERROR] Impossibile risolvere IPersonGroupViewModel.");
+                        tcs.SetResult();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+
+            });
+
+            // Attendiamo che il thread della UI abbia finito l'operazione
+            await tcs.Task;
+        }
+
+        private async Task GoToPersonAdd()
+        {
+
+            var tcs = new TaskCompletionSource();
+
+            // 3. Risoluzione ViewModel e navigazione sul Main Thread
+            RxSchedulers.MainThreadScheduler.Schedule(() =>
+            {
+                try
+                {
+                    // Nascendo qui dentro, il costruttore del LoginViewModel 
+                    // viene eseguito sul thread UI, azzerando l'errore Cross-Thread!
+                    var personVM = Locator.Current.GetService<IPersonAddViewModel>();
+
+                    if (personVM != null)
+                    {
+                        //personVM.GroupToPersonAdd
+                        //    .Take(1) // Prendiamo solo il primo evento di successo
+                        //    .ObserveOn(RxSchedulers.MainThreadScheduler)
+                        //    .Subscribe(async _ =>
+                        //    {
+                        //        // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
+                        //        await GoToPersonAdd();
+                        //    });
+
+
+                        // Eseguiamo la navigazione e segnaliamo il completamento del Task
+                        InputRouter.NavigateAndReset.Execute(personVM)
+                            .Subscribe(_ => tcs.SetResult(), ex => tcs.SetException(ex));
+                    }
+                    else
+                    {
+                        Debug.WriteLine(">>> [ERROR] Impossibile risolvere IPersonAddViewModel.");
+                        tcs.SetResult();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+
+            });
+
+            // Attendiamo che il thread della UI abbia finito l'operazione
+            await tcs.Task;
+        }
     }
 }

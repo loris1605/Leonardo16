@@ -8,12 +8,13 @@ using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using ViewModels.BindableObjects;
 
 namespace ViewModels
 {
  
-    public class PersonGroupViewModel : GroupViewModelBase<PersonMap>, IGroupViewModelBase, IPersonGroupViewModel
+    public partial class PersonGroupViewModel : GroupViewModelBase<PersonMap>, IGroupViewModelBase, IPersonGroupViewModel
     {
         // ---------------------------------------------------------------------
         // 1. Dipendenze e Comandi Reattivi Locali
@@ -248,8 +249,13 @@ namespace ViewModels
             }
         }
 
-        protected async override Task OnAdding() => await NavigateTo<IPersonAddViewModel>();
-        
+        protected async override Task OnAdding()
+        {
+            _groupToPersonAdd.OnNext(Unit.Default);
+
+            await Task.CompletedTask;
+        }
+
         protected async override Task OnDeleting() => 
             await NavigateTo<IPersonDelViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
 
@@ -302,5 +308,12 @@ namespace ViewModels
         public int CodiceSocio => GroupBindingT is null ? 0 : GroupBindingT.CodiceSocio;
         public int CodiceTessera => GroupBindingT is null ? 0 : GroupBindingT.CodiceTessera;
         public int Scadenza => GroupBindingT is null ? 0 : GroupBindingT.Scadenza;
+    }
+
+    public partial class PersonGroupViewModel
+    {
+        // 1. Aggiungi questo Subject per notificare l'esterno
+        private readonly Subject<Unit> _groupToPersonAdd = new();
+        public IObservable<Unit> GroupToPersonAdd => _groupToPersonAdd.AsObservable();
     }
 }

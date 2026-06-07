@@ -26,12 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaXaml Remove="Views\Person\PersonInputView.axaml" />
     <AvaloniaXaml Remove="Views\Person\PersonSearchView.axaml" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Views\Person\PersonInputView.axaml.cs" />
     <Compile Remove="Views\Person\PersonSearchView.axaml.cs" />
   </ItemGroup>
 

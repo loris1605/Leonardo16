@@ -35,7 +35,7 @@
                         GroupText="SOCI"
                         Grid.ColumnSpan="2"
                         FilterCommandVisibile="True"
-                        AddCommand="{Binding AddCommand}"
+                        AddCommand="{Binding #MainGrid.((vm:PersonGroupViewModel)DataContext).AddCommand}"
                         DelCommand="{Binding DelCommand}"
                         UpdCommand="{Binding UpdCommand}"
                         FilterCommand="{Binding PersonSearchCommand}"

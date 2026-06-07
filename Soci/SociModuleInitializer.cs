@@ -24,6 +24,8 @@ namespace Soci
                 return new PersonRepository(context);
             }, typeof(IPersonRepository));
 
+            
+
             // 2. REGISTRAZIONE COMPONENTI UI (Modello B - Usa e Getta)
             // CORRETTO: Spostiamo i resolver dentro la Lambda. 
             // Il ViewModel nascerà solo quando il costruttore verrà invocato dal thread UI di MainWindow
@@ -34,7 +36,13 @@ namespace Soci
                 return new SociViewModel(screen);
             }, typeof(ISociViewModel));
 
+            
+
             Locator.CurrentMutable.Register(() => new PersonGroupViewModel(Locator.Current.GetService<IPersonRepository>()), typeof(IPersonGroupViewModel));
+            Locator.CurrentMutable.Register(() => new PersonAddViewModel(Locator.Current.GetService<IPersonRepository>()), typeof(IPersonAddViewModel));
+            Locator.CurrentMutable.Register(() => new PersonDelViewModel(Locator.Current.GetService<IPersonRepository>()), typeof(IPersonDelViewModel));
+            Locator.CurrentMutable.Register(() => new PersonUpdViewModel(Locator.Current.GetService<IPersonRepository>()), typeof(IPersonUpdViewModel));
+
 
             // Registriamo la View associata all'interfaccia e alla classe concreta per il Router
             Locator.CurrentMutable.Register(() => new SociView(), typeof(IViewFor<ISociViewModel>));
@@ -44,6 +52,11 @@ namespace Soci
 
             Locator.CurrentMutable.Register(() => new PersonGroupView(), typeof(IViewFor<IPersonGroupViewModel>));
             Locator.CurrentMutable.Register(() => new PersonGroupView(), typeof(IViewFor<PersonGroupViewModel>));
+            Locator.CurrentMutable.Register(() => new PersonInputView(), typeof(IViewFor<IPersonAddViewModel>));
+            Locator.CurrentMutable.Register(() => new PersonInputView(), typeof(IViewFor<PersonAddViewModel>));
+            Locator.CurrentMutable.Register(() => new PersonInputView(), typeof(IViewFor<IPersonDelViewModel>));
+            Locator.CurrentMutable.Register(() => new PersonInputView(), typeof(IViewFor<IPersonUpdViewModel>));
+
 
             System.Diagnostics.Debug.WriteLine("***** [DLL-INIT] Soci Registrazioni Splat completate in modalità Lazy *****");
         }
