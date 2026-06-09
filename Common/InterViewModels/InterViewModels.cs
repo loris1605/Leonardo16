@@ -38,17 +38,22 @@ namespace Common.InterViewModels
         void SetHost(ISociScreen host);
         void SetIdDaModificare(int id);
         void SetIdRitorno(int id);
+        IObservable<Unit> InputEsc { get; }
+        IObservable<int> InputBack { get; }
     }
 
     public interface IPersonGroupViewModel : IRoutableViewModel
     {
         void SetHost(ISociScreen host);
         IObservable<Unit> GroupToPersonAdd { get; }
+        IObservable<int> GroupToPersonDel { get; }
+        IObservable<int> GroupToPersonUpd { get; }
     }
 
     public interface IPersonAddViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface IPersonUpdViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface IPersonDelViewModel : IRoutableViewModel, iSociCrudViewModel { }
+
     public interface IPersonSearchViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface ICodiceSocioAddViewModel : IRoutableViewModel, iSociCrudViewModel { }
     public interface ICodiceSocioDelViewModel : IRoutableViewModel, iSociCrudViewModel { }

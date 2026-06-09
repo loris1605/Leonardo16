@@ -161,8 +161,8 @@
                 <lc:InputSaveBox x:Name="InputSaveBox"
                                  Grid.Row="3"
                                  Margin="20"
-                                 SaveCommand="{Binding SaveCommand}"
-                                 ExitCommand="{Binding EscPressedCommand}"/>
+                                 SaveCommand="{Binding #MainGrid.((vm:PersonInputBase)DataContext).SaveCommand}"
+                                 ExitCommand="{Binding #MainGrid.((vm:PersonInputBase)DataContext).EscPressedCommand}"/>
                 
             
             </Grid>

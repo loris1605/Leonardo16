@@ -1,6 +1,5 @@
-using ReactiveUI;
-using System.Reactive.Disposables.Fluent;
 using ViewModels;
+using ReactiveUI;
 
 namespace Views;
 

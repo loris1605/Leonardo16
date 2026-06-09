@@ -252,15 +252,20 @@ namespace ViewModels
         protected async override Task OnAdding()
         {
             _groupToPersonAdd.OnNext(Unit.Default);
-
             await Task.CompletedTask;
         }
 
-        protected async override Task OnDeleting() => 
-            await NavigateTo<IPersonDelViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
+        protected async override Task OnDeleting()
+        {
+            _groupToPersonDel.OnNext(GroupBindingT.Id);
+            await Task.CompletedTask;
+        }
 
-        protected async override Task OnUpdating() => 
-            await NavigateTo<IPersonUpdViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
+        protected async override Task OnUpdating()
+        {
+            _groupToPersonUpd.OnNext(GroupBindingT.Id);
+            await Task.CompletedTask;
+        }
 
         protected async Task OnCodiceSocioAdding() => 
             await NavigateTo<ICodiceSocioAddViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
@@ -315,5 +320,11 @@ namespace ViewModels
         // 1. Aggiungi questo Subject per notificare l'esterno
         private readonly Subject<Unit> _groupToPersonAdd = new();
         public IObservable<Unit> GroupToPersonAdd => _groupToPersonAdd.AsObservable();
+
+        private readonly Subject<int> _groupToPersonDel = new();
+        public IObservable<int> GroupToPersonDel => _groupToPersonDel.AsObservable();
+
+        private readonly Subject<int> _groupToPersonUpd = new();
+        public IObservable<int> GroupToPersonUpd => _groupToPersonUpd.AsObservable();
     }
 }
