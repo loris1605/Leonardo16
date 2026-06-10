@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Common.InterViewModels;
 using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Disposables;

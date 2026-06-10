@@ -1,7 +1,6 @@
 ﻿using Common.InterViewModels;
 using ReactiveUI;
 using SysNet.Converters;
-using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;

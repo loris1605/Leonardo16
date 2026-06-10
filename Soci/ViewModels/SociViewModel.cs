@@ -1,6 +1,8 @@
 ﻿using Common.InterViewModels;
+using Models.Tables;
 using ReactiveUI;
 using Splat;
+using System;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -141,33 +143,8 @@ namespace ViewModels
 
                         var disposables = new CompositeDisposable();
 
-                        personVM.GroupToPersonAdd
-                            .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .Subscribe(async _ =>
-                            {
-                                // Quando riceviamo il segnale di richiesta Add da parte del gruppo, navighiamo alla schermata di input
-                                GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
-                                await GoToPersonAdd();
-                            }).DisposeWith(disposables);
-
-                        personVM.GroupToPersonDel
-                            .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .Subscribe(async id =>
-                            {
-                                // Quando riceviamo il segnale di richiesta Del da parte del gruppo, navighiamo alla schermata di input
-                                GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
-                                await GoToPersonDel(id);
-                            }).DisposeWith(disposables);
-
-                        personVM.GroupToPersonUpd
-                            .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .Subscribe(async id =>
-                            {
-                                // Quando riceviamo il segnale di richiesta Upd da parte del gruppo, navighiamo alla schermata di input
-                                GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
-                                await GoToPersonUpd(id);
-                            }).DisposeWith(disposables);
-
+                        SetEvents(personVM, disposables).Wait(); // Impostiamo gli eventi del gruppo
+                        
 
                         // Eseguiamo la navigazione e segnaliamo il completamento del Task
                         GroupRouter.NavigateAndReset.Execute(personVM)
@@ -196,27 +173,22 @@ namespace ViewModels
             await tcs.Task;
         }
 
-        private async Task GoToPersonAdd()
+        private async Task GoToInput(iSociCrudViewModel vm, int id = 0)
         {
-
             var tcs = new TaskCompletionSource();
-
             // 3. Risoluzione ViewModel e navigazione sul Main Thread
             RxSchedulers.MainThreadScheduler.Schedule(() =>
             {
                 try
                 {
-                    // Nascendo qui dentro, il costruttore del LoginViewModel 
-                    // viene eseguito sul thread UI, azzerando l'errore Cross-Thread!
-                    var VM = Locator.Current.GetService<IPersonAddViewModel>();
                     
-
-                    if (VM != null)
+                    if (vm != null)
                     {
-                        VM.SetHost(this); // Passiamo il riferimento alla schermata ospite al ViewModel DELL'INPUT
-                        var disposables = new CompositeDisposable();
+                        vm.SetHost(this); // Passiamo il riferimento alla schermata ospite al ViewModel DELL'INPUT
+                        if (id != 0) vm.SetIdDaModificare(id);
 
-                        VM.InputEsc
+                        var disposables = new CompositeDisposable();
+                        vm.InputEsc
                             .ObserveOn(RxSchedulers.MainThreadScheduler)
                             .Take(1)
                             .Subscribe(_ =>
@@ -225,8 +197,7 @@ namespace ViewModels
                                 InputRouter?.NavigationStack.Clear();
                                 GroupEnabled = true; // Riabilitiamo il gruppo per permettere nuove navigazioni
                             }).DisposeWith(disposables);
-
-                        VM.InputBack
+                        vm.InputBack
                             .ObserveOn(RxSchedulers.MainThreadScheduler)
                             .Take(1)
                             .Subscribe(value =>
@@ -234,150 +205,97 @@ namespace ViewModels
                                 try
                                 {
                                     InputRouter.NavigateBack.Execute();
-                                    InputRouter.NavigationStack.Clear();
                                     AggiornaGridByInt(value);
-                                    GroupEnabled = true;
+
                                 }
                                 catch (Exception ex)
                                 {
                                     Debug.WriteLine($"Errore navigazione: {ex.Message}");
                                     _isClosing = false;
                                 }
-
                                 // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
                                 InputRouter?.NavigationStack.Clear();
                                 GroupEnabled = true; // Riabilitiamo il gruppo per permettere nuove navigazioni
                             }).DisposeWith(disposables);
 
-
-                        // Eseguiamo la navigazione e segnaliamo il completamento del Task
-                        InputRouter.NavigateAndReset.Execute(VM)
+                        InputRouter.NavigateAndReset.Execute(vm)
                             .Subscribe(_ => tcs.SetResult(), ex => tcs.SetException(ex));
                     }
                     else
                     {
-                        Debug.WriteLine(">>> [ERROR] Impossibile risolvere IPersonAddViewModel.");
+                        Debug.WriteLine(">>> [ERROR] Il ViewModel passato a GoToInput è nullo.");
                         tcs.SetResult();
                     }
                 }
                 catch (Exception ex)
                 {
+                    Debug.WriteLine($"Errore durante la navigazione: {ex.Message}");  
                     tcs.SetException(ex);
                 }
-
             });
 
-            // Attendiamo che il thread della UI abbia finito l'operazione
             await tcs.Task;
         }
 
-        private async Task GoToPersonDel(int id)
+        private async Task SetEvents(IPersonGroupViewModel personVM, CompositeDisposable disposables)
         {
-
-            var tcs = new TaskCompletionSource();
-
-            // 3. Risoluzione ViewModel e navigazione sul Main Thread
-            RxSchedulers.MainThreadScheduler.Schedule(() =>
-            {
-                try
-                {
-                    // Nascendo qui dentro, il costruttore del LoginViewModel 
-                    // viene eseguito sul thread UI, azzerando l'errore Cross-Thread!
-                    var VM = Locator.Current.GetService<IPersonDelViewModel>();
-                    
-                    if (VM != null)
-                    {
-
-                        VM.SetHost(this); // Passiamo il riferimento alla schermata ospite al ViewModel DELL'INPUT
-                        VM.SetIdDaModificare(id); // Passiamo l'ID da eliminare al ViewModel di input
-
-                        var disposables = new CompositeDisposable();
-
-
-                        VM.InputEsc
+            personVM.GroupToPersonAdd
                             .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .Take(1)
-                            .Subscribe(_ =>
+                            .Subscribe(async _ =>
                             {
-                                // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
-                                InputRouter?.NavigationStack.Clear();
-                                GroupEnabled = true; // Riabilitiamo il gruppo per permettere nuove navigazioni
+                                // Quando riceviamo il segnale di richiesta Add da parte del gruppo, navighiamo alla schermata di input
+                                GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                                await GoToInput(Locator.Current.GetService<IPersonAddViewModel>());
                             }).DisposeWith(disposables);
 
-
-                        // Eseguiamo la navigazione e segnaliamo il completamento del Task
-                        InputRouter.NavigateAndReset.Execute(VM)
-                            .Subscribe(_ => tcs.SetResult(), ex => tcs.SetException(ex));
-                    }
-                    else
-                    {
-                        Debug.WriteLine(">>> [ERROR] Impossibile risolvere IPersonDelViewModel.");
-                        tcs.SetResult();
-                    }
-                }
-                catch (Exception ex)
+            personVM.GroupToPersonDel
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async id =>
                 {
-                    tcs.SetException(ex);
-                }
+                    // Quando riceviamo il segnale di richiesta Del da parte del gruppo, navighiamo alla schermata di input
+                    GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                    await GoToInput(Locator.Current.GetService<IPersonDelViewModel>(), id);
+                }).DisposeWith(disposables);
 
-            });
-
-            // Attendiamo che il thread della UI abbia finito l'operazione
-            await tcs.Task;
-        }
-
-        private async Task GoToPersonUpd(int id)
-        {
-
-            var tcs = new TaskCompletionSource();
-
-            // 3. Risoluzione ViewModel e navigazione sul Main Thread
-            RxSchedulers.MainThreadScheduler.Schedule(() =>
-            {
-                try
+            personVM.GroupToPersonUpd
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async id =>
                 {
-                    // Nascendo qui dentro, il costruttore del LoginViewModel 
-                    // viene eseguito sul thread UI, azzerando l'errore Cross-Thread!
-                    var VM = Locator.Current.GetService<IPersonUpdViewModel>();
+                    // Quando riceviamo il segnale di richiesta Upd da parte del gruppo, navighiamo alla schermata di input
+                    GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                    await GoToInput(Locator.Current.GetService<IPersonUpdViewModel>(), id);
+                }).DisposeWith(disposables);
 
-                    if (VM != null)
-                    {
-
-                        VM.SetHost(this); // Passiamo il riferimento alla schermata ospite al ViewModel DELL'INPUT
-                        VM.SetIdDaModificare(id); // Passiamo l'ID da eliminare al ViewModel di input
-
-                        var disposables = new CompositeDisposable();
-
-                        VM.InputEsc
+            personVM.GroupToCodiceSocioAdd
                             .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .Take(1)
-                            .Subscribe(_ =>
+                            .Subscribe(async _ =>
                             {
-                                // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
-                                InputRouter?.NavigationStack.Clear();
-                                GroupEnabled = true; // Riabilitiamo il gruppo per permettere nuove navigazioni
+                                // Quando riceviamo il segnale di richiesta Add da parte del gruppo, navighiamo alla schermata di input
+                                GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                                await GoToInput(Locator.Current.GetService<ICodiceSocioAddViewModel>());
                             }).DisposeWith(disposables);
 
-
-                        // Eseguiamo la navigazione e segnaliamo il completamento del Task
-                        InputRouter.NavigateAndReset.Execute(VM)
-                            .Subscribe(_ => tcs.SetResult(), ex => tcs.SetException(ex));
-                    }
-                    else
-                    {
-                        Debug.WriteLine(">>> [ERROR] Impossibile risolvere IPersonUpdViewModel.");
-                        tcs.SetResult();
-                    }
-                }
-                catch (Exception ex)
+            personVM.GroupToCodiceSocioDel
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async _ =>
                 {
-                    tcs.SetException(ex);
-                }
+                    // Quando riceviamo il segnale di richiesta Del da parte del gruppo, navighiamo alla schermata di input
+                    GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                    await GoToInput(Locator.Current.GetService<ICodiceSocioDelViewModel>());
+                }).DisposeWith(disposables);
 
-            });
+            personVM.GroupToCodiceSocioUpd
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async _ =>
+                {
+                    // Quando riceviamo il segnale di richiesta Upd da parte del gruppo, navighiamo alla schermata di input
+                    GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                    await GoToInput(Locator.Current.GetService<ICodiceSocioUpdViewModel>());
+                }).DisposeWith(disposables);
 
-            // Attendiamo che il thread della UI abbia finito l'operazione
-            await tcs.Task;
+
+            await Task.CompletedTask;
         }
+        
     }
 }

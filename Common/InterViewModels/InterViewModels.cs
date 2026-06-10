@@ -48,6 +48,9 @@ namespace Common.InterViewModels
         IObservable<Unit> GroupToPersonAdd { get; }
         IObservable<int> GroupToPersonDel { get; }
         IObservable<int> GroupToPersonUpd { get; }
+        IObservable<int> GroupToCodiceSocioAdd { get; }
+        IObservable<int> GroupToCodiceSocioDel { get; }
+        IObservable<int> GroupToCodiceSocioUpd { get; }
     }
 
     public interface IPersonAddViewModel : IRoutableViewModel, iSociCrudViewModel { }

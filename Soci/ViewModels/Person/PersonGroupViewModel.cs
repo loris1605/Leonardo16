@@ -267,16 +267,18 @@ namespace ViewModels
             await Task.CompletedTask;
         }
 
-        protected async Task OnCodiceSocioAdding() => 
-            await NavigateTo<ICodiceSocioAddViewModel>(vm => vm.SetIdDaModificare(GroupBindingT.Id));
+        protected async Task OnCodiceSocioAdding()
+        {
+            _groupToCodiceSocioAdd.OnNext(GroupBindingT.Id);
+            await Task.CompletedTask;
+        }
 
-        protected async Task OnCodiceSocioDeleting() =>
-            await NavigateTo<ICodiceSocioDelViewModel>(vm =>
-            {
-                vm.SetIdDaModificare(GroupBindingT.CodiceSocio);
-                vm.SetIdRitorno(GroupBindingT.Id);
-            });
-
+        protected async Task OnCodiceSocioDeleting()
+        {
+            _groupToCodiceSocioDel.OnNext(GroupBindingT.CodiceSocio);
+            await Task.CompletedTask;
+        }
+        
         protected async Task OnCodiceSocioUpdating() =>
             await NavigateTo<ICodiceSocioUpdViewModel>(vm =>
             {
@@ -326,5 +328,14 @@ namespace ViewModels
 
         private readonly Subject<int> _groupToPersonUpd = new();
         public IObservable<int> GroupToPersonUpd => _groupToPersonUpd.AsObservable();
+
+        private readonly Subject<int> _groupToCodiceSocioAdd = new();
+        public IObservable<int> GroupToCodiceSocioAdd => _groupToCodiceSocioAdd.AsObservable();
+
+        private readonly Subject<int> _groupToCodiceSocioDel = new();
+        public IObservable<int> GroupToCodiceSocioDel => _groupToCodiceSocioDel.AsObservable();
+
+        private readonly Subject<int> _groupToCodiceSocioUpd = new();
+        public IObservable<int> GroupToCodiceSocioUpd => _groupToCodiceSocioUpd.AsObservable();
     }
 }
