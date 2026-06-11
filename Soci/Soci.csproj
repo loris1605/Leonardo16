@@ -7,17 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AvaloniaXaml Remove="ViewModels\Tessera\**" />
-    <AvaloniaXaml Remove="Views\Tessera\**" />
-    <Compile Remove="ViewModels\Tessera\**" />
-    <Compile Remove="Views\Tessera\**" />
-    <EmbeddedResource Remove="ViewModels\Tessera\**" />
-    <EmbeddedResource Remove="Views\Tessera\**" />
-    <None Remove="ViewModels\Tessera\**" />
-    <None Remove="Views\Tessera\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\ControlStyles\ControlStyles.csproj" />
     <ProjectReference Include="..\Models\Models.csproj" />

@@ -173,7 +173,7 @@ namespace ViewModels
             await tcs.Task;
         }
 
-        private async Task GoToInput(iSociCrudViewModel vm, int id = 0)
+        private async Task GoToInput(iSociCrudViewModel vm, int id = 0, int idRitorno = 0)
         {
             var tcs = new TaskCompletionSource();
             // 3. Risoluzione ViewModel e navigazione sul Main Thread
@@ -186,11 +186,11 @@ namespace ViewModels
                     {
                         vm.SetHost(this); // Passiamo il riferimento alla schermata ospite al ViewModel DELL'INPUT
                         if (id != 0) vm.SetIdDaModificare(id);
+                        if (idRitorno != 0) vm.SetIdRitorno(idRitorno);
 
                         var disposables = new CompositeDisposable();
                         vm.InputEsc
                             .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .Take(1)
                             .Subscribe(_ =>
                             {
                                 // Quando riceviamo il segnale di login riuscito, navighiamo al Menu
@@ -217,6 +217,7 @@ namespace ViewModels
                                 InputRouter?.NavigationStack.Clear();
                                 GroupEnabled = true; // Riabilitiamo il gruppo per permettere nuove navigazioni
                             }).DisposeWith(disposables);
+                        
 
                         InputRouter.NavigateAndReset.Execute(vm)
                             .Subscribe(_ => tcs.SetResult(), ex => tcs.SetException(ex));
@@ -248,6 +249,15 @@ namespace ViewModels
                                 await GoToInput(Locator.Current.GetService<IPersonAddViewModel>());
                             }).DisposeWith(disposables);
 
+            personVM.GroupToPersonSearch
+                            .ObserveOn(RxSchedulers.MainThreadScheduler)
+                            .Subscribe(async _ =>
+                            {
+                                // Quando riceviamo il segnale di richiesta Add da parte del gruppo, navighiamo alla schermata di input
+                                GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                                await GoToInput(Locator.Current.GetService<IPersonSearchViewModel>());
+                            }).DisposeWith(disposables);
+
             personVM.GroupToPersonDel
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
                 .Subscribe(async id =>
@@ -268,29 +278,29 @@ namespace ViewModels
 
             personVM.GroupToCodiceSocioAdd
                             .ObserveOn(RxSchedulers.MainThreadScheduler)
-                            .Subscribe(async _ =>
+                            .Subscribe(async id =>
                             {
                                 // Quando riceviamo il segnale di richiesta Add da parte del gruppo, navighiamo alla schermata di input
                                 GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
-                                await GoToInput(Locator.Current.GetService<ICodiceSocioAddViewModel>());
+                                await GoToInput(Locator.Current.GetService<ICodiceSocioAddViewModel>(), id);
                             }).DisposeWith(disposables);
 
             personVM.GroupToCodiceSocioDel
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
-                .Subscribe(async _ =>
+                .Subscribe(async id =>
                 {
                     // Quando riceviamo il segnale di richiesta Del da parte del gruppo, navighiamo alla schermata di input
                     GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
-                    await GoToInput(Locator.Current.GetService<ICodiceSocioDelViewModel>());
+                    await GoToInput(Locator.Current.GetService<ICodiceSocioDelViewModel>(), id);
                 }).DisposeWith(disposables);
 
             personVM.GroupToCodiceSocioUpd
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
-                .Subscribe(async _ =>
+                .Subscribe(async dati =>
                 {
                     // Quando riceviamo il segnale di richiesta Upd da parte del gruppo, navighiamo alla schermata di input
                     GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
-                    await GoToInput(Locator.Current.GetService<ICodiceSocioUpdViewModel>());
+                    await GoToInput(Locator.Current.GetService<ICodiceSocioUpdViewModel>(), dati.id, dati.idRitorno);
                 }).DisposeWith(disposables);
 
 

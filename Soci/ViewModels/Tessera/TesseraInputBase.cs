@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using ViewModels.BindableObjects;
 
 namespace ViewModels
@@ -66,17 +67,14 @@ namespace ViewModels
         {
             if (_isClosing) return; // Protezione contro il multi-ESC
 
-            if (_host is ISociScreen host)
+            if (_host is not null)
             {
                 // Focus sul tasto Esci prima di chiudere
                 await SetFocus(EscFocus, 0);
                 _isClosing = true; // "Congeliamo" prima di uscire
 
-                RxSchedulers.MainThreadScheduler.Schedule(() =>
-                {
-                    host.InputRouter.NavigationStack.Clear();
-                    host.GroupEnabled = true;
-                });
+                _inputEsc.OnNext(Unit.Default); // Notifica l'esterno che ESC è stato premuto
+
             }
         }
 
@@ -84,34 +82,25 @@ namespace ViewModels
         {
             if (_host is not null)
             {
-                // 1. PROTEZIONE CRITICA: 
-                // Se il primo click ha già svuotato lo stack, il secondo click 
-                // deve uscire subito senza fare nulla.
-                if (_host.InputRouter.NavigationStack.Count == 0)
-                {
-                    return;
-                }
 
-                // 2. Impostiamo IsLoading per disabilitare la UI
+                if (_host.InputRouter.NavigationStack.Count == 0) return;
+
                 _isClosing = true;
 
-                try
-                {
-                    // 3. Eseguiamo il back solo perché abbiamo verificato che il Count > 0
-                    await _host.InputRouter.NavigateBack.Execute();
+                _inputBack.OnNext(value); // Notifica l'esterno che Back è stato premuto con il valore specificato
 
-                    // 4. Pulizia finale
-                    _host.InputRouter.NavigationStack.Clear();
-                    _host.AggiornaGridByInt(value);
-                    _host.GroupEnabled = true;
-                }
-                catch (Exception ex)
-                {
-                    _isClosing = false;
-                    Debug.WriteLine($"Errore durante la navigazione: {ex.Message}");
-                }
+                await Task.CompletedTask;
+
+
             }
         }
+
+        // 1. Aggiungi questo Subject per notificare l'esterno
+        private readonly Subject<Unit> _inputEsc = new();
+        public IObservable<Unit> InputEsc => _inputEsc.AsObservable();
+
+        private readonly Subject<int> _inputBack = new();
+        public IObservable<int> InputBack => _inputBack.AsObservable();
     }
     
 }

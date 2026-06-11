@@ -46,6 +46,8 @@ namespace Soci
                                                                             , typeof(IPersonDelViewModel));
             Locator.CurrentMutable.Register(() => new PersonUpdViewModel(Locator.Current.GetService<IPersonRepository>())
                                                                             , typeof(IPersonUpdViewModel));
+            Locator.CurrentMutable.Register(() => new PersonSearchViewModel(Locator.Current.GetService<IPersonRepository>())
+                                                                            , typeof(IPersonSearchViewModel));
 
             Locator.CurrentMutable.Register(() => new CodiceSocioAddViewModel(Locator.Current.GetService<IPersonRepository>())
                                                                             , typeof(ICodiceSocioAddViewModel));
@@ -54,8 +56,14 @@ namespace Soci
             Locator.CurrentMutable.Register(() => new CodiceSocioUpdViewModel(Locator.Current.GetService<IPersonRepository>())
                                                                             , typeof(ICodiceSocioUpdViewModel));
 
+            Locator.CurrentMutable.Register(() => new TesseraAddViewModel(Locator.Current.GetService<IPersonRepository>())
+                                                                            , typeof(ITesseraAddViewModel));
+            Locator.CurrentMutable.Register(() => new TesseraDelViewModel(Locator.Current.GetService<IPersonRepository>())
+                                                                            , typeof(ITesseraDelViewModel));
+            Locator.CurrentMutable.Register(() => new TesseraUpdViewModel(Locator.Current.GetService<IPersonRepository>())
+                                                                            , typeof(ITesseraUpdViewModel));
+
             // Registriamo la View associata all'interfaccia e alla classe concreta per il Router
-            //Locator.CurrentMutable.Register(() => new SociView(), typeof(IViewFor<ISociViewModel>));
             Locator.CurrentMutable.Register(() => new SociView(), typeof(IViewFor<SociViewModel>));
             
 
@@ -64,10 +72,15 @@ namespace Soci
             Locator.CurrentMutable.Register(() => new PersonInputView(), typeof(IViewFor<PersonAddViewModel>));
             Locator.CurrentMutable.Register(() => new PersonInputView(), typeof(IViewFor<PersonDelViewModel>));
             Locator.CurrentMutable.Register(() => new PersonInputView(), typeof(IViewFor<PersonUpdViewModel>));
+            Locator.CurrentMutable.Register(() => new PersonSearchView(), typeof(IViewFor<PersonSearchViewModel>));
 
             Locator.CurrentMutable.Register(() => new SocioInputView(), typeof(IViewFor<CodiceSocioAddViewModel>));
             Locator.CurrentMutable.Register(() => new SocioInputView(), typeof(IViewFor<CodiceSocioDelViewModel>));
             Locator.CurrentMutable.Register(() => new SocioInputView(), typeof(IViewFor<CodiceSocioUpdViewModel>));
+
+            Locator.CurrentMutable.Register(() => new TesseraInputView(), typeof(IViewFor<TesseraAddViewModel>));
+            Locator.CurrentMutable.Register(() => new TesseraInputView(), typeof(IViewFor<TesseraDelViewModel>));
+            Locator.CurrentMutable.Register(() => new TesseraInputView(), typeof(IViewFor<TesseraUpdViewModel>));
 
             System.Diagnostics.Debug.WriteLine("***** [DLL-INIT] Soci Registrazioni Splat completate in modalità Lazy *****");
         }

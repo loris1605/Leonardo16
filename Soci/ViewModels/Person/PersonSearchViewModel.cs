@@ -102,12 +102,14 @@ namespace ViewModels
             {
                 Debug.WriteLine("Salvataggio annullato.");
                 _isClosing = false;
+                return;
             }
             catch (Exception ex)
             {
                 _isClosing = false;
                 InfoLabel = $"Errore: {ex.Message}";
                 await SetFocus(EscFocus);
+                return;
             }
             
         }
@@ -135,6 +137,7 @@ namespace ViewModels
 
                 if (DataSource == null || DataSource.Count == 0)
                 {
+                    _isClosing = false; // <--- AGGIUNGERE QUI
                     InfoLabel = "Nessuna persona trovata";
                     await SetFocus(CognomeFocus);
                     return;
@@ -145,6 +148,7 @@ namespace ViewModels
 
                 if (DataSource == null || DataSource.Count == 0)
                 {
+                    _isClosing = false; // <--- AGGIUNGERE QUI
                     InfoLabel = "Nessuna persona trovata";
                     await SetFocus(NomeFocus);
                     return;
@@ -164,6 +168,7 @@ namespace ViewModels
 
                 if (DataSource == null || DataSource.Count == 0)
                 {
+                    _isClosing = false; // <--- AGGIUNGERE QUI
                     InfoLabel = "Nessuna persona trovata";
                     await SetFocus(NomeFocus);
                     return;
@@ -186,15 +191,33 @@ namespace ViewModels
 
             if (DataSource == null || DataSource.Count == 0)
             {
+                _isClosing = false; // <--- AGGIUNGERE QUI
                 InfoLabel = "Nessuna persona trovata";
                 await SetFocus(CognomeFocus);
                 return;
             }
 
             //1.Caricamento iniziale dei dati(scegli la query più restrittiva per performance)
-            OnBackFiltered();
+            await OnBackFiltered();
 
 
+        }
+
+        protected async Task OnBackFiltered()
+        {
+            if (_host is not null)
+            {
+
+                if (_host.InputRouter.NavigationStack.Count == 0) return;
+
+                _isClosing = true;
+
+                await _host.InputRouter.NavigateBack.Execute();
+                _host.InputRouter.NavigationStack.Clear();
+                _host.AggiornaGridByObject(DataSource);
+                _host.GroupEnabled = true;
+
+            }
         }
 
         private void Estract(System.Func<PersonMap, bool> condition)
@@ -234,17 +257,7 @@ namespace ViewModels
             }
         }
 
-        private void OnBackFiltered()
-        {
-            if (_host is ISociScreen sociHost)
-            {
-                // Svuota completamente lo stack del router di input
-                sociHost.InputRouter.NavigateBack.Execute();
-                sociHost.InputRouter.NavigationStack.Clear();
-                sociHost.AggiornaGridByObject(DataSource);
-                sociHost.GroupEnabled = true;
-            }
-        }
+        
 
     }
 

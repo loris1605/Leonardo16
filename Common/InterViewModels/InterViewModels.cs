@@ -40,6 +40,7 @@ namespace Common.InterViewModels
         void SetIdRitorno(int id);
         IObservable<Unit> InputEsc { get; }
         IObservable<int> InputBack { get; }
+        
     }
 
     public interface IPersonGroupViewModel : IRoutableViewModel
@@ -50,7 +51,11 @@ namespace Common.InterViewModels
         IObservable<int> GroupToPersonUpd { get; }
         IObservable<int> GroupToCodiceSocioAdd { get; }
         IObservable<int> GroupToCodiceSocioDel { get; }
-        IObservable<int> GroupToCodiceSocioUpd { get; }
+        IObservable<(int id, int idRitorno)> GroupToCodiceSocioUpd { get; }
+        IObservable<Unit> GroupToPersonSearch { get; }
+        IObservable<(int id, int idRitorno)> GroupToTesseraAdd { get; }
+        IObservable<(int id, int idRitorno)> GroupToTesseraDel { get; }
+        IObservable<(int id, int idRitorno)> GroupToTesseraUpd { get; }
     }
 
     public interface IPersonAddViewModel : IRoutableViewModel, iSociCrudViewModel { }

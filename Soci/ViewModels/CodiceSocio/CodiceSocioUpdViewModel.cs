@@ -1,6 +1,5 @@
 ﻿using Common.InterViewModels;
 using DTO.Repository;
-using Splat;
 using System.Diagnostics;
 using ViewModels.BindableObjects;
 

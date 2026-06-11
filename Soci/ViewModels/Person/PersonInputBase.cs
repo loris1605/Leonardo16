@@ -1,4 +1,5 @@
 ﻿using Common.InterViewModels;
+using FluentIcons.Common.Internals;
 using ReactiveUI;
 using SysNet.Converters;
 using System.Reactive;
@@ -141,12 +142,11 @@ namespace ViewModels
                 _inputBack.OnNext(value); // Notifica l'esterno che Back è stato premuto con il valore specificato
 
                 await Task.CompletedTask;
-
                 
             }
         }
 
-
+        
     }
 
     public partial class PersonInputBase
@@ -179,6 +179,9 @@ namespace ViewModels
 
         private readonly Subject<int> _inputBack = new();
         public IObservable<int> InputBack => _inputBack.AsObservable();
+
+        private readonly Subject<List<PersonMap>> _inputBackFiltered = new();
+        public IObservable<List<PersonMap>> InputBackFiltered => _inputBackFiltered.AsObservable();
 
 
     }

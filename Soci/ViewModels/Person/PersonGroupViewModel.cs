@@ -84,7 +84,7 @@ namespace ViewModels
             DelTesseraCommand = ReactiveCommand.CreateFromTask(OnTesseraDeleting, canTesseraExists);
             UpdTesseraCommand = ReactiveCommand.CreateFromTask(OnTesseraUpdating, canTesseraExists);
 
-            PersonSearchCommand = ReactiveCommand.CreateFromTask(async () => await NavigateTo<IPersonSearchViewModel>());
+            PersonSearchCommand = ReactiveCommand.CreateFromTask(OnPersonSerach);
 
 
             this.WhenActivated(d =>
@@ -267,6 +267,12 @@ namespace ViewModels
             await Task.CompletedTask;
         }
 
+        private async Task OnPersonSerach()
+        {
+            _groupToPersonSearch.OnNext(Unit.Default);
+            await Task.CompletedTask;
+        }   
+
         protected async Task OnCodiceSocioAdding()
         {
             _groupToCodiceSocioAdd.OnNext(GroupBindingT.Id);
@@ -278,34 +284,30 @@ namespace ViewModels
             _groupToCodiceSocioDel.OnNext(GroupBindingT.CodiceSocio);
             await Task.CompletedTask;
         }
-        
-        protected async Task OnCodiceSocioUpdating() =>
-            await NavigateTo<ICodiceSocioUpdViewModel>(vm =>
-            {
-                vm.SetIdDaModificare(GroupBindingT.CodiceSocio);
-                vm.SetIdRitorno(GroupBindingT.Id);
-            });
 
-        protected async Task OnTesseraAdding() =>
-            await NavigateTo<ITesseraAddViewModel>(vm =>
-            {
-                vm.SetIdDaModificare(GroupBindingT.CodiceSocio);
-                vm.SetIdRitorno(GroupBindingT.Id);
-            });
+        protected async Task OnCodiceSocioUpdating()
+        {
+            _groupToCodiceSocioUpd.OnNext((GroupBindingT.CodiceSocio, GroupBindingT.Id));
+            await Task.CompletedTask;
+        }
 
-        protected async Task OnTesseraDeleting() =>
-            await NavigateTo<ITesseraDelViewModel>(vm =>
-            {
-                vm.SetIdDaModificare(GroupBindingT.CodiceTessera);
-                vm.SetIdRitorno(GroupBindingT.Id);
-            });
+        protected async Task OnTesseraAdding()
+        {
+            _groupToTesseraAdd.OnNext((GroupBindingT.CodiceSocio, GroupBindingT.Id));
+            await Task.CompletedTask;
+        }
 
-        protected async Task OnTesseraUpdating() =>
-            await NavigateTo<ITesseraUpdViewModel>(vm =>
-            {
-                vm.SetIdDaModificare(GroupBindingT.CodiceTessera);
-                vm.SetIdRitorno(GroupBindingT.Id);
-            });
+        protected async Task OnTesseraDeleting()
+        {
+            _groupToTesseraDel.OnNext((GroupBindingT.CodiceTessera, GroupBindingT.Id));
+            await Task.CompletedTask;
+        }
+
+        protected async Task OnTesseraUpdating()
+        {
+            _groupToTesseraUpd.OnNext((GroupBindingT.CodiceTessera, GroupBindingT.Id));
+            await Task.CompletedTask;
+        }
 
         protected override Task OnEsc() => Task.CompletedTask;
         
@@ -329,13 +331,25 @@ namespace ViewModels
         private readonly Subject<int> _groupToPersonUpd = new();
         public IObservable<int> GroupToPersonUpd => _groupToPersonUpd.AsObservable();
 
+        private readonly Subject<Unit> _groupToPersonSearch = new();
+        public IObservable<Unit> GroupToPersonSearch => _groupToPersonSearch.AsObservable();
+
         private readonly Subject<int> _groupToCodiceSocioAdd = new();
         public IObservable<int> GroupToCodiceSocioAdd => _groupToCodiceSocioAdd.AsObservable();
 
         private readonly Subject<int> _groupToCodiceSocioDel = new();
         public IObservable<int> GroupToCodiceSocioDel => _groupToCodiceSocioDel.AsObservable();
 
-        private readonly Subject<int> _groupToCodiceSocioUpd = new();
-        public IObservable<int> GroupToCodiceSocioUpd => _groupToCodiceSocioUpd.AsObservable();
+        private readonly Subject<(int id, int idRitorno)> _groupToCodiceSocioUpd = new();
+        public IObservable<(int id, int idRitorno)> GroupToCodiceSocioUpd => _groupToCodiceSocioUpd.AsObservable();
+
+        private readonly Subject<(int id, int idRitorno)> _groupToTesseraAdd = new();
+        public IObservable<(int id, int idRitorno)> GroupToTesseraAdd => _groupToTesseraAdd.AsObservable();
+
+        private readonly Subject<(int id, int idRitorno)> _groupToTesseraDel = new();
+        public IObservable<(int id, int idRitorno)> GroupToTesseraDel => _groupToTesseraDel.AsObservable();
+
+        private readonly Subject<(int id, int idRitorno)> _groupToTesseraUpd = new();
+        public IObservable<(int id, int idRitorno)> GroupToTesseraUpd => _groupToTesseraUpd.AsObservable();
     }
 }

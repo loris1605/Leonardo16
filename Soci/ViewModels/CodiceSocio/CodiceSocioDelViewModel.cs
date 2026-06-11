@@ -9,10 +9,10 @@ namespace ViewModels
     {
         private IPersonRepository Q;
         
-        public CodiceSocioDelViewModel(IPersonRepository Repository = null) : base()
+        public CodiceSocioDelViewModel(IPersonRepository Repository) : base()
         {
            FieldsVisibile = false;
-            FieldsEnabled = false;
+           FieldsEnabled = false;
 
             Q = Repository ?? throw new ArgumentNullException(nameof(Repository));
             
@@ -70,15 +70,16 @@ namespace ViewModels
             {
                 Debug.WriteLine("Salvataggio annullato.");
                 _isClosing = false;
+                return;
             }
             catch (Exception ex)
             {
                 _isClosing = false;
                 InfoLabel = $"Errore: {ex.Message}";
                 await SetFocus(EscFocus);
+                return;
             }
-
-            
+      
             
             await OnBack(_idRitorno);
         }
