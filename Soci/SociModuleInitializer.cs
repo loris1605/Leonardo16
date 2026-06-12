@@ -2,6 +2,7 @@
 using DTO.Repository;
 using Models.Context;
 using ReactiveUI;
+using Soci.Interfaces;
 using Splat;
 using ViewModels;
 using Views;

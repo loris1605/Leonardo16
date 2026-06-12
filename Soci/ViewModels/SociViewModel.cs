@@ -1,8 +1,7 @@
 ﻿using Common.InterViewModels;
-using Models.Tables;
 using ReactiveUI;
+using Soci.Interfaces;
 using Splat;
-using System;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Concurrency;
