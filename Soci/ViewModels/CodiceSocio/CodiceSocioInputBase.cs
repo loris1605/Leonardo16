@@ -1,8 +1,6 @@
-﻿using Common.InterViewModels;
-using ReactiveUI;
-using System.Diagnostics;
+﻿using ReactiveUI;
+using Soci.Interfaces.ViewModels;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ViewModels.BindableObjects;

@@ -1,16 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+
+using Microsoft.EntityFrameworkCore;
+using Models.Context;
 using Models.Tables;
+using Soci.Interfaces.Core;
 
-namespace Models.Context
+namespace Soci.Models.Context
 {
-    public interface IPeopleDbContext
-    {
-        DbSet<Person> People { get; set; }
-        DbSet<Socio> Soci { get; set; }
-        DbSet<Tessera> Tessere { get; set; }
-
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    }
+    
 
     public class PeopleDbContext : BaseContext, IPeopleDbContext
     {

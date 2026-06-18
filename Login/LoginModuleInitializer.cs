@@ -1,4 +1,4 @@
-﻿using Common.InterViewModels;
+﻿using Contracts.ViewModels;
 using DTO.Repository;
 using Models.Context;
 using ReactiveUI;
@@ -35,7 +35,6 @@ namespace Login
             }, typeof(ILoginViewModel));
 
             // Registriamo la View associata all'interfaccia e alla classe concreta per il Router
-            Locator.CurrentMutable.Register(() => new LoginView(), typeof(IViewFor<ILoginViewModel>));
             Locator.CurrentMutable.Register(() => new LoginView(), typeof(IViewFor<LoginViewModel>));
 
             System.Diagnostics.Debug.WriteLine("***** [DLL-INIT] Login Registrazioni Splat completate in modalità Lazy *****");

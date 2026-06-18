@@ -2,7 +2,7 @@
 using ReactiveUI;
 using System.Reactive;
 
-namespace Soci.Interfaces
+namespace Soci.Interfaces.ViewModels
 {
     public interface IPersonGroupViewModel : IRoutableViewModel
     {

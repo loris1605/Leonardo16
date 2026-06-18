@@ -1,6 +1,5 @@
-﻿using Common.InterViewModels;
-using FluentIcons.Common.Internals;
-using ReactiveUI;
+﻿using ReactiveUI;
+using Soci.Interfaces.ViewModels;
 using SysNet.Converters;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;

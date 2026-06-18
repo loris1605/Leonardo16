@@ -1,4 +1,5 @@
 ﻿using Common.InterViewModels;
+using Contracts.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Models.Context;
 using ReactiveUI;

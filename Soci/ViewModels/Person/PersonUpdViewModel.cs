@@ -1,5 +1,5 @@
-﻿using Common.InterViewModels;
-using DTO.Repository;
+﻿using Soci.Interfaces.Core;
+using Soci.Interfaces.ViewModels;
 
 namespace ViewModels
 {

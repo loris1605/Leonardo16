@@ -1,8 +1,9 @@
-﻿using Common.InterViewModels;
+﻿using Contracts.ViewModels;
 using DTO.Repository;
-using Models.Context;
 using ReactiveUI;
-using Soci.Interfaces;
+using Soci.Interfaces.Core;
+using Soci.Interfaces.ViewModels;
+using Soci.Models.Context;
 using Splat;
 using ViewModels;
 using Views;

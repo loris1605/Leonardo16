@@ -1,8 +1,9 @@
-﻿using Models.Interfaces;
+﻿using DTO.Entity;
+using Models.Interfaces;
 using Models.Tables;
 using SysNet.Converters;
 
-namespace DTO.Entity
+namespace Soci.DTO.Entity
 {
     public class PersonDTO : BaseDTO, IMap, IMappable<Person>
     {

@@ -1,7 +1,7 @@
-﻿using Common.InterViewModels;
-using DTO.Entity;
-using DTO.Repository;
-using ReactiveUI;
+﻿using ReactiveUI;
+using Soci.DTO.Entity;
+using Soci.Interfaces.Core;
+using Soci.Interfaces.ViewModels;
 using System.Diagnostics;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;

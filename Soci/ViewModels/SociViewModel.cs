@@ -1,6 +1,6 @@
-﻿using Common.InterViewModels;
+﻿using Contracts.ViewModels;
 using ReactiveUI;
-using Soci.Interfaces;
+using Soci.Interfaces.ViewModels;
 using Splat;
 using System.Diagnostics;
 using System.Reactive;
@@ -302,6 +302,32 @@ namespace ViewModels
                     await GoToInput(Locator.Current.GetService<ICodiceSocioUpdViewModel>(), dati.id, dati.idRitorno);
                 }).DisposeWith(disposables);
 
+            personVM.GroupToTesseraAdd
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async dati =>
+                {
+                    // Quando riceviamo il segnale di richiesta Add da parte del gruppo, navighiamo alla schermata di input
+                    GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                    await GoToInput(Locator.Current.GetService<ITesseraAddViewModel>(), dati.id, dati.idRitorno);
+                }).DisposeWith(disposables);
+                
+            personVM.GroupToTesseraDel
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async dati =>
+                {
+                    // Quando riceviamo il segnale di richiesta Del da parte del gruppo, navighiamo alla schermata di input
+                    GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                    await GoToInput(Locator.Current.GetService<ITesseraDelViewModel>(), dati.id, dati.idRitorno);
+                }).DisposeWith(disposables);
+
+            personVM.GroupToTesseraUpd
+                .ObserveOn(RxSchedulers.MainThreadScheduler)
+                .Subscribe(async dati =>
+                {
+                    // Quando riceviamo il segnale di richiesta Upd da parte del gruppo, navighiamo alla schermata di input
+                    GroupEnabled = false; // Disabilitiamo il gruppo per evitare navigazioni multiple
+                    await GoToInput(Locator.Current.GetService<ITesseraUpdViewModel>(), dati.id, dati.idRitorno);
+                }).DisposeWith(disposables);
 
             await Task.CompletedTask;
         }

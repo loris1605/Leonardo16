@@ -1,9 +1,8 @@
 ﻿using Avalonia.Collections;
-using Common.InterViewModels;
-using DTO.Entity;
-using DTO.Repository;
 using ReactiveUI;
-using Soci.Interfaces;
+using Soci.DTO.Entity;
+using Soci.Interfaces.Core;
+using Soci.Interfaces.ViewModels;
 using Splat;
 using System.Diagnostics;
 using System.Reactive;

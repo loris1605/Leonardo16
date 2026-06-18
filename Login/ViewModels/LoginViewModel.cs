@@ -1,4 +1,4 @@
-﻿using Common.InterViewModels;
+﻿using Contracts.ViewModels;
 using DTO.Repository;
 using ReactiveUI;
 using System.Diagnostics;

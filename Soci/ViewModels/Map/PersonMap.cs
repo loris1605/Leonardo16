@@ -1,5 +1,6 @@
 ﻿using DTO.Entity;
 using ReactiveUI;
+using Soci.DTO.Entity;
 using SysNet.Converters;
 
 namespace ViewModels.BindableObjects

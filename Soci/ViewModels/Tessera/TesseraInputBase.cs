@@ -1,5 +1,5 @@
-﻿using Common.InterViewModels;
-using ReactiveUI;
+﻿using ReactiveUI;
+using Soci.Interfaces.ViewModels;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
